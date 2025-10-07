@@ -1,56 +1,51 @@
-# Welcome to your Expo app 👋
+# Bem-vindo ao aplicativo Expo 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Este é um projeto [Expo](https://expo.dev) criado com o comando [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## Primeiros Passos
 
-1. Enter project
+Siga os passos abaixo para configurar e iniciar o aplicativo mobile em seu ambiente de desenvolvimento:
+
+1. Acesse o projeto:
 
    ```bash
    cd mobile
    ```
 
-2. Install dependencies
+2. Instale as dependências:
 
    ```bash
    npm install
    ```
 
-3. Start the app
+3. Inicie o aplicativo:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+Ao executar o comando, você verá um código QR e diversas opções para abrir o aplicativo:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Development build (Compilação de Desenvolvimento)](https://docs.expo.dev/develop/development-builds/introduction/): Uma versão pré-construída com todas as suas dependências nativas.
+- [Android (Emulador Android)](https://docs.expo.dev/workflow/android-studio-emulator/): Abre o app em um emulador Android.
+- [iOS simulator (Simulador iOS)](https://docs.expo.dev/workflow/ios-simulator/): Abre o app em um simulador iOS (requer macOS).
+- [Expo Go](https://expo.dev/go): Uma "caixa de areia" (sandbox) limitada para desenvolvimento rápido com Expo.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Você pode começar a desenvolver editando os arquivos dentro do diretório **app**. Este projeto utiliza o [roteamento baseado em arquivo](https://docs.expo.dev/router/introduction) (File-based routing) do Expo Router.
 
-## Get a fresh project
+## Reiniciando o Projeto do Zero
 
-When you're ready, run:
+Quando estiver pronto para limpar o código inicial e começar um novo desenvolvimento:
 
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Este comando moverá o código inicial (starter code) para um diretório chamado app-example e criará um diretório app vazio, onde você pode começar seu desenvolvimento limpo.
 
-## Learn more
+## Saiba Mais
 
-To learn more about developing your project with Expo, look at the following resources:
+Para aprender mais sobre como desenvolver seu projeto com o Expo, consulte os seguintes recursos:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo documentation](https://docs.expo.dev/): Aprenda os fundamentos ou explore tópicos avançados com nossos [guias](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Siga um tutorial passo a passo para criar um projeto que roda em Android, iOS e web.
