@@ -67,20 +67,17 @@ const cores = {
     },
 };
 
-<<<<<<< HEAD
+
 const opacity = (hexColor: string, opacityPercent: number) => {
     const opacityHex = Math.round((opacityPercent / 100) * 255).toString(16).padStart(2, '0');
     return hexColor + opacityHex;
 }
 
-=======
->>>>>>> 9f84cd6 (:sparkles: feat(const): arquivos de constantes)
 export default {
     cores,
     primaria: cores.primaria[100],
     primariaHover: cores.primaria[90],
     primariaActive: cores.primaria[80],
-<<<<<<< HEAD
 
     secundariaHover: cores.secundaria[90],
     secundariaActive: cores.secundaria[80],
@@ -101,17 +98,5 @@ export default {
     fundo: cores.base[0],
     placeholder: cores.base[60],
     sublinhado: cores.secundaria[30], 
-    borda: opacity(cores.base[100], 50),
-=======
-    secundariaHover: cores.secundaria[90],
-    secundariaActive: cores.secundaria[80],
-    secundaria: cores.secundaria[100],
-    perigo: cores.complementarNegativa[100],
-    alerta: cores.primaria[100],
-    sucesso: cores.complementarPositiva[100],    
-    texto: cores.base[100],
-    fundo: cores.base[0],
-    placeholder: cores.base[60],
-    sublinhado: cores.secundaria[30],    
->>>>>>> 9f84cd6 (:sparkles: feat(const): arquivos de constantes)
+    borda: opacity(cores.base[100], 50),        
 };

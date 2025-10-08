@@ -6,13 +6,11 @@ export default {
     gg: 34,
     xg: 42,
   },
+  
   family: {
     display: 'Wix Madefor Display',
-<<<<<<< HEAD
     sans: 'System',         // ou 'Roboto' se usar fonte custom
-=======
     body: 'System', // 'Roboto-Regular'
->>>>>>> 9f84cd6 (:sparkles: feat(const): arquivos de constantes)
     heading: 'System-Bold', // ou 'Roboto-Bold'
   },
 };
