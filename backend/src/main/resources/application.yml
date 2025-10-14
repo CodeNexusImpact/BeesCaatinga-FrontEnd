@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: BeesCaatinga
+  datasource:
+    url: jdbc:postgresql://localhost:5432/beescaatinga-db
+    username: postgres
+    password: '0000'
