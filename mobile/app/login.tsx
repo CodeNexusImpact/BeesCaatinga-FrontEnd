@@ -13,9 +13,8 @@ export default function Index() {
       }}
     >
       <Text>Edit app/index.tsx to edit this screen.</Text>
-      <Input iconName= "home" label="Username" placeholder="Enter your username" />
-      <Input
-        label="Password"></Input>
+      <Input iconName= "user" placeholder="Enter your username" />
+      <Input iconName="lock" placeholder="Enter your password" secureTextEntry={true}></Input>
       <Icon name={'home'} />
     </View>
   );

@@ -20,11 +20,14 @@ export const AppIcons: Record<string, IoniconsName> = {
   
   // --- Autenticação e Feedback ---
   // Geralmente usados no processo de login/cadastro ou alertas
+  user: "person",
   lock: 'lock-closed-outline',
   email: 'mail-outline',
   success: 'checkmark-circle', // Ícone preenchido para feedback forte
   warning: 'alert-circle',
   error: 'close-circle',
+  olho: 'eye',
+  olhoFechado: 'eye-off',
   
   // --- Outros ---
   back: 'chevron-back',
