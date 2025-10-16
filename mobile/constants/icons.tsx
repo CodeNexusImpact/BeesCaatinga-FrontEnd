@@ -2,38 +2,42 @@
 //fonte dos icons: https://icons.expo.fyi/Index
 
 import { ComponentProps } from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-type IoniconsName = ComponentProps<typeof Ionicons>['name'];
+type MaterialCommunityIconsName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-export const AppIcons: Record<string, IoniconsName> = {
+export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   // --- Navegação Principal (TabBar/Drawer) ---
   home: 'home-outline',
-  profile: 'person-circle-outline',
-  settings: 'settings-outline',
+  profile: 'account-circle',
+  settings: 'cog',
   
   // --- Ações Comuns ---
-  add: 'add-circle-outline',
-  edit: 'create-outline',
-  delete: 'trash-outline',
-  search: 'search-outline',
+  add: 'plus-circle',
+  edit: 'pencil',
+  delete: 'trash-can-outline',
+  lupa: 'magnify',
+  lupaMais: 'magnify-plus',
+  lupaMenos: 'magnify-minus',
+  lupaFechar: 'magnify-close',
   
   // --- Autenticação e Feedback ---
   // Geralmente usados no processo de login/cadastro ou alertas
-  user: "person",
-  lock: 'lock-closed-outline',
-  email: 'mail-outline',
-  success: 'checkmark-circle', // Ícone preenchido para feedback forte
+  user: "account",
+  lock: 'lock',
+  open: 'lock-open',
+  email: 'email-outline',
+  success: 'check-circle-outline', // Ícone preenchido para feedback forte
   warning: 'alert-circle',
   error: 'close-circle',
   olho: 'eye',
   olhoFechado: 'eye-off',
   
   // --- Outros ---
-  back: 'chevron-back',
-  forward: 'chevron-forward',
-  share: 'share-social-outline',
-  info: 'information-circle-outline',
+  back: 'arrow-left-bottom',
+  forward: 'arrow-top-right',
+  share: 'share',
+  info: 'information',
   calendar: 'calendar-outline',
 } as const;
 
