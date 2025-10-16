@@ -1,4 +1,5 @@
 // src/constants/Icons.ts
+//fonte dos icons: https://icons.expo.fyi/Index
 
 import { ComponentProps } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';

@@ -1,4 +1,5 @@
 import Icon from "@/components/icon";
+import Input from "@/components/input";
 import { Text, View } from "react-native";
 
 export default function Index() {
@@ -8,10 +9,14 @@ export default function Index() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        margin: 20,
       }}
     >
       <Text>Edit app/index.tsx to edit this screen.</Text>
-      <Icon name={'warning'} />
+      <Input iconName= "home" label="Username" placeholder="Enter your username" />
+      <Input
+        label="Password"></Input>
+      <Icon name={'home'} />
     </View>
   );
 }
