@@ -1,27 +1,36 @@
 import Botao from "@/components/botao";
 import Input from "@/components/input";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, useNavigation } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
+import { useEffect } from "react";
+import cores from "@/constants/cores";
+import layout from "@/constants/layout";
 
 
+function Index() {
 
-function Index() { 
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   return (
-    <View>
-      <View>
+    <View style={{ display: "flex", height: "100%" }}>
+      <View style={{ backgroundColor: cores.primaria, alignItems: "center" }}>
         <Image
-        style={styles.image}
-        source= {require("../assets/images/LogoBeesCaatinga.png")}
-      />
+          style={styles.image}
+          source={require("../assets/images/LogoBeesCaatinga.png")}
+        />
       </View>
       <View
         style={{
-          flex: 1,
+          display: "flex",
+          padding: layout.espacamento.colega,
           justifyContent: "flex-start",
           alignItems: "center",
-          margin: 20,
+          height: "100%",
         }}
       >
         <Text style={styles.textoTitulo} >Faça seu Login</Text>

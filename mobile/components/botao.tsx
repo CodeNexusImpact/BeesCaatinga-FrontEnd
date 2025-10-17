@@ -1,17 +1,20 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, GestureResponderEvent } from 'react-native';
 import Icon from './icon';
+import cores from '@/constants/cores';
 
 interface BotaoProps {
     title: string;
     onPress: (event: GestureResponderEvent) => void;
     style?: object;
     textStyle?: object;
+    cor?: "primary" | "secondary";
 }
 
-const Botao: React.FC<BotaoProps> = ({ title, onPress, style, textStyle }) => {
+const Botao: React.FC<BotaoProps> = ({ title, onPress, style, textStyle, cor = "primary"}) => {
+    const corHex = cor === "primary" ? cores.primaria : cor === "secondary" ? cores.secundaria : '#fff';
     return (
-        <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+        <TouchableOpacity style={[styles.button, style,{backgroundColor: corHex}]} onPress={onPress}>
             <Text style={[styles.text, textStyle]}>{title}</Text>
             <Icon name="forward" size={20} color="#FFF" />
         </TouchableOpacity>
