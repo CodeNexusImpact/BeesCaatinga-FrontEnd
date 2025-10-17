@@ -1,22 +1,21 @@
 import Botao from "@/components/botao";
 import Input from "@/components/input";
 import { Image } from "expo-image";
-import { Link, useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
-import { useEffect } from "react";
 import cores from "@/constants/cores";
 import layout from "@/constants/layout";
-import { useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
+import { useEffect } from "react";
 
-
-function Index() {
-
+function RedefinirSenha() {
+  
   const router = useRouter();
-
   const navigation = useNavigation();
+
   useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
+      navigation.setOptions({ headerShown: false });
+    }, [navigation]);
 
   return (
     <View style={{ display: "flex", height: "100%" }}>
@@ -33,22 +32,19 @@ function Index() {
           justifyContent: "flex-start",
           alignItems: "center",
           height: "100%",
+          
         }}
       >
-        <Text style={styles.textoTitulo} >Faça seu Login</Text>
-        <Input iconName="user" placeholder="Enter your username" />
-        <Input iconName="lock" placeholder="Enter your password" secureTextEntry={true}></Input>
-        <Link href="/redefinirSenha" style={{ alignSelf: "flex-end", marginBottom: 20 }}>
-          <Text style={{ color: "blue" }}>Esqueceu a senha?</Text>
-        </Link>
-        <Botao title="Entrar" onPress={() => alert("Button pressed!")} />
-        <Text style={styles.textoSimples} >Ou</Text>
+        <Text style={styles.textoTitulo}>Recuperar Senha</Text> 
+        <Input iconName="lock" placeholder="Digite sua senha" secureTextEntry={true} />
+        <Input iconName="lock" placeholder="Confirme sua senha" secureTextEntry={true} />
+        
         <Botao 
-          title="Cadastra" onPress={() => { alert("Cadastro realizado!"); 
-          router.push('/cadastro');
+          title="Recuperar Senha" onPress={() => { alert("Senha redefinida com Sucesso!"); 
+          router.push('/login');
           }} 
         />
-        <Botao title="Cadastra com o Google" onPress={() => alert("Button pressed!")} />
+        
       </View>
     </View>
   );
@@ -72,7 +68,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignSelf: 'center',
   },
+
 });
 
-
-export default Index;
+export default RedefinirSenha;

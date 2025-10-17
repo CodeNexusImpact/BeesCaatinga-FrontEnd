@@ -32,6 +32,8 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   error: 'close-circle',
   olho: 'eye',
   olhoFechado: 'eye-off',
+  phone: 'phone',
+  human: 'human-male-female',
   
   // --- Outros ---
   back: 'arrow-left-bottom',
@@ -39,6 +41,9 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   share: 'share',
   info: 'information',
   calendar: 'calendar-outline',
+  chevronDown: 'chevron-down',
+  chevronUp: 'chevron-up',
+
 } as const;
 
 /**
