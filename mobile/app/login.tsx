@@ -6,12 +6,14 @@ import { Text, View, StyleSheet } from "react-native";
 import { useEffect } from "react";
 import cores from "@/constants/cores";
 import { styles as formStyle } from "@/styles/forms.styles";
+import { useRouter } from "expo-router";
 
 
 function Login() {
 
-  const navigation = useNavigation();
+  const router = useRouter();
 
+  const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -30,12 +32,16 @@ function Login() {
         <Text style={styles.textoTitulo} >Faça seu Login</Text>
         <Input iconName="user" placeholder="Enter your username" />
         <Input iconName="lock" placeholder="Enter your password" secureTextEntry={true}></Input>
-        <Link href="/login" style={{ alignSelf: "flex-end", marginBottom: 20 }}>
+        <Link href="/redefinirSenha" style={{ alignSelf: "flex-end", marginBottom: 20 }}>
           <Text style={{ color: "blue" }}>Esqueceu a senha?</Text>
         </Link>
         <Botao title="Entrar" onPress={() => alert("Button pressed!")} iconName="forward" />
         <Text style={styles.textoSimples} >Ou</Text>
-        <Botao title="Cadastra" cor="secundaria" onPress={() => alert("Button pressed!")} />
+        <Botao 
+          title="Cadastra" cor="secundaria" onPress={() => { alert("Cadastro realizado!"); 
+          router.push('/cadastro');
+          }} 
+        />
         <Botao title="Cadastra com o Google" cor="branca" onPress={() => alert("Button pressed!")} />
       </View>
     </View>
