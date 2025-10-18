@@ -25,6 +25,7 @@ public record ProdutorDTO(
         @NotNull(message = "Campo data de nascimento é obrigatório")
         @Past(message = "Data de nascimento deve ser uma data passada")
         @JsonFormat(pattern = "dd/MM/yyyy")
-        LocalDate dataDeNascimento
+        LocalDate dataDeNascimento,
+        String endereco
 ) {
 }

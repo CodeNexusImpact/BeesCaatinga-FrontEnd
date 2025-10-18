@@ -28,4 +28,5 @@ public class Produtor{
     @JsonFormat(pattern = "dd/MM/yyyy")
     @Column(name = "data_de_nascimento")
     private LocalDate dataDeNascimento;
+    private String endereco;
 }

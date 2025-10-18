@@ -44,9 +44,11 @@ public class ProdutorService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
 
         produtor.setNomeCompleto(dto.nomeCompleto());
-        produtor.setNomeDoApiario(dto.nomeDoApiario());
+        produtor.setGenero(dto.genero());
+        produtor.setEmail(dto.email());
         produtor.setNomeDaEmpresa(dto.nomeDaEmpresa());
         produtor.setTelefone(dto.telefone());
+        produtor.setEndereco(dto.endereco());
 
         repository.save(produtor);
         return mapper.toDTO(produtor);

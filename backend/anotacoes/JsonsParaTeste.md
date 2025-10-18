@@ -9,7 +9,8 @@
   "nomeDaEmpresa": "Mel da Caatinga LTDA",
   "telefone": "(11) 99999-9999",
   "genero": "MASCULINO",
-  "dataDeNascimento": "15/05/1985"
+  "dataDeNascimento": "15/05/1985",
+  "endereco": "Rua Exemplo, nº 215"
 }
 ````
 
