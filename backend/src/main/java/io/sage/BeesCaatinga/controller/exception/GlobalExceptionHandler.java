@@ -1,5 +1,6 @@
 package io.sage.BeesCaatinga.controller.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -40,6 +41,30 @@ public class GlobalExceptionHandler {
                 fieldErrors
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String message = "Violação de integridade de dados";
+
+        // Analisa a mensagem de erro para ser mais específico
+        String errorMessage = ex.getMessage();
+
+        if (errorMessage.contains("numero_registro")) {
+            message = "Número de registro já existe";
+        } else if (errorMessage.contains("email")) {
+            message = "Email já cadastrado";
+        } else if (errorMessage.contains("uk_") || errorMessage.contains("unique")) {
+            message = "Dados duplicados não permitidos";
+        }
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Conflito",
+                message,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     public static class FieldValidationError {
