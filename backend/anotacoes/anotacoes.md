@@ -1,5 +1,5 @@
 # Desenvolvimento:
-* DTO, MAPPER, SERVICE, CONTROLLER:
+* SERVICE e CONTROLLER:
   - Apiário
   - Colméia
 * Quando adicionar segurança, lembrar de criptografar senha no service de produtor antes de mandar para o banco de dados
@@ -15,4 +15,3 @@
 ## Colméia x Apiário
 ![img.png](imagens/img.png)
 ![img.png](imagens/img2.png)
-
