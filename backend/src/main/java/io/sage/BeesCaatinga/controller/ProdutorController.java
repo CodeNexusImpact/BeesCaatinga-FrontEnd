@@ -1,7 +1,11 @@
 package io.sage.BeesCaatinga.controller;
 
+import io.sage.BeesCaatinga.controller.dto.ApiarioSimplificadoDTO;
+import io.sage.BeesCaatinga.controller.dto.ColmeiaSimplificadaDTO;
 import io.sage.BeesCaatinga.controller.dto.ProdutorDTO;
 import io.sage.BeesCaatinga.controller.dto.ProdutorSimplificadoDTO;
+import io.sage.BeesCaatinga.service.ApiarioService;
+import io.sage.BeesCaatinga.service.ColmeiaService;
 import io.sage.BeesCaatinga.service.ProdutorService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -18,6 +22,8 @@ import java.util.List;
 public class ProdutorController {
 
     private final ProdutorService service;
+    private final ApiarioService apiarioService;
+    private final ColmeiaService colmeiaService;
 
     @PostMapping
     @Transactional
@@ -51,6 +57,18 @@ public class ProdutorController {
     public ResponseEntity<Void> deletar(@PathVariable Long id){
         service.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/apiario")
+    @Transactional
+    public ResponseEntity<ApiarioSimplificadoDTO> cadastrarApiario(){
+        // criar apiario a partir de um produtor, assim já atrelamos um ao outro
+    }
+
+    @PostMapping("/{id}/colmeia")
+    @Transactional
+    public ResponseEntity<ColmeiaSimplificadaDTO> cadastrarColmeia(){
+        // criar colmeia a partir de um produtor, atrelar ao apiário do produtor
     }
 
 }
