@@ -27,8 +27,9 @@ public class Apiario {
     private String cidade;
     private String bairro;
     private String rua;
-    private Integer numero;
+    private String numero;
     private String complemento;
+    private String observacoes;
     @OneToMany(mappedBy = "apiario", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Colmeia> colmeias = new ArrayList<>();
 }

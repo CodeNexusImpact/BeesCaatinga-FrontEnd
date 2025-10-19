@@ -1,5 +1,5 @@
 # Desenvolvimento:
-* SERVICE e CONTROLLER:
+* CONTROLLER:
   - Apiário
   - Colméia
 * Quando adicionar segurança, lembrar de criptografar senha no service de produtor antes de mandar para o banco de dados

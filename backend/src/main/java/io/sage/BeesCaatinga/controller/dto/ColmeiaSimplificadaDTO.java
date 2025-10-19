@@ -4,6 +4,7 @@ import io.sage.BeesCaatinga.model.enums.StatusColmeia;
 
 public record ColmeiaSimplificadaDTO(
         String identificador,
-        StatusColmeia situacao
+        StatusColmeia situacao,
+        ApiarioSimplificadoDTO apiario
 ) {
 }

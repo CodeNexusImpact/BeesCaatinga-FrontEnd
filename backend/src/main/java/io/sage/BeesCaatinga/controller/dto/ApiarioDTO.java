@@ -24,7 +24,8 @@ public record ApiarioDTO(
         String bairro,
         @NotBlank(message = "Campo Rua é obrigatório!")
         String rua,
-        Integer numero,
-        String complemento
+        String numero,
+        String complemento,
+        String observacoes
 ) {
 }

@@ -11,5 +11,5 @@ public interface ApiarioMapper {
     @Mapping(target = "id", ignore = true)
     Apiario toEntity(ApiarioDTO dto);
     ApiarioDTO toDTO(Apiario entidade);
-    ApiarioSimplificadoDTO toSimplificadaDTO(Apiario entidade);
+    ApiarioSimplificadoDTO toSimplificadoDTO(Apiario entidade);
 }
