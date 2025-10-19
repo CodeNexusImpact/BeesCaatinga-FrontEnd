@@ -7,6 +7,7 @@ import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
+import io.sage.BeesCaatinga.repository.ProdutorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +19,12 @@ import java.util.List;
 public class ApiarioService {
 
     private final ApiarioRepository repository;
+    private final ProdutorRepository produtorRepository;
     private final ApiarioMapper mapper;
     private final ColmeiaMapper colmeiaMapper;
 
     public ApiarioSimplificadoDTO salvar(ApiarioDTO dto){
-        var apiario = mapper.toEntity(dto);
+        var apiario = mapper.toEntity(dto, produtorRepository);
         if (apiario.getNumero() == null) apiario.setNumero("0");
         if (apiario.getDataDeCriacao() == null) apiario.setDataDeCriacao(LocalDate.now());
         repository.save(apiario);

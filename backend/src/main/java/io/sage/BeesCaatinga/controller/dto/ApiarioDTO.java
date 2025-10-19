@@ -26,6 +26,8 @@ public record ApiarioDTO(
         String rua,
         String numero,
         String complemento,
-        String observacoes
+        String observacoes,
+        @NotBlank(message = "Campo produtor_id é obrigatório!")
+        Long produtor_id
 ) {
 }
