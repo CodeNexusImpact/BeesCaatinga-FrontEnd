@@ -2,6 +2,7 @@ package io.sage.BeesCaatinga.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.sage.BeesCaatinga.model.enums.Genero;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -14,8 +15,8 @@ public record ProdutorDTO(
         String senha,
         @NotBlank(message = "Campo nome completo é obrigatório!")
         String nomeCompleto,
-        @NotBlank(message = "Campo nome do apiário é obrigatório!")
-        String nomeDoApiario,
+//        @NotBlank(message = "Campo nome do apiário é obrigatório!")
+//        String nomeDoApiario,
         String nomeDaEmpresa,
         @NotBlank(message = "Campo número do telefone é obrigatório!")
         @Size(min = 10, max = 15, message = "Telefone deve ter entre 10 e 15 caracteres")
@@ -26,6 +27,9 @@ public record ProdutorDTO(
         @Past(message = "Data de nascimento deve ser uma data passada")
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataDeNascimento,
-        String endereco
+        String endereco,
+        @NotNull(message = "Dados do apiário são obrigatórios")
+        @Valid
+        ApiarioParaProdutorDTO nomeApiario
 ) {
 }

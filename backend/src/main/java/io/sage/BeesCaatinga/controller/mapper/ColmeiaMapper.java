@@ -24,5 +24,4 @@ public interface ColmeiaMapper {
         return apiarioRepository.findById(apiario_id)
                 .orElseThrow(() -> new EntityNotFoundException("Apiário não encontrado."));
     }
-
 }

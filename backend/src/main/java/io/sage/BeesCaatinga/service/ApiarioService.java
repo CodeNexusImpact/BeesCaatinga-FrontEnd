@@ -7,7 +7,6 @@ import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
-import io.sage.BeesCaatinga.repository.ColmeiaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,6 @@ import java.util.List;
 public class ApiarioService {
 
     private final ApiarioRepository repository;
-    private final ColmeiaRepository colmeiaRepository;
     private final ApiarioMapper mapper;
     private final ColmeiaMapper colmeiaMapper;
 

@@ -21,6 +21,8 @@ public class Apiario {
     @JsonFormat(pattern = "dd/MM/yyyy")
     @Column(name = "data_de_criacao")
     private LocalDate dataDeCriacao;
+
+    // dados de endereço
     private String cep;
     private String nomeDaPropriedade;
     private String estado;
@@ -30,6 +32,9 @@ public class Apiario {
     private String numero;
     private String complemento;
     private String observacoes;
+
     @OneToMany(mappedBy = "apiario", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Colmeia> colmeias = new ArrayList<>();
+    @OneToOne(mappedBy = "apiario", fetch = FetchType.LAZY)
+    private Produtor produtor;
 }

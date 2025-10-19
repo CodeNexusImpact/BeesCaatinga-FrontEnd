@@ -18,8 +18,8 @@ public class Produtor{
     private String senha;
     @Column(name = "nome_completo")
     private String nomeCompleto;
-    @Column(name = "nome_do_apiario")
-    private String nomeDoApiario;
+//    @Column(name = "nome_do_apiario")
+//    private String nomeDoApiario;
     @Column(name = "nome_da_empresa")
     private String nomeDaEmpresa;
     private String telefone;
@@ -29,5 +29,7 @@ public class Produtor{
     @Column(name = "data_de_nascimento")
     private LocalDate dataDeNascimento;
     private String endereco;
-    //apiario
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "apiario_id", referencedColumnName = "id")
+    private Apiario apiario;
 }

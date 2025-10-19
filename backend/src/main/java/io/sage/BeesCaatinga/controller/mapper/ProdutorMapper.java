@@ -8,10 +8,8 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ProdutorMapper {
-
     @Mapping(target = "id", ignore = true)
     Produtor toEntity(ProdutorDTO dto);
     ProdutorDTO toDTO(Produtor entidade);
     ProdutorSimplificadoDTO toSimplificadoDTO(Produtor entidade);
-
 }
