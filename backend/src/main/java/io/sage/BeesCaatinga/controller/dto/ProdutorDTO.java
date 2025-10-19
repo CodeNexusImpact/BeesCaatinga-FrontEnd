@@ -15,8 +15,6 @@ public record ProdutorDTO(
         String senha,
         @NotBlank(message = "Campo nome completo é obrigatório!")
         String nomeCompleto,
-//        @NotBlank(message = "Campo nome do apiário é obrigatório!")
-//        String nomeDoApiario,
         String nomeDaEmpresa,
         @NotBlank(message = "Campo número do telefone é obrigatório!")
         @Size(min = 10, max = 15, message = "Telefone deve ter entre 10 e 15 caracteres")
@@ -27,9 +25,6 @@ public record ProdutorDTO(
         @Past(message = "Data de nascimento deve ser uma data passada")
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataDeNascimento,
-        String endereco,
-        @NotNull(message = "Dados do apiário são obrigatórios")
-        @Valid
-        ApiarioParaProdutorDTO nomeApiario
+        String endereco
 ) {
 }

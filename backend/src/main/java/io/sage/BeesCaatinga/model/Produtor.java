@@ -18,8 +18,6 @@ public class Produtor{
     private String senha;
     @Column(name = "nome_completo")
     private String nomeCompleto;
-//    @Column(name = "nome_do_apiario")
-//    private String nomeDoApiario;
     @Column(name = "nome_da_empresa")
     private String nomeDaEmpresa;
     private String telefone;
