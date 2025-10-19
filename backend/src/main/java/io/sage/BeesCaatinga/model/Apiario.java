@@ -35,6 +35,7 @@ public class Apiario {
 
     @OneToMany(mappedBy = "apiario", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Colmeia> colmeias = new ArrayList<>();
-    @OneToOne(mappedBy = "apiario", fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "produtor_id", nullable = false)
     private Produtor produtor;
 }

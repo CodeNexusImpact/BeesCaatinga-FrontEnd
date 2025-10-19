@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "produtores")
@@ -27,7 +29,6 @@ public class Produtor{
     @Column(name = "data_de_nascimento")
     private LocalDate dataDeNascimento;
     private String endereco;
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "apiario_id", referencedColumnName = "id")
-    private Apiario apiario;
+    @OneToMany(mappedBy = "produtor", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Apiario> apiarios = new ArrayList<>();
 }

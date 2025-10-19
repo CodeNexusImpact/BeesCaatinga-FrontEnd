@@ -65,7 +65,7 @@ public class ProdutorController {
         // criar apiario a partir de um produtor, assim já atrelamos um ao outro
     }
 
-    @PostMapping("/{id}/colmeia")
+    @PostMapping("/{id}/colmeias")
     @Transactional
     public ResponseEntity<ColmeiaSimplificadaDTO> cadastrarColmeia(){
         // criar colmeia a partir de um produtor, atrelar ao apiário do produtor
