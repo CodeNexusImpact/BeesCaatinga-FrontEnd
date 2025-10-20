@@ -12,5 +12,6 @@ public interface ProdutorMapper {
     @Mapping(target = "id", ignore = true)
     Produtor toEntityFromCriado(ProdutorCriadoDTO dto);
     Produtor toEntityFromAtualizado(ProdutorAtualizadoDTO dto);
+    @Mapping(target = "id", source = "id")
     ProdutorRetornoDTO toRetornoDTO(Produtor entidade);
 }

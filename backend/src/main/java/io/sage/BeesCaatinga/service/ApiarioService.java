@@ -1,5 +1,9 @@
 package io.sage.BeesCaatinga.service;
 
+import io.sage.BeesCaatinga.controller.dto.ApiarioAtualizadoDTO;
+import io.sage.BeesCaatinga.controller.dto.ApiarioCriadoDTO;
+import io.sage.BeesCaatinga.controller.dto.ApiarioRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.ColmeiaRetornoEmApiarioDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
@@ -20,37 +24,37 @@ public class ApiarioService {
     private final ApiarioMapper mapper;
     private final ColmeiaMapper colmeiaMapper;
 
-    public ApiarioSimplificadoDTO salvar(ApiarioDTO dto){
-        var apiario = mapper.toEntity(dto, produtorRepository);
+    public ApiarioRetornoDTO salvar(ApiarioCriadoDTO dto){
+        var apiario = mapper.toEntityFromCriado(dto, produtorRepository);
         if (apiario.getNumero() == null) apiario.setNumero("0");
         if (apiario.getDataDeCriacao() == null) apiario.setDataDeCriacao(LocalDate.now());
         repository.save(apiario);
-        return mapper.toSimplificadoDTO(apiario);
+        return mapper.toRetornoDTO(apiario);
     }
 
-    public ApiarioDTO buscarPorId(Long id){
+    public ApiarioRetornoDTO buscarPorId(Long id){
         var apiario = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado!"));
-        return mapper.toDTO(apiario);
+        return mapper.toRetornoDTO(apiario);
     }
 
-    public List<ColmeiaSimplificadaDTO> listarColmeiasPorApiario(Long id){
+    public List<ColmeiaRetornoEmApiarioDTO> listarColmeiasPorApiario(Long id){
         var apiario = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado!"));
         var lista = apiario.getColmeias();
         return lista.stream()
-                .map(colmeiaMapper::toSimplificadaDTO)
+                .map(colmeiaMapper::toRetornoEmApiarioDTO)
                 .toList();
     }
 
-    public List<ApiarioSimplificadoDTO> listar(){
+    public List<ApiarioRetornoDTO> listar(){
         var lista = repository.findAll();
         return lista.stream()
-                .map(mapper::toSimplificadoDTO)
+                .map(mapper::toRetornoDTO)
                 .toList();
     }
 
-    public ApiarioDTO atualizar(Long id, ApiarioDTO dto){
+    public ApiarioRetornoDTO atualizar(Long id, ApiarioAtualizadoDTO dto){
         var apiario = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado!"));
 
@@ -68,7 +72,7 @@ public class ApiarioService {
         apiario.setComplemento(dto.complemento());
 
         repository.save(apiario);
-        return mapper.toDTO(apiario);
+        return mapper.toRetornoDTO(apiario);
     }
 
     public void deletar(Long id){
