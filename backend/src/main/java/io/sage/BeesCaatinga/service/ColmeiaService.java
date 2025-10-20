@@ -1,7 +1,5 @@
 package io.sage.BeesCaatinga.service;
 
-import io.sage.BeesCaatinga.controller.dto.ColmeiaDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaSimplificadaDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;

@@ -1,7 +1,5 @@
 package io.sage.BeesCaatinga.controller.mapper;
 
-import io.sage.BeesCaatinga.controller.dto.ColmeiaDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaSimplificadaDTO;
 import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Colmeia;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;

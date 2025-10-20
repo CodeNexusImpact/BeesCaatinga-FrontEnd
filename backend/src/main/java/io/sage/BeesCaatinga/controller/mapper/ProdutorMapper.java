@@ -1,7 +1,5 @@
 package io.sage.BeesCaatinga.controller.mapper;
 
-import io.sage.BeesCaatinga.controller.dto.ProdutorDTO;
-import io.sage.BeesCaatinga.controller.dto.ProdutorSimplificadoDTO;
 import io.sage.BeesCaatinga.model.Produtor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

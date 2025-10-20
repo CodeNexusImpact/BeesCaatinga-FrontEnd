@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record ApiarioDTO(
+public record ApiarioCriadoDTO(
         @NotBlank(message = "Campo nome é obrigatório!")
         String nome,
         @NotBlank(message = "Campo número de registro é obrigatório!")
@@ -28,10 +28,8 @@ public record ApiarioDTO(
         String rua,
         String numero,
         String complemento,
-        String observacoes,
         @NotBlank(message = "Campo produtor_id é obrigatório!")
         Long produtor_id,
-        String caminhoDaFoto,
         @NotNull(message = "Campo latitude é obrigatório!")
         BigDecimal latitude,
         @NotNull(message = "Campo longitude é obrigatório!")
