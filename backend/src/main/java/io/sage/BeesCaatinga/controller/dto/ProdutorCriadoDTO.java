@@ -6,7 +6,7 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-public record PodutorCriadoDTO(
+public record ProdutorCriadoDTO(
         @NotBlank(message = "Campo nome completo é obrigatório!")
         String nomeCompleto,
         @NotBlank(message = "Campo número do telefone é obrigatório!")
