@@ -1,5 +1,7 @@
 package io.sage.BeesCaatinga.service;
 
+import io.sage.BeesCaatinga.controller.dto.ApiarioSimplificadoDTO;
+import io.sage.BeesCaatinga.controller.dto.ColmeiaSimplificadaDTO;
 import io.sage.BeesCaatinga.controller.dto.ProdutorDTO;
 import io.sage.BeesCaatinga.controller.dto.ProdutorSimplificadoDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
@@ -58,6 +60,14 @@ public class ProdutorService {
         var produtor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
         repository.delete(produtor);
+    }
+
+    public ApiarioSimplificadoDTO salvarApiario(){
+
+    }
+
+    public ColmeiaSimplificadaDTO salvarColmeia(){
+
     }
 
 }

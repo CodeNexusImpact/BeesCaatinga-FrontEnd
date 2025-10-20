@@ -25,6 +25,7 @@ public record ProdutorDTO(
         @Past(message = "Data de nascimento deve ser uma data passada")
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataDeNascimento,
-        String endereco
+        String endereco,
+        String caminhoDaFoto
 ) {
 }

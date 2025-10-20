@@ -21,6 +21,7 @@ public class Apiario {
     @JsonFormat(pattern = "dd/MM/yyyy")
     @Column(name = "data_de_criacao")
     private LocalDate dataDeCriacao;
+    private String caminhoDaFoto;
 
     // dados de endereço
     private String cep;

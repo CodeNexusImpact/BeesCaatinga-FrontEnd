@@ -1,7 +1,7 @@
 # Desenvolvimento:
 * CONTROLLER:
-  - Apiário
-  - Colméia
+  - funções de Apiário
+  - funções de Colméia
 * Quando adicionar segurança, lembrar de criptografar senha no service de produtor antes de mandar para o banco de dados
 * Pensar na questão das fotos (NÃO ADICIONADO AINDA).
   - Produtor tem foto

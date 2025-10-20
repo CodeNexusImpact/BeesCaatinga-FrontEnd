@@ -29,6 +29,7 @@ public class Produtor{
     @Column(name = "data_de_nascimento")
     private LocalDate dataDeNascimento;
     private String endereco;
+    private String caminhoDaFoto;
     @OneToMany(mappedBy = "produtor", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Apiario> apiarios = new ArrayList<>();
 }

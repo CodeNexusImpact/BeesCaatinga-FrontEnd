@@ -1,9 +1,6 @@
 package io.sage.BeesCaatinga.controller;
 
-import io.sage.BeesCaatinga.controller.dto.ApiarioSimplificadoDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaSimplificadaDTO;
-import io.sage.BeesCaatinga.controller.dto.ProdutorDTO;
-import io.sage.BeesCaatinga.controller.dto.ProdutorSimplificadoDTO;
+import io.sage.BeesCaatinga.controller.dto.*;
 import io.sage.BeesCaatinga.service.ApiarioService;
 import io.sage.BeesCaatinga.service.ColmeiaService;
 import io.sage.BeesCaatinga.service.ProdutorService;
@@ -59,15 +56,19 @@ public class ProdutorController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/apiario")
+
+    // OPERAÇÕES DE APIÁRIO
+    @PostMapping("/{id}/apiarios")
     @Transactional
-    public ResponseEntity<ApiarioSimplificadoDTO> cadastrarApiario(){
+    public ResponseEntity<ApiarioSimplificadoDTO> cadastrarApiario(@PathVariable Long produtorID, @RequestBody @Valid ApiarioDTO apiarioDTO){
         // criar apiario a partir de um produtor, assim já atrelamos um ao outro
     }
 
-    @PostMapping("/{id}/colmeias")
+
+    // OPERA~]PES DE COLMÉIA
+    @PostMapping("/{id}/apiarios/{id}/colmeias")
     @Transactional
-    public ResponseEntity<ColmeiaSimplificadaDTO> cadastrarColmeia(){
+    public ResponseEntity<ColmeiaSimplificadaDTO> cadastrarColmeia(@PathVariable Long produtorID, @PathVariable Long apiarioID, @RequestBody @Valid ColmeiaDTO colmeiaDTO){
         // criar colmeia a partir de um produtor, atrelar ao apiário do produtor
     }
 

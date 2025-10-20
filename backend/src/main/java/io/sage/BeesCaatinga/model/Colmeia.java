@@ -30,4 +30,5 @@ public class Colmeia {
     private LocalDate ultimaVistoria;
     @Column(name = "detalhes_da_lozalizacao")
     private String detalhesDaLocalizacao;
+    private String caminhoDaFoto;
 }

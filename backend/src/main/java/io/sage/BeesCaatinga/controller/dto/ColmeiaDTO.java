@@ -21,6 +21,7 @@ public record ColmeiaDTO(
         StatusColmeia situacao,
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate ultimaVistoria,
-        String detalhesDaLocalizacao
+        String detalhesDaLocalizacao,
+        String caminhoDaFoto
 ) {
 }
