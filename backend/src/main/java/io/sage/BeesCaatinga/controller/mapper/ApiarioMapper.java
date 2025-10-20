@@ -13,6 +13,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ApiarioMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "colmeias", ignore = true)
     @Mapping(target = "produtor", expression = "java(mapProdutor(dto.produtor_id(), produtorRepository))")
     Apiario toEntity(ApiarioDTO dto,
                      @Context ProdutorRepository produtorRepository);

@@ -6,6 +6,7 @@ import io.sage.BeesCaatinga.model.enums.TipoColmeia;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ColmeiaDTO(
@@ -22,6 +23,10 @@ public record ColmeiaDTO(
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate ultimaVistoria,
         String detalhesDaLocalizacao,
-        String caminhoDaFoto
+        String caminhoDaFoto,
+        @NotNull(message = "Campo latitude é obrigatório!")
+        BigDecimal latitude,
+        @NotNull(message = "Campo longitude é obrigatório!")
+        BigDecimal longitude
 ) {
 }
