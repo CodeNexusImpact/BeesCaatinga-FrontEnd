@@ -2,6 +2,7 @@ package io.sage.BeesCaatinga.controller.mapper;
 
 import io.sage.BeesCaatinga.controller.dto.ColmeiaAtualizadaDTO;
 import io.sage.BeesCaatinga.controller.dto.ColmeiaCriadaDTO;
+import io.sage.BeesCaatinga.controller.dto.ColmeiaRetornoDTO;
 import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Colmeia;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
@@ -18,6 +19,7 @@ public interface ColmeiaMapper {
                      @Context ApiarioRepository apiarioRepository);
     @Mapping(target = "apiario", expression = "java(mapApiario(dto.apiario_id(), apiarioRepository))")
     Colmeia toEntityFromAtualizada(ColmeiaAtualizadaDTO dto);
+    @Mapping(target = "nomeApiario", source = "apiario.nome")
     ColmeiaRetornoDTO toRetornoDTO(Colmeia entidade);
 
     default Apiario mapApiario(Long apiario_id, @Context ApiarioRepository apiarioRepository){
