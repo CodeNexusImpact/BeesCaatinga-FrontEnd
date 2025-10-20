@@ -1,8 +1,8 @@
 package io.sage.BeesCaatinga.controller.mapper;
 
-import io.sage.BeesCaatinga.controller.dto.ApiarioAtualizadoDTO;
-import io.sage.BeesCaatinga.controller.dto.ApiarioCriadoDTO;
-import io.sage.BeesCaatinga.controller.dto.ApiarioRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioAtualizadoDTO;
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioCriadoDTO;
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioRetornoDTO;
 import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Produtor;
 import io.sage.BeesCaatinga.repository.ProdutorRepository;

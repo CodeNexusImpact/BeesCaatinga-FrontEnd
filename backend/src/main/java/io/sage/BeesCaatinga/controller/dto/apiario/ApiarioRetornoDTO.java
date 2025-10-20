@@ -1,4 +1,6 @@
-package io.sage.BeesCaatinga.controller.dto;
+package io.sage.BeesCaatinga.controller.dto.apiario;
+
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoEmApiarioDTO;
 
 import java.time.LocalDate;
 import java.util.List;

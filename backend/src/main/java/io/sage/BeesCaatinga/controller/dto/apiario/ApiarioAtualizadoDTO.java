@@ -1,4 +1,4 @@
-package io.sage.BeesCaatinga.controller.dto;
+package io.sage.BeesCaatinga.controller.dto.apiario;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

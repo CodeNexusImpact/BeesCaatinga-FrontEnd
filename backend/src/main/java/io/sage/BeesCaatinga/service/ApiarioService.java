@@ -1,9 +1,9 @@
 package io.sage.BeesCaatinga.service;
 
-import io.sage.BeesCaatinga.controller.dto.ApiarioAtualizadoDTO;
-import io.sage.BeesCaatinga.controller.dto.ApiarioCriadoDTO;
-import io.sage.BeesCaatinga.controller.dto.ApiarioRetornoDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaRetornoEmApiarioDTO;
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioAtualizadoDTO;
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioCriadoDTO;
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoEmApiarioDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;

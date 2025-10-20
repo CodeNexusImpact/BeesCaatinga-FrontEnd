@@ -1,4 +1,4 @@
-package io.sage.BeesCaatinga.controller.dto;
+package io.sage.BeesCaatinga.controller.dto.produtor;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.sage.BeesCaatinga.model.enums.Genero;

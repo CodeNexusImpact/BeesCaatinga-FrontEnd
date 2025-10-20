@@ -1,9 +1,9 @@
 package io.sage.BeesCaatinga.controller.mapper;
 
-import io.sage.BeesCaatinga.controller.dto.ColmeiaAtualizadaDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaCriadaDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaRetornoDTO;
-import io.sage.BeesCaatinga.controller.dto.ColmeiaRetornoEmApiarioDTO;
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaAtualizadaDTO;
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaCriadaDTO;
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoEmApiarioDTO;
 import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Colmeia;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
@@ -19,7 +19,8 @@ public interface ColmeiaMapper {
     Colmeia toEntityFromCriada(ColmeiaCriadaDTO dto,
                      @Context ApiarioRepository apiarioRepository);
     @Mapping(target = "apiario", expression = "java(mapApiario(dto.apiario_id(), apiarioRepository))")
-    Colmeia toEntityFromAtualizada(ColmeiaAtualizadaDTO dto);
+    Colmeia toEntityFromAtualizada(ColmeiaAtualizadaDTO dto,
+                     @Context ApiarioRepository apiarioRepository);
     @Mapping(target = "nomeApiario", source = "apiario.nome")
     ColmeiaRetornoDTO toRetornoDTO(Colmeia entidade);
     ColmeiaRetornoEmApiarioDTO toRetornoEmApiarioDTO(Colmeia entidade);

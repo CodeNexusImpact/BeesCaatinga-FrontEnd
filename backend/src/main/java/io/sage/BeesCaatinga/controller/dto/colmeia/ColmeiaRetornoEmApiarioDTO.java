@@ -1,4 +1,4 @@
-package io.sage.BeesCaatinga.controller.dto;
+package io.sage.BeesCaatinga.controller.dto.colmeia;
 
 import io.sage.BeesCaatinga.model.enums.StatusColmeia;
 
