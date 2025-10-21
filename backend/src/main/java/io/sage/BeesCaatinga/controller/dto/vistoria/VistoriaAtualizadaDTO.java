@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.sage.BeesCaatinga.model.enums.CondicaoVistoria;
 import io.sage.BeesCaatinga.model.enums.TipoPerda;
 import io.sage.BeesCaatinga.model.enums.TipoPraga;
-import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.util.List;

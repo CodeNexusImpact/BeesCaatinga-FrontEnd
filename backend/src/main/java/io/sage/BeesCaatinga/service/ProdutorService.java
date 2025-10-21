@@ -1,19 +1,27 @@
 package io.sage.BeesCaatinga.service;
 
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaAtualizadaDTO;
 import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaCriadaDTO;
 import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaAtualizadaDTO;
+import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaCriadaDTO;
+import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaRetornoDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
 import io.sage.BeesCaatinga.controller.mapper.ProdutorMapper;
+import io.sage.BeesCaatinga.controller.mapper.VistoriaMapper;
 import io.sage.BeesCaatinga.model.Colmeia;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
+import io.sage.BeesCaatinga.repository.ColmeiaRepository;
 import io.sage.BeesCaatinga.repository.ProdutorRepository;
+import io.sage.BeesCaatinga.repository.VistoriaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +33,15 @@ public class ProdutorService {
 
     private final ProdutorRepository repository;
     private final ProdutorMapper mapper;
+
     private final ApiarioMapper apiarioMapper;
     private final ApiarioRepository apiarioRepository;
-    private final ColmeiaService colmeiaService;
+
+    private final ColmeiaRepository colmeiaRepository;
     private final ColmeiaMapper colmeiaMapper;
+
+    private final VistoriaRepository vistoriaRepository;
+    private final VistoriaMapper vistoriaMapper;
 
     // OBS: quando ativar a segurança lembrar de adicionar o encoder,
     // criptografar as senhas antes de salvar no banco de dados
@@ -73,6 +86,7 @@ public class ProdutorService {
         repository.delete(produtor);
     }
 
+
     // OPERAÇÕES DE APIÁRIO
     public ApiarioRetornoDTO salvarApiario(Long produtorId, ApiarioCriadoDTO dto){
         var produtor = repository.findById(produtorId)
@@ -96,6 +110,15 @@ public class ProdutorService {
                 .toList();
     }
 
+    public ApiarioRetornoDTO atualizarApiarioDoProdutor(Long produtorId, Long apiarioId, ApiarioAtualizadoDTO dto){
+
+    }
+
+    public void deletarApiarioDoProdutor(){
+
+    }
+
+
     // OPERAÇÕES DE COLMEIA
     public ColmeiaRetornoDTO salvarColmeia(Long produtorId, Long apiarioId, ColmeiaCriadaDTO dto){
         var apiario = apiarioRepository.findById(apiarioId)
@@ -105,7 +128,11 @@ public class ProdutorService {
             throw new ResourceNotFoundException("Apiário não pertence ao produtor!");
         }
 
-        return colmeiaService.salvar(dto);
+        var colmeia = colmeiaMapper.toEntityFromCriada(dto, apiarioRepository);
+        colmeia.setApiario(apiario);
+
+        colmeiaRepository.save(colmeia);
+        return colmeiaMapper.toRetornoDTO(colmeia);
     }
 
     public List<ColmeiaRetornoDTO> listarColmeiasDoApiario(Long produtorId, Long apiarioId) {
@@ -155,6 +182,32 @@ public class ProdutorService {
         return colmeiasInativas.stream()
                 .map(colmeiaMapper::toRetornoDTO)
                 .toList();
+    }
+
+    public ColmeiaRetornoDTO atualizarColmeiaDoProdutor(Long produtorId, Long apiarioId, Long colmeiaId, ColmeiaAtualizadaDTO dto){
+
+    }
+
+    public void deletarColmeiaDoProdutor(Long produtorId, Long apiarioId, Long colmeiaId){
+
+    }
+
+
+    // OPERAÇÕES DE VISTORIA
+    public VistoriaRetornoDTO salvarVistoria(Long produtorId, Long apiarioId, Long colmeiaId, VistoriaCriadaDTO dto){
+
+    }
+
+    public VistoriaRetornoDTO listarVistoriasDoProdutor(Long produtorId){
+        // sendo que, para acessar produtor precisa ir vistoria.apiario.produtor.id
+    }
+
+    public VistoriaRetornoDTO atualizarVistoria(Long produtorId, Long vistoriaId, VistoriaAtualizadaDTO dto){
+        // verificar se produtor tem relação com vistoria, ou seja produtor.apiarios contém vistoria.apiario
+    }
+
+    public void deletarVistoria(Long produtorId, Long vistoriaId){
+        // verificar se vistoria pertence ao produtor antes de deletar
     }
 
 }

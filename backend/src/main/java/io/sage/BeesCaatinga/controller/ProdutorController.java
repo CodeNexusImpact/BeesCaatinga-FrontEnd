@@ -7,8 +7,6 @@ import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
-import io.sage.BeesCaatinga.service.ApiarioService;
-import io.sage.BeesCaatinga.service.ColmeiaService;
 import io.sage.BeesCaatinga.service.ProdutorService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -25,8 +23,6 @@ import java.util.List;
 public class ProdutorController {
 
     private final ProdutorService service;
-    private final ApiarioService apiarioService;
-    private final ColmeiaService colmeiaService;
 
     @PostMapping
     @Transactional
