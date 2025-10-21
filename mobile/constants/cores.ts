@@ -67,19 +67,35 @@ const cores = {
     },
 };
 
+const opacity = (hexColor: string, opacityPercent: number) => {
+    const opacityHex = Math.round((opacityPercent / 100) * 255).toString(16).padStart(2, '0');
+    return hexColor + opacityHex;
+}
+
 export default {
     cores,
     primaria: cores.primaria[100],
     primariaHover: cores.primaria[90],
     primariaActive: cores.primaria[80],
+
     secundariaHover: cores.secundaria[90],
     secundariaActive: cores.secundaria[80],
     secundaria: cores.secundaria[100],
+
+    branco: cores.base[0],
+    preto: cores.base[100],
+
+    botaoBranco: cores.base[5],
+    botaoBrancoHover: cores.base[10],
+    botaoBrancoActive: cores.base[20],
+
     perigo: cores.complementarNegativa[100],
     alerta: cores.primaria[100],
-    sucesso: cores.complementarPositiva[100],    
+    sucesso: cores.complementarPositiva[100], 
+
     texto: cores.base[100],
     fundo: cores.base[0],
     placeholder: cores.base[60],
-    sublinhado: cores.secundaria[30],    
+    sublinhado: cores.secundaria[30], 
+    borda: opacity(cores.base[100], 50),
 };

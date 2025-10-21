@@ -5,13 +5,10 @@ import { Link, useNavigation } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
 import { useEffect } from "react";
 import cores from "@/constants/cores";
-import layout from "@/constants/layout";
-import { useRouter } from "expo-router";
+import { styles as formStyle } from "@/styles/forms.styles";
 
 
-function Index() {
-
-  const router = useRouter();
+function Login() {
 
   const navigation = useNavigation();
   useEffect(() => {
@@ -20,20 +17,14 @@ function Index() {
 
   return (
     <View style={{ display: "flex", height: "100%" }}>
-      <View style={{ backgroundColor: cores.primaria, alignItems: "center" }}>
+      <View style={styles.conteinerLogo}>
         <Image
           style={styles.image}
           source={require("../assets/images/LogoBeesCaatinga.png")}
         />
       </View>
       <View
-        style={{
-          display: "flex",
-          padding: layout.espacamento.colega,
-          justifyContent: "flex-start",
-          alignItems: "center",
-          height: "100%",
-        }}
+        style={formStyle.formStyle}
       >
         <Text style={styles.textoTitulo} >Faça seu Login</Text>
         <Input iconName="user" placeholder="Enter your username" />
@@ -41,14 +32,10 @@ function Index() {
         <Link href="/redefinirSenha" style={{ alignSelf: "flex-end", marginBottom: 20 }}>
           <Text style={{ color: "blue" }}>Esqueceu a senha?</Text>
         </Link>
-        <Botao title="Entrar" onPress={() => alert("Button pressed!")} />
+        <Botao title="Entrar" onPress={() => alert("Button pressed!")} iconName="forward" />
         <Text style={styles.textoSimples} >Ou</Text>
-        <Botao 
-          title="Cadastra" onPress={() => { alert("Cadastro realizado!"); 
-          router.push('/cadastro');
-          }} 
-        />
-        <Botao title="Cadastra com o Google" onPress={() => alert("Button pressed!")} />
+        <Botao title="Cadastra" cor="secundaria" onPress={() => alert("Button pressed!")} />
+        <Botao title="Cadastra com o Google" cor="branca" onPress={() => alert("Button pressed!")} />
       </View>
     </View>
   );
@@ -64,6 +51,11 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
   },
+  conteinerLogo: {
+    height: 'auto',
+    backgroundColor: cores.primaria,
+    alignItems: 'center',
+  },
   image: {
     width: "100%",
     height: 200,
@@ -75,4 +67,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default Index;
+export default Login;

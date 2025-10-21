@@ -2,21 +2,31 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, GestureResponderEvent } from 'react-native';
 import Icon from './icon';
 import cores from '@/constants/cores';
+import layout from '@/constants/layout';
+import fonts from '@/constants/fonts';
 
 interface BotaoProps {
     title: string;
     onPress: (event: GestureResponderEvent) => void;
+    iconName?: string;
+    iconPosition?: 'left' | 'right';
     style?: object;
     textStyle?: object;
-    cor?: "primary" | "secondary";
+    cor?: "primaria" | "secundaria" | "branca";
 }
 
-const Botao: React.FC<BotaoProps> = ({ title, onPress, style, textStyle, cor = "primary"}) => {
-    const corHex = cor === "primary" ? cores.primaria : cor === "secondary" ? cores.secundaria : '#fff';
+const Botao: React.FC<BotaoProps> = ({ title, onPress, style, textStyle, cor = "primaria", iconName, iconPosition = 'left' },) => {
+    const corHex = cor === "primaria" ? cores.primaria 
+        : cor === "secundaria" ? cores.secundaria 
+        : cores.botaoBranco;
+    const textColor = cor === "secundaria" ? '#FFF' : "#000";
     return (
-        <TouchableOpacity style={[styles.button, style,{backgroundColor: corHex}]} onPress={onPress}>
-            <Text style={[styles.text, textStyle]}>{title}</Text>
-            <Icon name="forward" size={20} color="#FFF" />
+        <TouchableOpacity style={[styles.button, style, { backgroundColor: corHex, flexDirection: iconPosition === "right" ? "row-reverse" : 'row' }]} onPress={onPress}>
+
+            <Text style={[styles.text, textStyle, { color: textColor }]}>{title}</Text>
+
+            {iconName && <Icon name={iconName} size= {35} color={textColor} />}
+            
         </TouchableOpacity>
     );
 };
@@ -24,17 +34,16 @@ const Botao: React.FC<BotaoProps> = ({ title, onPress, style, textStyle, cor = "
 const styles = StyleSheet.create({
     button: {
         display: 'flex',
-        backgroundColor: '#007BFF',
         width: '100%',
-        flexDirection: 'row',
         padding: 10,
-        borderRadius: 5,
-        alignItems: 'baseline',
+        borderRadius: layout.borderRadius.r25,
+        alignItems: "flex-start",
         justifyContent: 'center',
+        borderColor: cores.borda,
+        borderWidth: 1,
     },
     text: {
-        color: '#FFFFFF',
-        fontSize: 16,
+        fontSize: fonts.size.g,
         fontWeight: 'bold',
     },
 });
