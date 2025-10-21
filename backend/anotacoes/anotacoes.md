@@ -1,7 +1,10 @@
 # Desenvolvimento:
 * Quando adicionar segurança, lembrar de criptografar senha no service de produtor antes de mandar para o banco de dados
-* mapper, service, controller Vistoria
 * relatorio de vistoria
+* no service de produtor tem como atualizar email mas verificar com a galera do front posteriormente, a funcionalidade não é bem assim
+  - vale para email e senha do produtor (talvez telefone)
+* verificar com o pessoal a questão da deleção do apiário
+  - está permitindo deletar apenas sem colméias ativas (apenas com inativas)
 
 # OBS:
 * Para todos os atualizar, lembrar de adicionar verificação nos campos

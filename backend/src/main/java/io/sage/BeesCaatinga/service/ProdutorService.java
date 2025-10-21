@@ -69,12 +69,12 @@ public class ProdutorService {
         var produtor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
 
-        produtor.setNomeCompleto(dto.nomeCompleto());
-        produtor.setGenero(dto.genero());
-        produtor.setEmail(dto.email());
-        produtor.setNomeDaEmpresa(dto.nomeDaEmpresa());
-        produtor.setTelefone(dto.telefone());
-        produtor.setEndereco(dto.endereco());
+        if (dto.caminhoDaFoto() != null) produtor.setCaminhoDaFoto(dto.caminhoDaFoto());
+        if (dto.nomeCompleto() != null) produtor.setNomeCompleto(dto.nomeCompleto());
+        if (dto.genero() != null) produtor.setGenero(dto.genero());
+        if (dto.nomeDaEmpresa() != null) produtor.setNomeDaEmpresa(dto.nomeDaEmpresa());
+        if (dto.telefone() != null) produtor.setTelefone(dto.telefone());
+        if (dto.endereco() != null) produtor.setEndereco(dto.endereco());
 
         repository.save(produtor);
         return mapper.toRetornoDTO(produtor);
@@ -111,11 +111,50 @@ public class ProdutorService {
     }
 
     public ApiarioRetornoDTO atualizarApiarioDoProdutor(Long produtorId, Long apiarioId, ApiarioAtualizadoDTO dto){
+        var apiario = apiarioRepository.findById(apiarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
+        if (!apiario.getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Apiário não pertence ao produtor informado");
+        }
+
+        if (dto.nome() != null) apiario.setNome(dto.nome());
+        if (dto.nRegistro() != null) apiario.setNRegistro(dto.nRegistro());
+        if (dto.dataDeCriacao() != null) apiario.setDataDeCriacao(dto.dataDeCriacao());
+        if (dto.observacoes() != null) apiario.setObservacoes(dto.observacoes());
+        if (dto.cep() != null) apiario.setCep(dto.cep());
+        if (dto.nomeDaPropriedade() != null) apiario.setNomeDaPropriedade(dto.nomeDaPropriedade());
+        if (dto.estado() != null) apiario.setEstado(dto.estado());
+        if (dto.cidade() != null) apiario.setCidade(dto.cidade());
+        if (dto.bairro() != null) apiario.setBairro(dto.bairro());
+        if (dto.rua() != null) apiario.setRua(dto.rua());
+        if (dto.numero() != null) apiario.setNumero(dto.numero());
+        if (dto.complemento() != null) apiario.setComplemento(dto.complemento());
+        if (dto.caminhoDaFoto() != null) apiario.setCaminhoDaFoto(dto.caminhoDaFoto());
+        if (dto.latitude() != null) apiario.setLatitude(dto.latitude());
+        if (dto.longitude() != null) apiario.setLongitude(dto.longitude());
+
+        apiarioRepository.save(apiario);
+        return apiarioMapper.toRetornoDTO(apiario);
     }
 
-    public void deletarApiarioDoProdutor(){
+    public void deletarApiarioDoProdutor(Long produtorId, Long apiarioId){
+        var apiario = apiarioRepository.findById(apiarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
+        if (!apiario.getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Apiário não pertence ao produtor informado");
+        }
+
+        // Verifica se existem colmeias ativas no apiário,
+        boolean hasColmeiasAtivas = apiario.getColmeias().stream()
+                .anyMatch(Colmeia::getAtiva);
+        if (hasColmeiasAtivas) {
+            throw new IllegalStateException("Não é possível deletar apiário com colmeias ativas");
+        }
+
+        // Deleta o apiário (cascade vai deletar colmeias inativas automaticamente, já que não deleta com ativas)
+        apiarioRepository.delete(apiario);
     }
 
 

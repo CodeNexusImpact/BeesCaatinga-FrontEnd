@@ -8,8 +8,6 @@ public record ProdutorAtualizadoDTO(
         String caminhoDaFoto,
         String nomeCompleto,
         Genero genero,
-        @Email(message = "Campo email preenchido incorretamente.")
-        String email,
         String nomeDaEmpresa,
         @Size(min = 10, max = 15, message = "Telefone deve ter entre 10 e 15 caracteres")
         String telefone,
