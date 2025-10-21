@@ -17,6 +17,7 @@ import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
 import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
 import io.sage.BeesCaatinga.controller.mapper.ProdutorMapper;
 import io.sage.BeesCaatinga.controller.mapper.VistoriaMapper;
+import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Colmeia;
 import io.sage.BeesCaatinga.model.Vistoria;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
@@ -158,6 +159,17 @@ public class ProdutorService {
         apiarioRepository.delete(apiario);
     }
 
+    private Apiario validarApiarioDoProdutor(Long produtorId, Long apiarioId) {
+        var apiario = apiarioRepository.findById(apiarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
+
+        if (!apiario.getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Apiário não pertence ao produtor informado");
+        }
+
+        return apiario;
+    }
+
 
     // OPERAÇÕES DE COLMEIA
     public ColmeiaRetornoDTO salvarColmeia(Long produtorId, Long apiarioId, ColmeiaCriadaDTO dto){
@@ -258,7 +270,7 @@ public class ProdutorService {
         if (!vistorias.isEmpty()) {
             vistoriaRepository.deleteAll(vistorias);
         }
-        
+
         colmeiaRepository.delete(colmeia);
     }
 
@@ -280,19 +292,80 @@ public class ProdutorService {
 
     // OPERAÇÕES DE VISTORIA
     public VistoriaRetornoDTO salvarVistoria(Long produtorId, Long apiarioId, Long colmeiaId, VistoriaCriadaDTO dto){
+        var colmeia = validarColmeiaDoProdutor(produtorId, apiarioId, colmeiaId);
 
+        if (!dto.apiario_id().equals(apiarioId)) {
+            throw new IllegalArgumentException("Apiário do DTO não corresponde ao apiário da URL");
+        }
+
+        if (!dto.colmeia_id().equals(colmeiaId)) {
+            throw new IllegalArgumentException("Colmeia do DTO não corresponde à colmeia da URL");
+        }
+
+        var vistoria = vistoriaMapper.toEntityFromCriada(dto, apiarioRepository, colmeiaRepository);
+        vistoriaRepository.save(vistoria);
+
+        colmeia.setUltimaVistoria(dto.dataVistoria());
+        colmeiaRepository.save(colmeia);
+
+        return vistoriaMapper.toRetornoDTO(vistoria);
     }
 
-    public VistoriaRetornoDTO listarVistoriasDoProdutor(Long produtorId){
-        // sendo que, para acessar produtor precisa ir vistoria.apiario.produtor.id
+    public List<VistoriaRetornoDTO> listarVistoriasDoProdutor(Long produtorId){
+        if (!repository.existsById(produtorId)) {
+            throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
+        }
+
+        List<Vistoria> vistorias = vistoriaRepository.findByApiarioProdutorId(produtorId);
+
+        return vistorias.stream()
+                .map(vistoriaMapper::toRetornoDTO)
+                .toList();
     }
 
     public VistoriaRetornoDTO atualizarVistoria(Long produtorId, Long vistoriaId, VistoriaAtualizadaDTO dto){
-        // verificar se produtor tem relação com vistoria, ou seja produtor.apiarios contém vistoria.apiario
+        var vistoria = validarVistoriaDoProdutor(produtorId, vistoriaId);
+
+        if (dto.dataVistoria() != null) vistoria.setDataVistoria(dto.dataVistoria());
+        if (dto.condicao() != null) vistoria.setCondicao(dto.condicao());
+        if (dto.pragasIdentificadas() != null) vistoria.setPragasIdentificadas(dto.pragasIdentificadas());
+        if (dto.perdasIdentificadas() != null) vistoria.setPerdasIdentificadas(dto.perdasIdentificadas());
+        if (dto.observacoes() != null) vistoria.setObservacoes(dto.observacoes());
+
+        if (dto.apiario_id() != null && !dto.apiario_id().equals(vistoria.getApiario().getId())) {
+            var novoApiario = validarApiarioDoProdutor(produtorId, dto.apiario_id());
+            vistoria.setApiario(novoApiario);
+        }
+
+        if (dto.colmeia_id() != null && !dto.colmeia_id().equals(vistoria.getColmeia().getId())) {
+            var novaColmeia = colmeiaRepository.findById(dto.colmeia_id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Colmeia não encontrada"));
+
+            if (!novaColmeia.getApiario().getProdutor().getId().equals(produtorId)) {
+                throw new ResourceNotFoundException("Nova colmeia não pertence ao produtor");
+            }
+
+            vistoria.setColmeia(novaColmeia);
+        }
+
+        vistoriaRepository.save(vistoria);
+        return vistoriaMapper.toRetornoDTO(vistoria);
     }
 
     public void deletarVistoria(Long produtorId, Long vistoriaId){
-        // verificar se vistoria pertence ao produtor antes de deletar
+        var vistoria = validarVistoriaDoProdutor(produtorId, vistoriaId);
+        vistoriaRepository.delete(vistoria);
+    }
+
+    private Vistoria validarVistoriaDoProdutor(Long produtorId, Long vistoriaId) {
+        var vistoria = vistoriaRepository.findById(vistoriaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vistoria não encontrada com id: " + vistoriaId));
+
+        if (!vistoria.getApiario().getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Vistoria não pertence ao produtor informado");
+        }
+
+        return vistoria;
     }
 
 }
