@@ -35,7 +35,7 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   
   // --- Outros ---
   back: 'arrow-left-bottom',
-  forward: 'arrow-top-right',
+  forward: 'arrow-top-right-thick',
   share: 'share',
   info: 'information',
   calendar: 'calendar-outline',
