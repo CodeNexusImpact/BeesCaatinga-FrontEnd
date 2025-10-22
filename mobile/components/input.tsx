@@ -1,10 +1,10 @@
-import React from 'react';
-import { TextInput, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import Icon from './icon';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import React from 'react';
+import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
+import Icon from './icon';
 
-interface InputProps {
+interface InputProps extends TextInputProps {
     label?: string;
     placeholder?: string;
     value?: string;
@@ -21,6 +21,7 @@ const Input: React.FC<InputProps> = ({
     secureTextEntry,
     style,
     iconName,
+    ...textInputProps
 }) => {
     const [isSecret, setIsSecret] = React.useState(secureTextEntry);
     function viewPassword() {
@@ -33,6 +34,7 @@ const Input: React.FC<InputProps> = ({
             </View>}
             {label && <Text style={styles.label}>{label}:</Text>}
             <TextInput
+                {...textInputProps}
                 style={styles.input}
                 placeholder={placeholder}
                 placeholderTextColor={cores.placeholder}

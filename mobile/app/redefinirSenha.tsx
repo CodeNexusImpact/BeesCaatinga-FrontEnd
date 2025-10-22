@@ -5,28 +5,35 @@ import { useRouter } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
 import cores from "@/constants/cores";
 import { useNavigation } from "expo-router";
-// --- Importar o useState ---
+// --- Importar o useState e useEffect ---
 import { useEffect, useState } from "react"; 
 import { styles as formStyle } from "@/styles/forms.styles";
+
+// --- 1. DEFINIR A INTERFACE PARA OS ERROS ---
+interface RedefinirErrors {
+  senha?: string;
+  confirmarSenha?: string;
+}
 
 function RedefinirSenha() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  // --- 1. Criar estado para os campos ---
+  // --- Estados dos campos ---
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  // --- 2. Criar estado para os erros ---
-  const [errors, setErrors] = useState({});
+  // --- 2. USAR A INTERFACE NO useState ---
+  const [errors, setErrors] = useState<RedefinirErrors>({});
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
-  // --- 3. Criar a função de validação ---
+  // --- 3. Função de validação ---
   const handleRedefinir = () => {
-    const validationErrors = {};
+    // Tipar a variável interna
+    const validationErrors: RedefinirErrors = {};
 
     // Validação da senha
     if (!senha) {
@@ -40,12 +47,9 @@ function RedefinirSenha() {
       validationErrors.confirmarSenha = "As senhas não coincidem.";
     }
 
-    // Atualiza o estado de erros
     setErrors(validationErrors);
 
-    // --- 4. Verificar se há erros ---
     if (Object.keys(validationErrors).length === 0) {
-      // Sucesso!
       alert("Senha redefinida com Sucesso!");
       router.push('/login');
     } else {
@@ -64,7 +68,6 @@ function RedefinirSenha() {
       <View style={formStyle.formStyle}>
         <Text style={styles.textoTitulo}>Recuperar Senha</Text>
 
-        {/* --- 5. Conectar inputs ao estado --- */}
         <Input
           iconName="lock"
           placeholder="Digite sua senha"
@@ -72,7 +75,6 @@ function RedefinirSenha() {
           value={senha}
           onChangeText={setSenha}
         />
-        {/* Exibir erro de senha */}
         {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
 
         <Input
@@ -82,13 +84,11 @@ function RedefinirSenha() {
           value={confirmarSenha}
           onChangeText={setConfirmarSenha}
         />
-        {/* Exibir erro de confirmação */}
         {errors.confirmarSenha && <Text style={styles.errorText}>{errors.confirmarSenha}</Text>}
 
-        {/* --- 6. Chamar a validação no botão --- */}
         <Botao
           title="Recuperar Senha"
-          onPress={handleRedefinir} // Chama a função de validação
+          onPress={handleRedefinir}
         />
       </View>
     </View>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignSelf: 'center',
   },
-  // --- Adicionar estilo para o texto de erro ---
+  // --- Estilo para o texto de erro ---
   errorText: {
     color: 'red',
     fontSize: 14,

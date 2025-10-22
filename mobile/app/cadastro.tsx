@@ -4,35 +4,45 @@ import { Image } from "expo-image";
 import { useRouter, Link } from "expo-router";
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import cores from "@/constants/cores";
-import layout from "@/constants/layout";
+import layout from "@/constants/layout"; // Você não estava usando, mas mantive
 import { useNavigation } from "expo-router";
-// Importamos o useState
+// Importamos o useState e useEffect
 import { useEffect, useState } from "react"; 
 import { styles as formStyle } from "@/styles/forms.styles";
+
+// --- DEFINIR A INTERFACE PARA OS ERROS ---
+interface ValidationErrors {
+  nome?: string;
+  telefone?: string;
+  email?: string;
+  dataNascimento?: string;
+  genero?: string;
+  senha?: string;
+  confirmarSenha?: string;
+}
 
 function Cadastro() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  // --- 1. Criar um estado para cada campo do formulário ---
+  // --- Estados dos campos (sem mudança) ---
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
-  const [genero, setGenero] = useState(""); // Estado já existia
+  const [genero, setGenero] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  // --- 2. Criar um estado para os erros de validação ---
-  const [errors, setErrors] = useState({});
+  // --- USAR A INTERFACE NO useState ---
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
-  // --- 3. Criar a função de validação ---
   const handleCadastro = () => {
-    const validationErrors = {};
+    const validationErrors: ValidationErrors = {};
 
     // Validação do nome
     if (!nome.trim()) {
@@ -56,12 +66,10 @@ function Cadastro() {
       validationErrors.dataNascimento = "A data de nascimento é obrigatória.";
     }
     
-    // --- NOVA VALIDAÇÃO ---
     // Validação de gênero
     if (!genero.trim()) {
       validationErrors.genero = "O gênero é obrigatório.";
     }
-    // --- FIM DA NOVA VALIDAÇÃO ---
 
     // Validação da senha
     if (!senha) {
@@ -75,18 +83,12 @@ function Cadastro() {
       validationErrors.confirmarSenha = "As senhas não coincidem.";
     }
     
-    // Atualiza o estado de erros
     setErrors(validationErrors);
 
-    // --- 4. Verificar se há erros ---
-    // Se o objeto de erros estiver vazio, o formulário é válido
     if (Object.keys(validationErrors).length === 0) {
-      // Sucesso!
       alert("Cadastro realizado!");
       router.push('/login');
     } else {
-      // Existem erros, o alert não será disparado 
-      // e as mensagens de erro aparecerão na tela.
       console.log("Erros de validação:", validationErrors);
     }
   };
@@ -108,12 +110,11 @@ function Cadastro() {
         <View style={formStyle.formStyle}>
           <Text style={styles.textoTitulo}>Faça seu Cadastro</Text>
 
-          {/* --- 5. Conectar os inputs ao estado --- */}
           <Input
             iconName="user"
             placeholder="Digite seu nome completo"
             value={nome}
-            onChangeText={setNome} // Atualiza o estado 'nome'
+            onChangeText={setNome} 
           />
           {errors.nome && <Text style={styles.errorText}>{errors.nome}</Text>}
 
@@ -150,7 +151,6 @@ function Cadastro() {
             value={genero}
             onChangeText={setGenero}
           />
-          {/* --- NOVA EXIBIÇÃO DE ERRO --- */}
           {errors.genero && <Text style={styles.errorText}>{errors.genero}</Text>}
 
           <Input
@@ -171,10 +171,9 @@ function Cadastro() {
           />
           {errors.confirmarSenha && <Text style={styles.errorText}>{errors.confirmarSenha}</Text>}
 
-          {/* --- 6. Chamar a função de validação no Botão --- */}
           <Botao
             title="Cadastrar"
-            onPress={handleCadastro} // Chama nossa função manual
+            onPress={handleCadastro}
           />
 
           <Link href="/login" style={styles.link}>
@@ -221,14 +220,13 @@ const styles = StyleSheet.create({
     color: "blue",
     fontSize: 16,
   },
-  // --- Estilo para os erros ---
   errorText: {
     color: 'red',
     fontSize: 14,
     alignSelf: 'flex-start',
-    paddingLeft: 10, // Ajuste conforme o padding do seu Input
+    paddingLeft: 10,
     marginBottom: 5,
-    marginTop: -5,  // Ajuste para ficar mais próximo do Input
+    marginTop: -5,
   },
 });
 
