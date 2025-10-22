@@ -6,6 +6,9 @@ import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaAtualizadaDTO;
 import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaCriadaDTO;
 import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.insumo.InsumoAtualizadoDTO;
+import io.sage.BeesCaatinga.controller.dto.insumo.InsumoCriadoDTO;
+import io.sage.BeesCaatinga.controller.dto.insumo.InsumoRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
@@ -13,17 +16,12 @@ import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaAtualizadaDTO;
 import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaCriadaDTO;
 import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaRetornoDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
-import io.sage.BeesCaatinga.controller.mapper.ApiarioMapper;
-import io.sage.BeesCaatinga.controller.mapper.ColmeiaMapper;
-import io.sage.BeesCaatinga.controller.mapper.ProdutorMapper;
-import io.sage.BeesCaatinga.controller.mapper.VistoriaMapper;
+import io.sage.BeesCaatinga.controller.mapper.*;
 import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Colmeia;
+import io.sage.BeesCaatinga.model.Insumo;
 import io.sage.BeesCaatinga.model.Vistoria;
-import io.sage.BeesCaatinga.repository.ApiarioRepository;
-import io.sage.BeesCaatinga.repository.ColmeiaRepository;
-import io.sage.BeesCaatinga.repository.ProdutorRepository;
-import io.sage.BeesCaatinga.repository.VistoriaRepository;
+import io.sage.BeesCaatinga.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +34,17 @@ public class ProdutorService {
     private final ProdutorRepository repository;
     private final ProdutorMapper mapper;
 
-    private final ApiarioMapper apiarioMapper;
     private final ApiarioRepository apiarioRepository;
+    private final ApiarioMapper apiarioMapper;
 
     private final ColmeiaRepository colmeiaRepository;
     private final ColmeiaMapper colmeiaMapper;
 
     private final VistoriaRepository vistoriaRepository;
     private final VistoriaMapper vistoriaMapper;
+
+    private final InsumoRepository insumoRepository;
+    private final InsumoMapper insumoMapper;
 
     // OBS: quando ativar a segurança lembrar de adicionar o encoder,
     // criptografar as senhas antes de salvar no banco de dados
@@ -366,6 +367,66 @@ public class ProdutorService {
         }
 
         return vistoria;
+    }
+
+
+    // OPERAÇÕES DE INSUMO
+    public InsumoRetornoDTO salvarInsumo(Long produtorId, InsumoCriadoDTO dto) {
+        var produtor = repository.findById(produtorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId));
+
+        var insumo = insumoMapper.toEntityFromCriado(dto);
+        insumo.setProdutor(produtor);
+
+        if (insumo.getObservacoes() == null || insumo.getObservacoes().isBlank()) {
+            insumo.setObservacoes("Não informado");
+        }
+
+        insumoRepository.save(insumo);
+        return insumoMapper.toRetornoDTO(insumo);
+    }
+
+    public List<InsumoRetornoDTO> listarInsumosDoProdutor(Long produtorId) {
+        if (!repository.existsById(produtorId)) {
+            throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
+        }
+
+        List<Insumo> insumos = insumoRepository.findByProdutorId(produtorId);
+
+        return insumos.stream()
+                .map(insumoMapper::toRetornoDTO)
+                .toList();
+    }
+
+    public InsumoRetornoDTO atualizarInsumoDoProdutor(Long produtorId, Long insumoId, InsumoAtualizadoDTO dto) {
+        var insumo = validarInsumoDoProdutor(produtorId, insumoId);
+
+        if (dto.dataEntrada() != null) insumo.setDataEntrada(dto.dataEntrada());
+        if (dto.nome() != null) insumo.setNome(dto.nome());
+        if (dto.tipo() != null) insumo.setTipo(dto.tipo());
+        if (dto.quantidade() != null) insumo.setQuantidade(dto.quantidade());
+        if (dto.unidadeMedida() != null) insumo.setUnidadeMedida(dto.unidadeMedida());
+        if (dto.statusInsumo() != null) insumo.setStatusInsumo(dto.statusInsumo());
+        if (dto.dataValidade() != null) insumo.setDataValidade(dto.dataValidade());
+        if (dto.observacoes() != null) insumo.setObservacoes(dto.observacoes());
+
+        insumoRepository.save(insumo);
+        return insumoMapper.toRetornoDTO(insumo);
+    }
+
+    public void deletarInsumoDoProdutor(Long produtorId, Long insumoId) {
+        var insumo = validarInsumoDoProdutor(produtorId, insumoId);
+        insumoRepository.delete(insumo);
+    }
+
+    private Insumo validarInsumoDoProdutor(Long produtorId, Long insumoId) {
+        var insumo = insumoRepository.findById(insumoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Insumo não encontrado com id: " + insumoId));
+
+        if (insumo.getProdutor() == null || !insumo.getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Insumo não pertence ao produtor informado");
+        }
+        return insumo;
     }
 
 }

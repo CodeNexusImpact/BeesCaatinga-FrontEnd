@@ -29,4 +29,7 @@ public class Insumo {
     private String observacoes;
     @Enumerated(EnumType.STRING)
     private StatusInsumo statusInsumo;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "produtor_id")
+    private Produtor produtor;
 }

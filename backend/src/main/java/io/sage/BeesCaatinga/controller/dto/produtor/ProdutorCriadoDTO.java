@@ -15,7 +15,7 @@ public record ProdutorCriadoDTO(
         @Email(message = "Campo email preenchido incorretamente.")
         @NotBlank(message = "Campo email é obrigatório!")
         String email,
-        @NotNull(message = "Campo data de nascimento é obrigatório")
+        @NotNull(message = "Campo data de nascimento é obrigatório!")
         @Past(message = "Data de nascimento deve ser uma data passada")
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataDeNascimento,
