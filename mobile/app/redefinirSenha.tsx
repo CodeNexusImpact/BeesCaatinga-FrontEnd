@@ -4,9 +4,9 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
 import cores from "@/constants/cores";
-import layout from "@/constants/layout";
 import { useNavigation } from "expo-router";
 import { useEffect } from "react";
+import { styles as formStyle } from "@/styles/forms.styles";
 
 function RedefinirSenha() {
   
@@ -14,37 +14,29 @@ function RedefinirSenha() {
   const navigation = useNavigation();
 
   useEffect(() => {
-      navigation.setOptions({ headerShown: false });
-    }, [navigation]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   return (
-    <View style={{ display: "flex", height: "100%" }}>
-      <View style={{ backgroundColor: cores.primaria, alignItems: "center" }}>
+    <View style={{ flex: 1 }}>
+      <View style={styles.conteinerLogo}>
         <Image
           style={styles.image}
           source={require("../assets/images/LogoBeesCaatinga.png")}
         />
       </View>
-      <View
-        style={{
-          display: "flex",
-          padding: layout.espacamento.colega,
-          justifyContent: "flex-start",
-          alignItems: "center",
-          height: "100%",
-          
-        }}
-      >
+      <View style={formStyle.formStyle}>
         <Text style={styles.textoTitulo}>Recuperar Senha</Text> 
         <Input iconName="lock" placeholder="Digite sua senha" secureTextEntry={true} />
         <Input iconName="lock" placeholder="Confirme sua senha" secureTextEntry={true} />
         
         <Botao 
-          title="Recuperar Senha" onPress={() => { alert("Senha redefinida com Sucesso!"); 
-          router.push('/login');
+          title="Recuperar Senha" 
+          onPress={() => { 
+            alert("Senha redefinida com Sucesso!"); 
+            router.push('/login');
           }} 
         />
-        
       </View>
     </View>
   );
@@ -55,10 +47,12 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
   },
-  textoSimples: {
-    color: '#000',
-    fontSize: 16,
+  conteinerLogo: {
+    height: 'auto',
+    backgroundColor: cores.primaria,
+    alignItems: 'center',
   },
   image: {
     width: "100%",
@@ -68,7 +62,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignSelf: 'center',
   },
-
 });
 
 export default RedefinirSenha;
