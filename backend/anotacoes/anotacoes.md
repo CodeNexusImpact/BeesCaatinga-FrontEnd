@@ -6,10 +6,6 @@
 * verificar com o pessoal a questão da deleção do apiário
   - está permitindo deletar apenas sem colméias ativas (apenas com inativas)
 
-# OBS:
-* Para todos os atualizar, lembrar de adicionar verificação nos campos
-* Para todos dtos que retornam outros DTOS, lembrar de ajeitar
-
 # Relacionamentos:
 ## Colméia x Apiário
 ![img.png](imagens/img.png)
