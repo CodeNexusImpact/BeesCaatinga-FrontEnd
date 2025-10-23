@@ -9,6 +9,9 @@ import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.insumo.InsumoAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.insumo.InsumoCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.insumo.InsumoRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.producao.ProducaoAtualizadaDTO;
+import io.sage.BeesCaatinga.controller.dto.producao.ProducaoCriadaDTO;
+import io.sage.BeesCaatinga.controller.dto.producao.ProducaoRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
@@ -17,10 +20,7 @@ import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaCriadaDTO;
 import io.sage.BeesCaatinga.controller.dto.vistoria.VistoriaRetornoDTO;
 import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.*;
-import io.sage.BeesCaatinga.model.Apiario;
-import io.sage.BeesCaatinga.model.Colmeia;
-import io.sage.BeesCaatinga.model.Insumo;
-import io.sage.BeesCaatinga.model.Vistoria;
+import io.sage.BeesCaatinga.model.*;
 import io.sage.BeesCaatinga.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,6 +45,9 @@ public class ProdutorService {
 
     private final InsumoRepository insumoRepository;
     private final InsumoMapper insumoMapper;
+
+    private final ProducaoRepository producaoRepository;
+    private final ProducaoMapper producaoMapper;
 
     // OBS: quando ativar a segurança lembrar de adicionar o encoder,
     // criptografar as senhas antes de salvar no banco de dados
@@ -427,6 +430,98 @@ public class ProdutorService {
             throw new ResourceNotFoundException("Insumo não pertence ao produtor informado");
         }
         return insumo;
+    }
+
+
+    // OPERAÇÕES DE PRODUÇÃO
+    public ProducaoRetornoDTO salvarProducao(Long produtorId, ProducaoCriadaDTO dto) {
+        // Valida se apiário e colmeia pertencem ao produtor
+        validarProducaoDoProdutor(produtorId, dto.apiarioId(), dto.colmeiaId());
+
+        var producao = producaoMapper.toEntityFromCriada(dto, apiarioRepository, colmeiaRepository);
+        producaoRepository.save(producao);
+        return producaoMapper.toRetornoDTO(producao);
+    }
+
+    public List<ProducaoRetornoDTO> listarProducoesDoProdutor(Long produtorId) {
+        if (!repository.existsById(produtorId)) {
+            throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
+        }
+
+        List<Producao> producoes = producaoRepository.findByApiarioProdutorId(produtorId);
+
+        return producoes.stream()
+                .map(producaoMapper::toRetornoDTO)
+                .toList();
+    }
+
+    public ProducaoRetornoDTO atualizarProducaoDoProdutor(Long produtorId, Long producaoId, ProducaoAtualizadaDTO dto) {
+        // 1. Valida se a produção existe e pertence ao produtor
+        var producao = validarProducaoDoProdutor(produtorId, producaoId);
+
+        // 2. Atualiza apenas campos não nulos (PATCH)
+        if (dto.tipoProducao() != null) producao.setTipoProducao(dto.tipoProducao());
+        if (dto.quantidade() != null) producao.setQuantidade(dto.quantidade());
+        if (dto.unidadeMedida() != null) producao.setUnidadeMedida(dto.unidadeMedida());
+        if (dto.dataColeta() != null) producao.setDataColeta(dto.dataColeta());
+
+        // 3. Se mudar de apiário, valida se o novo apiário pertence ao produtor
+        if (dto.apiarioId() != null && !dto.apiarioId().equals(producao.getApiario().getId())) {
+            var novoApiario = validarApiarioDoProdutor(produtorId, dto.apiarioId());
+            producao.setApiario(novoApiario);
+        }
+
+        // 4. Se mudar de colmeia, valida se a nova colmeia pertence ao produtor
+        if (dto.colmeiaId() != null && !dto.colmeiaId().equals(producao.getColmeia().getId())) {
+            // Valida se a nova colmeia pertence a algum apiário do produtor
+            var novaColmeia = colmeiaRepository.findById(dto.colmeiaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Colmeia não encontrada"));
+
+            if (!novaColmeia.getApiario().getProdutor().getId().equals(produtorId)) {
+                throw new ResourceNotFoundException("Nova colmeia não pertence ao produtor");
+            }
+
+            producao.setColmeia(novaColmeia);
+        }
+
+        // 5. Salva as alterações (o @PreUpdate vai recalcular os litros automaticamente)
+        producaoRepository.save(producao);
+
+        return producaoMapper.toRetornoDTO(producao);
+    }
+
+    public void deletarProducaoDoProdutor(Long produtorId, Long producaoId) {
+        // 1. Valida se a produção existe e pertence ao produtor
+        var producao = validarProducaoDoProdutor(produtorId, producaoId);
+
+        // 2. Deleta a produção
+        producaoRepository.delete(producao);
+    }
+
+    private Producao validarProducaoDoProdutor(Long produtorId, Long producaoId) {
+        // Verifica se a produção existe
+        var producao = producaoRepository.findById(producaoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produção não encontrada com id: " + producaoId));
+
+        // Verifica se a produção pertence ao produtor
+        if (!producao.getApiario().getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Produção não pertence ao produtor informado");
+        }
+
+        return producao;
+    }
+
+    private void validarProducaoDoProdutor(Long produtorId, Long apiarioId, Long colmeiaId) {
+        // Valida se o apiário pertence ao produtor
+        var apiario = validarApiarioDoProdutor(produtorId, apiarioId);
+
+        // Valida se a colmeia pertence ao apiário
+        var colmeia = colmeiaRepository.findById(colmeiaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Colmeia não encontrada"));
+
+        if (!colmeia.getApiario().getId().equals(apiarioId)) {
+            throw new ResourceNotFoundException("Colmeia não pertence ao apiário informado");
+        }
     }
 
 }
