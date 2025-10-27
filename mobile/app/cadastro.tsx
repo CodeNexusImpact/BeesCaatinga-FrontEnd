@@ -4,9 +4,7 @@ import { Image } from "expo-image";
 import { useRouter, Link } from "expo-router";
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import cores from "@/constants/cores";
-import layout from "@/constants/layout"; // Você não estava usando, mas mantive
 import { useNavigation } from "expo-router";
-// Importamos o useState e useEffect
 import { useEffect, useState } from "react"; 
 import { styles as formStyle } from "@/styles/forms.styles";
 
