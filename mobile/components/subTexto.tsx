@@ -1,16 +1,17 @@
 import cores from '@/constants/cores';
 import fonts from '@/constants/fonts';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 
 interface SubtextoProps {
-  children: string;
+  children: React.ReactNode;
+  style?: ViewStyle;
 }
 
-const Subtexto: React.FC<SubtextoProps> = ({ children }) => {
+const Subtexto: React.FC<SubtextoProps> = ({ children, style }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{children}</Text>
+    <View style={[styles.container, style]}>
+      {children}
       <View style={styles.line} />
     </View>
   );
@@ -19,15 +20,16 @@ const Subtexto: React.FC<SubtextoProps> = ({ children }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-
   },
+
   text: {
-    fontSize: fonts.size.p, // 16px
+    fontSize: fonts.size.p, 
     fontFamily: fonts.family.body,
     color: cores.texto,
     textAlign: 'center',
-    margin: 10,
+    margin: 20,
   },
+
   line: {
     width: '90%',
     height: 1,

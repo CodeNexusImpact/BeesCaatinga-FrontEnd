@@ -8,8 +8,8 @@ import Icon from '@/components/icon';
 
 interface ItemHomeProps {
   title: string;
-  iconName?: AppIconName;       // Ícone padrão
-  imageSource?: ImageSourcePropType; // Imagem personalizada
+  iconName?: AppIconName;     
+  imageSource?: ImageSourcePropType; 
   onPress: () => void;
 }
 
@@ -33,8 +33,8 @@ const ItemHome: React.FC<ItemHomeProps> = ({ title, iconName, imageSource, onPre
 
 const styles = StyleSheet.create({
   container: {
-    width: 126,
-    height: 126,
+    width: 120,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: cores.branco,
@@ -48,11 +48,13 @@ const styles = StyleSheet.create({
     padding: layout.espacamento.texto,
     margin: layout.espacamento.amigavel,
   },
+
   customImage: {
     width: 60,
     height: 60,
     resizeMode: 'contain',
   },
+  
   text: {
     fontSize: fonts.size.p,
     fontFamily: fonts.family.body,
