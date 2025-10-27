@@ -37,7 +37,11 @@ function Login() {
         </Link>
         <Botao title="Entrar" onPress={() => alert("Button pressed!")} iconName="forward" />
         <Text style={styles.textoSimples} >Ou</Text>
-        <Botao title="Cadastrar" cor="secundaria" onPress={() => {alert("Button pressed!");router.push('/cadastro')}} />
+        <Botao 
+          title="Cadastra" cor="secundaria" onPress={() => { alert("Cadastro realizado!"); 
+          router.push('/cadastro');
+          }} 
+        />
         <Botao title="Cadastra com o Google" cor="branca" onPress={() => alert("Button pressed!")} />
       </View>
     </View>
