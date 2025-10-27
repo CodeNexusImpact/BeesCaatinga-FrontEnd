@@ -26,6 +26,7 @@ export default {
   buttonHeight: 48,
   
   // Raio de Borda
+<<<<<<< HEAD
   borderRadius:{
     r25: 8,
     r50: 16,
@@ -33,5 +34,8 @@ export default {
     r100: 32,
     r1000: 999,
   }
+=======
+  borderRadius: espacamentoBase, // 8 
+>>>>>>> 9f84cd6 (:sparkles: feat(const): arquivos de constantes)
   
 };
