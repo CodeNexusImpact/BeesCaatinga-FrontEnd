@@ -11,9 +11,8 @@ import { useRouter } from "expo-router";
 
 function Login() {
 
-  const router = useRouter();
-
   const navigation = useNavigation();
+  const router = useRouter();
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -24,6 +23,7 @@ function Login() {
         <Image
           style={styles.image}
           source={require("../assets/images/LogoBeesCaatinga.png")}
+          contentFit= 'contain'
         />
       </View>
       <View
@@ -66,7 +66,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 200,
-    resizeMode: 'contain',
     marginTop: 50,
     marginBottom: 20,
     alignSelf: 'center',

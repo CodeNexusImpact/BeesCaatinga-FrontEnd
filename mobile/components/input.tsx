@@ -1,10 +1,11 @@
-import React from 'react';
-import { TextInput, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import Icon from './icon';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import React from 'react';
+import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
+import styles from '@/styles/input.styles';
+import Icon from './icon';
 
-interface InputProps {
+interface InputProps extends TextInputProps {
     label?: string;
     placeholder?: string;
     value?: string;
@@ -21,6 +22,7 @@ const Input: React.FC<InputProps> = ({
     secureTextEntry,
     style,
     iconName,
+    ...textInputProps
 }) => {
     const [isSecret, setIsSecret] = React.useState(secureTextEntry);
     function viewPassword() {
@@ -33,6 +35,7 @@ const Input: React.FC<InputProps> = ({
             </View>}
             {label && <Text style={styles.label}>{label}:</Text>}
             <TextInput
+                {...textInputProps}
                 style={styles.input}
                 placeholder={placeholder}
                 placeholderTextColor={cores.placeholder}
@@ -48,30 +51,5 @@ const Input: React.FC<InputProps> = ({
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        width: '100%',
-        paddingHorizontal: layout.espacamento.amigavel,
-        alignItems: 'center',
-        flexDirection: 'row',
-        borderWidth: 1,
-        borderRadius: layout.borderRadius.r25,
-        paddingVertical: layout.espacamento.texto,
-    },
-    label: {
-        fontSize: 14,
-        color: '#333',
-        marginBottom: 5,
-    },
-    input: {
-        height: 40,
-        borderColor: '#ccc',
-        flexShrink: 1,
-        flexGrow: 1,
-        paddingHorizontal: 10,
-        fontSize: 16,
-    },
-});
 
 export default Input;
