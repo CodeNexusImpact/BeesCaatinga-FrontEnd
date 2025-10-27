@@ -6,11 +6,13 @@ import { Text, View, StyleSheet } from "react-native";
 import { useEffect } from "react";
 import cores from "@/constants/cores";
 import { styles as formStyle } from "@/styles/forms.styles";
+import { useRouter } from "expo-router";
 
 
 function Login() {
 
   const navigation = useNavigation();
+  const router = useRouter();
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -21,6 +23,7 @@ function Login() {
         <Image
           style={styles.image}
           source={require("../assets/images/LogoBeesCaatinga.png")}
+          contentFit= 'contain'
         />
       </View>
       <View
@@ -34,7 +37,7 @@ function Login() {
         </Link>
         <Botao title="Entrar" onPress={() => alert("Button pressed!")} iconName="forward" />
         <Text style={styles.textoSimples} >Ou</Text>
-        <Botao title="Cadastra" cor="secundaria" onPress={() => alert("Button pressed!")} />
+        <Botao title="Cadastrar" cor="secundaria" onPress={() => {alert("Button pressed!");router.push('/cadastro')}} />
         <Botao title="Cadastra com o Google" cor="branca" onPress={() => alert("Button pressed!")} />
       </View>
     </View>
@@ -59,7 +62,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 200,
-    resizeMode: 'contain',
     marginTop: 50,
     marginBottom: 20,
     alignSelf: 'center',

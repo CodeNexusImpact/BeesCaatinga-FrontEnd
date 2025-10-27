@@ -11,7 +11,7 @@ export default {
   // Famílias de Fonte (se usar customizadas)
   family: {
     display: 'Wix Madefor Display', // 'WixMadeforDisplay-Regular'
-    body: 'System', // 'Roboto-Regular'
+    sans: 'System', // 'Roboto-Regular'
     heading: 'System-Bold', // 'Roboto-Bold'
   },
 };
