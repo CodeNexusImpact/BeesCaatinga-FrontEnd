@@ -5,11 +5,9 @@ import { useRouter } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
 import cores from "@/constants/cores";
 import { useNavigation } from "expo-router";
-// --- Importar o useState e useEffect ---
 import { useEffect, useState } from "react"; 
 import { styles as formStyle } from "@/styles/forms.styles";
 
-// --- 1. DEFINIR A INTERFACE PARA OS ERROS ---
 interface RedefinirErrors {
   senha?: string;
   confirmarSenha?: string;

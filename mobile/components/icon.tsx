@@ -1,4 +1,3 @@
-// src/components/AppIcon.tsx
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppIcons, AppIconName } from '@/constants/icons'; // Importa a documentação
 import { View} from 'react-native';
