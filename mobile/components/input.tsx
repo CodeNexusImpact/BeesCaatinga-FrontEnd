@@ -12,6 +12,7 @@ interface InputProps extends TextInputProps {
     secureTextEntry?: boolean;
     style?: object;
     iconName?: string; // Nome do ícone a ser exibido
+    iconRightName?: string;
 }
 const Input: React.FC<InputProps> = ({
     label,
@@ -21,6 +22,7 @@ const Input: React.FC<InputProps> = ({
     secureTextEntry,
     style,
     iconName,
+    iconRightName,
     ...textInputProps
 }) => {
     const [isSecret, setIsSecret] = React.useState(secureTextEntry);
@@ -42,11 +44,18 @@ const Input: React.FC<InputProps> = ({
                 onChangeText={onChangeText}
                 secureTextEntry={isSecret}
             />
-            {secureTextEntry && <TouchableOpacity onPress={viewPassword} style={{ position: 'absolute', right: layout.espacamento.amigavel }}>
-                <View style={{ marginRight: layout.espacamento.texto }}>
-                    <Icon name={isSecret? "olho": "olhoFechado"}></Icon>
+            {secureTextEntry && (
+                <TouchableOpacity onPress={viewPassword} style={styles.iconRight}>
+                    <Icon name={isSecret ? "olho" : "olhoFechado"}></Icon>
+                </TouchableOpacity>
+            )}
+
+            {/* Se não for senha E tiver um iconRightName, mostra ele */}
+            {!secureTextEntry && iconRightName && (
+                <View style={styles.iconRight}>
+                    <Icon name={iconRightName} size={20} color={cores.primaria}></Icon>
                 </View>
-            </TouchableOpacity>}
+            )}
         </View>
     );
 };
@@ -60,11 +69,13 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: layout.borderRadius.r25,
         paddingVertical: layout.espacamento.texto,
+        backgroundColor: cores.branco, 
+        borderColor: cores.borda,
     },
     label: {
         fontSize: 14,
         color: '#333',
-        marginBottom: 5,
+        marginRight: layout.espacamento.texto
     },
     input: {
         height: 40,
@@ -74,6 +85,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         fontSize: 16,
     },
+    iconRight: {
+    position: 'absolute',
+    right: layout.espacamento.amigavel,
+  }
 });
 
 export default Input;
