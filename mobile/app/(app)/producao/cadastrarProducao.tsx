@@ -1,89 +1,137 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import Input from '@/components/input';
 import Botao from '@/components/botao';
+import Input from '@/components/input';
+import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function CadastrarProducao() {
   const router = useRouter();
-  
-  // Estados para os campos (opcional, mas recomendado)
-  const [quantidade, setQuantidade] = useState('2.0');
-  const [conversao, setConversao] = useState('1,43 L');
 
-  // Suposição dos nomes dos ícones (ajuste conforme seu AppIcons)
-  const iconSeta = 'chevron-down';
-  const iconCalendario = 'calendar';
+  // Estados
+  const [tipoProduto, setTipoProduto] = useState('');
+  const [quantidade, setQuantidade] = useState('');
+  const [medida, setMedida] = useState('');
+  const [apiario, setApiario] = useState('');
+  const [colmeia, setColmeia] = useState('');
+  const [dataColeta, setDataColeta] = useState('');
+
+  // Opções fixas (substitua por dados dinâmicos depois, se necessário)
+  const tipoProdutoOptions = [
+    { label: 'Mel de Jandaíra', value: 'jandaira' },
+    { label: 'Mel de Marmeleiro', value: 'marmeleiro' },
+    { label: 'Mel de Pajeú', value: 'pajeu' },
+    { label: 'Mel de Umbu', value: 'umbu' },
+  ];
+
+  const medidaOptions = [
+    { label: 'Kg', value: 'kg' },
+    { label: 'g', value: 'g' },
+    { label: 'L', value: 'l' },
+    { label: 'mL', value: 'ml' },
+  ];
+
+  const apiarioOptions = [
+    { label: 'Rosa do Sertão', value: 'rosa' },
+    { label: 'Vale das Abelhas', value: 'vale' },
+    { label: 'Serra do Mel', value: 'serra' },
+  ];
+
+  const colmeiaOptions = [
+    { label: 'Colmeia 1', value: '1' },
+    { label: 'Colmeia 2', value: '2' },
+    { label: 'Colmeia 3', value: '3' },
+  ];
+
+  // Conversão fixa só para exibição (pode ser calculada depois)
+  const conversao = '1,43 L';
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Campo Tipo Produto (Simulando Dropdown) */}
-      <Input
-        label="Tipo Produto"
-        value="Mel"
-        editable={false}
-        iconRightName={iconSeta}
-      />
 
-      {/* Linha para Quantidade e Medida */}
-      <View style={styles.row}>
-        <Input
-          label="Quantidade"
-          value={quantidade}
-          onChangeText={setQuantidade}
-          keyboardType="numeric"
-          style={styles.inputMetade} // Estilo para dividir a linha
-        />
-        <Input
-          label="Medida"
-          value="Kg"
-          editable={false}
-          iconRightName={iconSeta}
-          style={styles.inputMetade} // Estilo para dividir a linha
-        />
-      </View>
-
-      {/* Campo Conversão */}
+      {/* Conversão (somente leitura) */}
       <Input
         label="Conversão para litro"
         value={conversao}
         editable={false}
-        style={styles.conversaoInput} // Estilo customizado
+        style={styles.conversaoInput}
+      />
+      
+      {/* Quantidade + Medida */}
+      <View style={styles.row}>
+        <Input
+          label="Adicione a Quantidade"
+          value={quantidade}
+          onChangeText={(text) => {
+            const cleaned = text.replace(/[^0-9.,]/g, '');
+            setQuantidade(cleaned);
+          }}
+          keyboardType="decimal-pad"
+          style={styles.inputMetade}
+        />
+        <Selector
+          label="Medida"
+          options={medidaOptions}
+          onSelect={setMedida}
+          placeholder="Selecione o tipo de Medida"
+          style={styles.inputMetade}
+        />
+      </View>
+
+      {/* Tipo de Mel */}
+      <Selector
+        label="Tipo de Mel"
+        options={tipoProdutoOptions}
+        onSelect={setTipoProduto}
+        placeholder="Selecione o tipo de Mel"
+        iconName="honeycomb"
       />
 
-      {/* Campo Apiário (Simulando Dropdown) */}
-      <Input
+      {/* Apiário */}
+      <Selector
         label="Apiário"
-        value="Rosa do Sertão"
-        editable={false}
-        iconRightName={iconSeta}
+        options={apiarioOptions}
+        onSelect={setApiario}
+        placeholder="Selecione o Apiário"
+        iconName="home"
       />
 
-      {/* Campo Colmeia (Simulando Dropdown) */}
-      <Input
+      {/* Colmeia */}
+      <Selector
         label="Colmeia"
-        value="Colmeia 1"
-        editable={false}
-        iconRightName={iconSeta}
+        options={colmeiaOptions}
+        onSelect={setColmeia}
+        placeholder="Selecione a Colmeia"
+        iconName="beehiveOutline"
       />
 
-      {/* Campo Data Coleta (Simulando DatePicker) */}
+      {/* Data Coleta — editável com ícone de calendário */}
       <Input
-        label="Data Coleta"
-        value="18/09/2025"
-        editable={false}
-        iconRightName={iconCalendario}
+        label="Data de Coleta"
+        value={dataColeta}
+        onChangeText={setDataColeta}
+        placeholder="dd/mm/aaaa"
+        iconName="calendar" 
       />
 
-      {/* Botão Cadastrar */}
+      {/* Botão */}
       <Botao
         title="Cadastrar"
-        onPress={() => { /* Lógica de cadastro */ }}
+        onPress={() => {
+          console.log({
+            tipoProduto,
+            quantidade,
+            medida,
+            apiario,
+            colmeia,
+            dataColeta,
+          });
+        }}
         cor="primaria"
         style={styles.button}
       />
@@ -94,28 +142,27 @@ export default function CadastrarProducao() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: cores.fundo, // Assumindo que cores.fundo é o seu branco/cinza claro
+    backgroundColor: cores.fundo,
   },
   contentContainer: {
     padding: layout.espacamento.amigavel,
-    // Adiciona espaço vertical entre cada Input
-    gap: layout.espacamento.colega, 
+    gap: layout.espacamento.colega,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // Adiciona espaço entre os inputs da linha
-    gap: layout.espacamento.amigavel, 
+    gap: layout.espacamento.amigavel,
+    zIndex: 10, 
+    position: 'relative',
   },
   inputMetade: {
-    flex: 1, // Faz com que os inputs dividam o espaço
+    flex: 1,
   },
   conversaoInput: {
-    backgroundColor: '#FFF8E1', // Um amarelo/bege claro
+    backgroundColor: '#FFF8E1',
     borderColor: '#FFECB3',
   },
   button: {
-    // Adiciona um espaço extra acima do botão
     marginTop: layout.espacamento.social,
   },
 });

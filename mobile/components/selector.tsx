@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import styles from '@/styles/input.styles';
 import cores from '@/constants/cores';
+import styles from '@/styles/input.styles';
+import React, { useState } from 'react';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
 
 interface Option {
@@ -15,6 +15,7 @@ interface SelectorProps {
     onSelect: (value: string) => void;
     placeholder?: string;
     iconName?: string;
+    style?: any; // ou ViewStyle se você preferir uma tipagem mais específica
 }
 
 const Selector: React.FC<SelectorProps> = ({
@@ -22,6 +23,7 @@ const Selector: React.FC<SelectorProps> = ({
     onSelect,
     placeholder = "Selecione uma opção",
     iconName,
+    style,
 }) => {
     const [selected, setSelected] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +35,7 @@ const Selector: React.FC<SelectorProps> = ({
     };
 
     return (        
-        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }]}> 
+        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }, style]}> 
             {iconName && <View style={styles.icon}>
                 <Icon name={iconName}></Icon>
             </View>}
@@ -89,6 +91,7 @@ const stylesSelector = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#fff',
         maxHeight: 150,
+        zIndex: 9999,
     },
     option: {
         padding: 12,

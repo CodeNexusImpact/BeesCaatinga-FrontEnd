@@ -1,14 +1,12 @@
 import Botao from "@/components/botao";
 import Input from "@/components/input";
-import { Image } from "expo-image";
-import { useRouter, Link } from "expo-router";
-import { Text, View, StyleSheet, ScrollView } from "react-native";
+import Selector from "@/components/selector";
 import cores from "@/constants/cores";
-import { useNavigation } from "expo-router";
-// Importamos o useState e useEffect
-import { useEffect, useState } from "react";
 import { styles as formStyle } from "@/styles/forms.styles";
-import Selector from "@/components/seletor";
+import { Image } from "expo-image";
+import { Link, useNavigation, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 // --- DEFINIR A INTERFACE PARA OS ERROS ---
 interface ValidationErrors {

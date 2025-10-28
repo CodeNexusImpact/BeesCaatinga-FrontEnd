@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 
   text: {
     fontSize: fonts.size.p, 
-    fontFamily: fonts.family.body,
+    fontFamily: fonts.family.sans,
     color: cores.texto,
     textAlign: 'center',
     margin: 20,
