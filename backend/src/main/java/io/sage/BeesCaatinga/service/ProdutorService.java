@@ -9,6 +9,9 @@ import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.insumo.InsumoAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.insumo.InsumoCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.insumo.InsumoRetornoDTO;
+import io.sage.BeesCaatinga.controller.dto.lote.LoteCriadoDTO;
+import io.sage.BeesCaatinga.controller.dto.lote.LoteRetornoCodigoDTO;
+import io.sage.BeesCaatinga.controller.dto.lote.LoteRetornoListadoDTO;
 import io.sage.BeesCaatinga.controller.dto.producao.ProducaoAtualizadaDTO;
 import io.sage.BeesCaatinga.controller.dto.producao.ProducaoCriadaDTO;
 import io.sage.BeesCaatinga.controller.dto.producao.ProducaoRetornoDTO;
@@ -48,6 +51,9 @@ public class ProdutorService {
 
     private final ProducaoRepository producaoRepository;
     private final ProducaoMapper producaoMapper;
+
+    private final LoteRepository loteRepository;
+    private final LoteMapper loteMapper;
 
     // OBS: quando ativar a segurança lembrar de adicionar o encoder,
     // criptografar as senhas antes de salvar no banco de dados
@@ -522,6 +528,54 @@ public class ProdutorService {
         if (!colmeia.getApiario().getId().equals(apiarioId)) {
             throw new ResourceNotFoundException("Colmeia não pertence ao apiário informado");
         }
+    }
+
+
+    // OPERAÇÕES DE LOTE
+    public LoteRetornoCodigoDTO salvarLote(Long produtorId, LoteCriadoDTO dto) {
+        // Busca o apiário por nome e valida se pertence ao produtor
+        var apiario = apiarioRepository.findByNome(dto.nomeApiario())
+                .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com nome: " + dto.nomeApiario()));
+
+        // Valida se o apiário pertence ao produtor
+        if (!apiario.getProdutor().getId().equals(produtorId)) {
+            throw new ResourceNotFoundException("Apiário não pertence ao produtor informado");
+        }
+
+        // Converte DTO para entidade
+        var lote = loteMapper.toEntityFromCriado(dto, apiarioRepository);
+
+        // Salva o lote
+        loteRepository.save(lote);
+        return loteMapper.toRetornoCodigoDTO(lote);
+    }
+
+    public List<LoteRetornoCodigoDTO> listarTodosLotesDoProdutor(Long produtorId) {
+        // Verifica se o produtor existe
+        if (!repository.existsById(produtorId)) {
+            throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
+        }
+
+        // Busca todos os lotes do produtor
+        List<Lote> lotes = loteRepository.findByApiarioProdutorId(produtorId);
+
+        return lotes.stream()
+                .map(loteMapper::toRetornoCodigoDTO)
+                .toList();
+    }
+
+    public List<LoteRetornoListadoDTO> listarLotesDoProdutor(Long produtorId) {
+        // Verifica se o produtor existe
+        if (!repository.existsById(produtorId)) {
+            throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
+        }
+
+        // Busca lotes do produtor
+        List<Lote> lotes = loteRepository.findByApiarioProdutorId(produtorId);
+
+        return lotes.stream()
+                .map(loteMapper::toRetornoListadoDTO)
+                .toList();
     }
 
 }
