@@ -26,7 +26,7 @@ export default function Home() {
       { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
       { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
       { title: "Insumos", icon: "package", route: "/insumos" },
-      { title: "Produção de Mel", image: prodMel, route: "/producao" },
+      { title: "Produção de Mel", image: prodMel, route: "/cadastrarProducao" },
       { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
 
       { title: "Relatórios", icon: "fileDocument", route: "/relatorios" },
