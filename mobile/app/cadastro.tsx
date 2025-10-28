@@ -5,8 +5,10 @@ import { useRouter, Link } from "expo-router";
 import { Text, View, StyleSheet, ScrollView } from "react-native";
 import cores from "@/constants/cores";
 import { useNavigation } from "expo-router";
-import { useEffect, useState } from "react"; 
+// Importamos o useState e useEffect
+import { useEffect, useState } from "react";
 import { styles as formStyle } from "@/styles/forms.styles";
+import Selector from "@/components/seletor";
 
 // --- DEFINIR A INTERFACE PARA OS ERROS ---
 interface ValidationErrors {
@@ -31,6 +33,11 @@ function Cadastro() {
   const [genero, setGenero] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+
+  const generoOptions = [
+    { label: 'Masculino', value: 'masculino' },
+    { label: 'Feminino', value: 'feminino' },
+    { label: 'Outro', value: 'outro' },];
 
   // --- USAR A INTERFACE NO useState ---
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -63,7 +70,7 @@ function Cadastro() {
     if (!dataNascimento.trim()) {
       validationErrors.dataNascimento = "A data de nascimento é obrigatória.";
     }
-    
+
     // Validação de gênero
     if (!genero.trim()) {
       validationErrors.genero = "O gênero é obrigatório.";
@@ -80,7 +87,7 @@ function Cadastro() {
     if (senha !== confirmarSenha) {
       validationErrors.confirmarSenha = "As senhas não coincidem.";
     }
-    
+
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
@@ -97,6 +104,7 @@ function Cadastro() {
         <Image
           style={styles.image}
           source={require("../assets/images/LogoBeesCaatinga.png")}
+          contentFit='cover'
         />
       </View>
 
@@ -112,7 +120,7 @@ function Cadastro() {
             iconName="user"
             placeholder="Digite seu nome completo"
             value={nome}
-            onChangeText={setNome} 
+            onChangeText={setNome}
           />
           {errors.nome && <Text style={styles.errorText}>{errors.nome}</Text>}
 
@@ -143,12 +151,8 @@ function Cadastro() {
           />
           {errors.dataNascimento && <Text style={styles.errorText}>{errors.dataNascimento}</Text>}
 
-          <Input
-            iconName="human"
-            placeholder="Informe seu gênero"
-            value={genero}
-            onChangeText={setGenero}
-          />
+          <Selector options={generoOptions} onSelect={setGenero} iconName="human"></Selector>
+
           {errors.genero && <Text style={styles.errorText}>{errors.genero}</Text>}
 
           <Input
@@ -198,7 +202,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 200,
-    resizeMode: 'contain',
     marginTop: 50,
     marginBottom: 20,
     alignSelf: 'center',

@@ -2,6 +2,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import React from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
+import styles from '@/styles/input.styles';
 import Icon from './icon';
 
 interface InputProps extends TextInputProps {
