@@ -456,22 +456,22 @@ public class ProdutorService {
     }
 
     public ProducaoRetornoDTO atualizarProducaoDoProdutor(Long produtorId, Long producaoId, ProducaoAtualizadaDTO dto) {
-        // 1. Valida se a produção existe e pertence ao produtor
+        // Valida se a produção existe e pertence ao produtor
         var producao = validarProducaoDoProdutor(produtorId, producaoId);
 
-        // 2. Atualiza apenas campos não nulos (PATCH)
+        // Atualiza apenas campos não nulos (PATCH)
         if (dto.tipoProducao() != null) producao.setTipoProducao(dto.tipoProducao());
         if (dto.quantidade() != null) producao.setQuantidade(dto.quantidade());
         if (dto.unidadeMedida() != null) producao.setUnidadeMedida(dto.unidadeMedida());
         if (dto.dataColeta() != null) producao.setDataColeta(dto.dataColeta());
 
-        // 3. Se mudar de apiário, valida se o novo apiário pertence ao produtor
+        // Se mudar de apiário, valida se o novo apiário pertence ao produtor
         if (dto.apiarioId() != null && !dto.apiarioId().equals(producao.getApiario().getId())) {
             var novoApiario = validarApiarioDoProdutor(produtorId, dto.apiarioId());
             producao.setApiario(novoApiario);
         }
 
-        // 4. Se mudar de colmeia, valida se a nova colmeia pertence ao produtor
+        // Se mudar de colmeia, valida se a nova colmeia pertence ao produtor
         if (dto.colmeiaId() != null && !dto.colmeiaId().equals(producao.getColmeia().getId())) {
             // Valida se a nova colmeia pertence a algum apiário do produtor
             var novaColmeia = colmeiaRepository.findById(dto.colmeiaId())
@@ -484,17 +484,17 @@ public class ProdutorService {
             producao.setColmeia(novaColmeia);
         }
 
-        // 5. Salva as alterações (o @PreUpdate vai recalcular os litros automaticamente)
+        // Salva as alterações (o @PreUpdate vai recalcular os litros automaticamente)
         producaoRepository.save(producao);
 
         return producaoMapper.toRetornoDTO(producao);
     }
 
     public void deletarProducaoDoProdutor(Long produtorId, Long producaoId) {
-        // 1. Valida se a produção existe e pertence ao produtor
+        // Valida se a produção existe e pertence ao produtor
         var producao = validarProducaoDoProdutor(produtorId, producaoId);
 
-        // 2. Deleta a produção
+        // Deleta a produção
         producaoRepository.delete(producao);
     }
 
