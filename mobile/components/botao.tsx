@@ -12,7 +12,7 @@ interface BotaoProps {
     iconPosition?: 'left' | 'right';
     style?: object;
     textStyle?: object;
-    cor?: "primaria" | "secundaria" | "branca";
+    cor?: "primaria" | "secundaria" | "branca" ;
 }
 
 const Botao: React.FC<BotaoProps> = ({ title, onPress, style, textStyle, cor = "primaria", iconName, iconPosition = 'left' },) => {
