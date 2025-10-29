@@ -6,11 +6,11 @@ import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import Subtexto from '@/components/subTexto';
 
 export default function CadastrarProducao() {
   const router = useRouter();
 
-  // Estados
   const [tipoProduto, setTipoProduto] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [medida, setMedida] = useState('');
@@ -49,10 +49,13 @@ export default function CadastrarProducao() {
   const conversao = '1,43 L';
 
   return (
+    
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+      <Subtexto style={styles.subtexto}>Cadastre um novo produto.</Subtexto>
+
 
       {/* Conversão (somente leitura) */}
       <Input
@@ -131,6 +134,7 @@ export default function CadastrarProducao() {
             colmeia,
             dataColeta,
           });
+          router.push('/visualizarListarProducao');
         }}
         cor="primaria"
         style={styles.button}
@@ -148,6 +152,11 @@ const styles = StyleSheet.create({
     padding: layout.espacamento.amigavel,
     gap: layout.espacamento.colega,
   },
+  subtexto: {
+      width: '100%',
+      paddingTop: layout.espacamento.amigavel, 
+      marginBottom: layout.espacamento.amigavel, 
+    },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
