@@ -1,17 +1,18 @@
 import ItemHome from '@/components/itensHome';
 import cores from '@/constants/cores';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter} from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Subtexto from '@/components/subTexto';
 import layout from '@/constants/layout';
 
-const prodMel = require('../assets/images/prodMel.png');
-const apiarioColmeia = require('../assets/images/apiario_colmeia.png');
-const rastrear = require('../assets/images/rastrear.png');
+const prodMel = require('@/assets/images/prodMel.png');
+const apiarioColmeia = require('@/assets/images/apiario_colmeia.png');
+const rastrear = require('@/assets/images/rastrear.png');
 
-export default function Home() {
+export default function Index() {
   const router = useRouter();
+;
 
   const items: Array<{
     title: string;
@@ -26,7 +27,7 @@ export default function Home() {
       { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
       { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
       { title: "Insumos", icon: "package", route: "/insumos" },
-      { title: "Produção de Mel", image: prodMel, route: "/cadastrarProducao" },
+      { title: "Produção de Mel", image: prodMel, route: "/producao/cadastrarProducao" },
       { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
 
       { title: "Relatórios", icon: "fileDocument", route: "/relatorios" },
@@ -34,7 +35,13 @@ export default function Home() {
     ];
 
   return (
+    
     <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          title: "Home",
+        }}
+      />
       <Subtexto style={styles.subtexto}>Selecione uma opção para começar.</Subtexto>
       <View style={styles.grid}>
         {items.map((item, index) => (
