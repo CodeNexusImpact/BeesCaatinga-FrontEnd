@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: fonts.size.p,
-    fontFamily: fonts.family.body,
+    fontFamily: fonts.family.sans,
     color: cores.texto,
     marginTop: layout.espacamento.texto,
   },
