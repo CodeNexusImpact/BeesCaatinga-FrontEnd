@@ -1,6 +1,6 @@
 import cores from '@/constants/cores';
 import styles from '@/styles/input.styles';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // ✅ Importar useEffect
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
 
@@ -15,7 +15,8 @@ interface SelectorProps {
     onSelect: (value: string) => void;
     placeholder?: string;
     iconName?: string;
-    style?: any; // ou ViewStyle se você preferir uma tipagem mais específica
+    style?: any;
+    value?: string; 
 }
 
 const Selector: React.FC<SelectorProps> = ({
@@ -24,36 +25,58 @@ const Selector: React.FC<SelectorProps> = ({
     placeholder = "Selecione uma opção",
     iconName,
     style,
+    value, 
 }) => {
-    const [selected, setSelected] = useState<string | null>(null);
+    // ✅ 3. Renomear o estado para guardar o RÓTULO (label)
+    const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    const handleSelect = (value: string) => {
-        setSelected(value.replace(/^\w/, (c) => c.toUpperCase()));
-        onSelect(value);
+    // ✅ 4. Adicionar um useEffect para sincronizar a prop 'value' com o 'selectedLabel'
+    useEffect(() => {
+        if (value) {
+            // Encontra a opção correspondente ao 'value' recebido
+            const selectedOption = options.find(opt => opt.value === value);
+            // Define o rótulo (label) interno para exibição
+            setSelectedLabel(selectedOption ? selectedOption.label : null);
+        } else {
+            setSelectedLabel(null);
+        }
+    }, [value, options]); // Executa quando 'value' ou 'options' mudarem
+
+    // ✅ 5. Corrigir 'handleSelect' para enviar o VALOR (value) ao invés do RÓTULO (label)
+    const handleSelect = (selectedValue: string) => {
+        const selectedOption = options.find(opt => opt.value === selectedValue);
+
+        if (selectedOption) {
+            setSelectedLabel(selectedOption.label); // Define o rótulo interno
+            onSelect(selectedOption.value);       // Envia o valor para o pai (ex: 'jandaira')
+        }
         setIsOpen(false);
     };
 
-    return (        
-        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }, style]}> 
+    return (
+        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }, style]}>
             {iconName && <View style={styles.icon}>
                 <Icon name={iconName}></Icon>
             </View>}
-            
+
             <View style={styles.input}>
-                <TouchableOpacity style={{height:'100%', justifyContent:'center'}} onPress={() => setIsOpen(!isOpen)}>
-                    <Text style={[styles.label,{color: selected? cores.texto : cores.placeholder}]}>{selected ? selected : placeholder}</Text>
+                <TouchableOpacity style={{ height: '100%', justifyContent: 'center' }} onPress={() => setIsOpen(!isOpen)}>
+                    {/* ✅ 6. Usar o 'selectedLabel' para exibição */}
+                    <Text style={[styles.label, { color: selectedLabel ? cores.texto : cores.placeholder }]}>
+                        {selectedLabel ? selectedLabel : placeholder}
+                    </Text>
                 </TouchableOpacity>
             </View>
-            
+
             {isOpen && (
-                
                 <View style={stylesSelector.dropdown}>
                     <FlatList
                         data={options}
                         keyExtractor={(item) => item.value}
                         renderItem={({ item }) => (
-                            <TouchableOpacity style={stylesSelector.option} onPress={() => handleSelect(item.label)}>
+                            // ✅ 7. Passar 'item.value' para o 'handleSelect'
+                            <TouchableOpacity style={stylesSelector.option} onPress={() => handleSelect(item.value)}>
                                 <Text style={stylesSelector.optionText}>{item.label}</Text>
                             </TouchableOpacity>
                         )}
@@ -83,8 +106,8 @@ const stylesSelector = StyleSheet.create({
     },
     dropdown: {
         marginTop: 0,
-        position: 'absolute', 
-        top: '100%',         
+        position: 'absolute',
+        top: '100%',
         width: '100%',
         borderWidth: 1,
         borderColor: '#ccc',
