@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   },
 
   line: {
-    width: '90%',
+    width: '60%',
     height: 1,
     backgroundColor: cores.borda,
   },
