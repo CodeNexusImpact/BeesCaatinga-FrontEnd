@@ -72,7 +72,6 @@ const opacity = (hexColor: string, opacityPercent: number) => {
     const opacityHex = Math.round((opacityPercent / 100) * 255).toString(16).padStart(2, '0');
     return hexColor + opacityHex;
 }
-
 export default {
     cores,
     primaria: cores.primaria[100],
