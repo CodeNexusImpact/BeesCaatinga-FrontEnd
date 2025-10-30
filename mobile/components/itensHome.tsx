@@ -1,10 +1,10 @@
-import React from 'react';
-import { Text, StyleSheet, TouchableOpacity, ImageSourcePropType, Image } from 'react-native';
+import Icon from '@/components/icon';
 import cores from '@/constants/cores';
-import layout from '@/constants/layout';
 import fonts from '@/constants/fonts';
 import { AppIconName } from '@/constants/icons';
-import Icon from '@/components/icon';
+import layout from '@/constants/layout';
+import React from 'react';
+import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 interface ItemHomeProps {
   title: string;
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   
   text: {
     fontSize: fonts.size.p,
-    fontFamily: fonts.family.body,
+    fontFamily: fonts.family.sans, 
     textAlign: 'center',
   },
 });

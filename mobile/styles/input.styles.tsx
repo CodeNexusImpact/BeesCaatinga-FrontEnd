@@ -1,6 +1,8 @@
+// styles/input.styles.ts
 import layout from "@/constants/layout";
 import fonts from "@/constants/fonts";
 import { StyleSheet } from "react-native";
+import cores from "@/constants/cores";
 
 const styles = StyleSheet.create({
     container: {
@@ -11,6 +13,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: layout.borderRadius.r25,
         paddingVertical: layout.espacamento.texto,
+        backgroundColor: cores.branco, 
+        borderColor: cores.borda,
     },
     label: {
         fontSize: 14,
@@ -19,16 +23,15 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 40,
-        borderColor: '#ccc',
         flexShrink: 1,
         flexGrow: 1,
         paddingHorizontal: 10,
         fontSize: 16,
         alignSelf: 'center',
     },
-    icon:{
-        marginRight: layout.espacamento.texto
-    }
+    icon: {
+        marginRight: layout.espacamento.texto,
+    },
 });
 
 export default styles;

@@ -1,4 +1,3 @@
-// src/constants/Icons.ts
 //fonte dos icons: https://icons.expo.fyi/Index
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
