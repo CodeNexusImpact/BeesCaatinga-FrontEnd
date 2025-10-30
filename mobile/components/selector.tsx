@@ -1,6 +1,6 @@
 import cores from '@/constants/cores';
 import styles from '@/styles/input.styles';
-import React, { useState, useEffect } from 'react'; // ✅ Importar useEffect
+import React, { useState, useEffect } from 'react'; 
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
 
@@ -27,23 +27,19 @@ const Selector: React.FC<SelectorProps> = ({
     style,
     value, 
 }) => {
-    // ✅ 3. Renomear o estado para guardar o RÓTULO (label)
     const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    // ✅ 4. Adicionar um useEffect para sincronizar a prop 'value' com o 'selectedLabel'
     useEffect(() => {
         if (value) {
-            // Encontra a opção correspondente ao 'value' recebido
             const selectedOption = options.find(opt => opt.value === value);
-            // Define o rótulo (label) interno para exibição
             setSelectedLabel(selectedOption ? selectedOption.label : null);
         } else {
             setSelectedLabel(null);
         }
-    }, [value, options]); // Executa quando 'value' ou 'options' mudarem
+    }, [value, options]); 
 
-    // ✅ 5. Corrigir 'handleSelect' para enviar o VALOR (value) ao invés do RÓTULO (label)
+   
     const handleSelect = (selectedValue: string) => {
         const selectedOption = options.find(opt => opt.value === selectedValue);
 
@@ -75,7 +71,6 @@ const Selector: React.FC<SelectorProps> = ({
                         data={options}
                         keyExtractor={(item) => item.value}
                         renderItem={({ item }) => (
-                            // ✅ 7. Passar 'item.value' para o 'handleSelect'
                             <TouchableOpacity style={stylesSelector.option} onPress={() => handleSelect(item.value)}>
                                 <Text style={stylesSelector.optionText}>{item.label}</Text>
                             </TouchableOpacity>

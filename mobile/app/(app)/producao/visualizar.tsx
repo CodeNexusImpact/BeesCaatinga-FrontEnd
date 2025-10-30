@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet, Text } from 'react-native';
-import GenericCard, { CardField } from '@/components/genericCard'; 
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import GenericCard, { CardField } from '@/components/genericCard';
+import ModalConfirmacao from '@/components/modalConfirmacao';
+import ModalSucesso from '@/components/modalSucesso';
+import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
-import Subtexto from '@/components/subTexto';
-
 
 const producoes = [
   {
@@ -32,7 +33,6 @@ const producoes = [
   },
 ];
 
-// Função para definir cor do status
 const getStatusColor = (status: string) => {
   if (status.toLowerCase().includes('em estoque')) return cores.primaria[100];
   if (status.toLowerCase().includes('vendido')) return cores.primaria[50];
@@ -40,20 +40,36 @@ const getStatusColor = (status: string) => {
   return cores.texto;
 };
 
-export default function VisualizarListarProducao() {
+export default function Visualizar() {
   const router = useRouter();
 
+  // Estados para o modal e toast
+  const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
+  const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
+  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
   const handleEdit = (id: number) => {
-    console.log('Editar produção ID:', id);
-    router.push(`/editarProducao?id=${id}`);
-  };
+    router.push(`/producao/editar?id=${id}`);
+  }
 
   const handleDelete = (id: number) => {
-    console.log('Deletar produção ID:', id);
+    setIdParaExcluir(id);
+    setModalConfirmacaoVisivel(true); // ✅ Abre só o modal de confirmação
   };
 
+  const confirmarExclusao = () => {
+    if (idParaExcluir !== null) {
+      console.log('Produção excluída com ID:', idParaExcluir);
+      // Aqui você faria a exclusão real
+    }
+    setModalConfirmacaoVisivel(true); // ✅ Fecha o modal de confirmação
+    setModalSucessoVisivel(true);      // ✅ Mostra o modal de sucesso
+  };
+
+  const cancelarExclusao = () => {
+    setModalConfirmacaoVisivel(false); // ✅ Fecha o modal
+  };
   return (
-    <View style={styles.container}>
+    <><View style={styles.container}>
       <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -76,17 +92,32 @@ export default function VisualizarListarProducao() {
           return (
             <GenericCard
               key={p.id}
-              id={p.id} // ✅ Passa o ID como prop
+              id={p.id}
               fields={fields}
               actions={[
                 { iconName: 'delete', onPress: () => handleDelete(p.id) },
                 { iconName: 'edit', onPress: () => handleEdit(p.id) },
-              ]}
-            />
+              ]} />
           );
         })}
       </ScrollView>
+
     </View>
+    <ModalConfirmacao
+        visivel={modalConfirmacaoVisivel}
+        titulo="Deseja mesmo apagar esta produção?"
+        mensagem="Entenda que esta ação não poderá ser desfeita."
+        aoConfirmar={confirmarExclusao}
+        aoCancelar={cancelarExclusao}
+        aoFechar={cancelarExclusao}
+        />
+
+        <ModalSucesso
+        visivel={modalSucessoVisivel}
+        mensagem="Produção excluída com sucesso!"
+        aoFechar={() => setModalSucessoVisivel(false)}
+      />
+    </>
   );
 }
 
@@ -96,12 +127,11 @@ const styles = StyleSheet.create({
     backgroundColor: cores.fundo,
     padding: layout.espacamento.amigavel,
   },
-   subtexto: {
-      width: '100%',
-      paddingTop: layout.espacamento.amigavel, 
-      marginBottom: layout.espacamento.amigavel, 
-    },
-
+  subtexto: {
+    width: '100%',
+    paddingTop: layout.espacamento.amigavel,
+    marginBottom: layout.espacamento.amigavel,
+  },
   scrollContent: {
     paddingBottom: layout.espacamento.social,
   },

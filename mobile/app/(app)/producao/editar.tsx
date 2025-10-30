@@ -39,7 +39,7 @@ interface Option {
 // NOVO: Constante para a densidade (ex: 1.4kg/L para mel)
 const DENSIDADE_MEL_KG_L = 1.4;
 
-export default function EditarProducao() {
+export default function Editar() {
     const router = useRouter();
 
     const { id } = useLocalSearchParams();
@@ -142,7 +142,7 @@ export default function EditarProducao() {
                         if (router.canGoBack()) {
                             router.back();
                         } else {
-                            router.push('/visualizarListarProducao');
+                            router.push('/producao/visualizar');
                         }
                     }
                 }
@@ -249,7 +249,7 @@ export default function EditarProducao() {
                     if (router.canGoBack()) {
                         router.back();
                     } else {
-                        router.push('/visualizarListarProducao');
+                        router.push('/producao/visualizar');
                     }
                 }}
                 cor="primaria"
