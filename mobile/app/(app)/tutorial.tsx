@@ -22,7 +22,7 @@ export default function Tutorial() {
 
       <Botao
         title="Pular tutorial"
-        onPress={() => router.push('/home')}
+        onPress={() => router.push('/')}
         cor="primaria"
         style={styles.button}
       />
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: fonts.size.p,
-    fontFamily: fonts.family.body,
+    fontFamily: fonts.family.sans,
     color: cores.texto,
     marginTop: layout.espacamento.texto,
   },
