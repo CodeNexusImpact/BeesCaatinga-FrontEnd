@@ -43,80 +43,90 @@ const getStatusColor = (status: string) => {
 export default function Visualizar() {
   const router = useRouter();
 
-  // Estados para o modal e toast
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
   const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
+
   const handleEdit = (id: number) => {
     router.push(`/producao/editar?id=${id}`);
   }
 
   const handleDelete = (id: number) => {
     setIdParaExcluir(id);
-    setModalConfirmacaoVisivel(true); // ✅ Abre só o modal de confirmação
+    setModalConfirmacaoVisivel(true);
   };
 
   const confirmarExclusao = () => {
     if (idParaExcluir !== null) {
       console.log('Produção excluída com ID:', idParaExcluir);
-      // Aqui você faria a exclusão real
     }
-    setModalConfirmacaoVisivel(true); // ✅ Fecha o modal de confirmação
-    setModalSucessoVisivel(true);      // ✅ Mostra o modal de sucesso
+    setModalConfirmacaoVisivel(false);
+
+    setTimeout(() => {
+      setModalSucessoVisivel(true);
+    }, 350);
   };
 
   const cancelarExclusao = () => {
-    setModalConfirmacaoVisivel(false); // ✅ Fecha o modal
+    setModalConfirmacaoVisivel(false);
+    setIdParaExcluir(null);
   };
+
   return (
-    <><View style={styles.container}>
-      <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>
+    <>
+      <View style={styles.container}>
+        {/* Conteúdo Principal */}
+        <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {producoes.map((p) => {
-          const fields: CardField[] = [
-            { label: 'Tipo', value: p.tipoProduto },
-            { label: 'Quantidade', value: p.quantidade },
-            {
-              label: 'Status',
-              value: p.status,
-              valueStyle: { color: getStatusColor(p.status) },
-            },
-            { label: 'Extração', value: p.dataExtracao },
-            { label: 'Venda', value: p.dataVenda || '—' },
-            { label: 'Apiário', value: p.nomeApiario },
-            { label: 'Colmeia', value: p.nomeColmeia },
-            { label: 'Qualidade', value: p.statusQualidade },
-          ];
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {producoes.map((p) => {
+            const fields: CardField[] = [
+              { label: 'Tipo', value: p.tipoProduto },
+              { label: 'Quantidade', value: p.quantidade },
+              {
+                label: 'Status',
+                value: p.status,
+                valueStyle: { color: getStatusColor(p.status) },
+              },
+              { label: 'Extração', value: p.dataExtracao },
+              { label: 'Venda', value: p.dataVenda || '—' },
+              { label: 'Apiário', value: p.nomeApiario },
+              { label: 'Colmeia', value: p.nomeColmeia },
+              { label: 'Qualidade', value: p.statusQualidade },
+            ];
 
-          return (
-            <GenericCard
-              key={p.id}
-              id={p.id}
-              fields={fields}
-              actions={[
-                { iconName: 'delete', onPress: () => handleDelete(p.id) },
-                { iconName: 'edit', onPress: () => handleEdit(p.id) },
-              ]} />
-          );
-        })}
-      </ScrollView>
+            return (
+              <GenericCard
+                key={p.id}
+                id={p.id}
+                fields={fields}
+                actions={[
+                  { iconName: 'delete', onPress: () => handleDelete(p.id) },
+                  { iconName: 'edit', onPress: () => handleEdit(p.id) },
+                ]}
+              />
+            );
+          })}
+        </ScrollView>
 
-    </View>
-    <ModalConfirmacao
+        {/* 2. O ModalSucesso (toast) fica DENTRO do container */}
+        <ModalSucesso
+          visivel={modalSucessoVisivel}
+          mensagem="Produção excluída com sucesso!"
+          aoFechar={() => setModalSucessoVisivel(false)}
+        />
+      </View>
+
+      {/* 3. O ModalConfirmacao (Modal real) fica FORA do container */}
+      <ModalConfirmacao
         visivel={modalConfirmacaoVisivel}
         titulo="Deseja mesmo apagar esta produção?"
         mensagem="Entenda que esta ação não poderá ser desfeita."
         aoConfirmar={confirmarExclusao}
         aoCancelar={cancelarExclusao}
         aoFechar={cancelarExclusao}
-        />
-
-        <ModalSucesso
-        visivel={modalSucessoVisivel}
-        mensagem="Produção excluída com sucesso!"
-        aoFechar={() => setModalSucessoVisivel(false)}
       />
+
     </>
   );
 }
@@ -126,11 +136,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: cores.fundo,
     padding: layout.espacamento.amigavel,
+
   },
   subtexto: {
     width: '100%',
     paddingTop: layout.espacamento.amigavel,
     marginBottom: layout.espacamento.amigavel,
+    alignItems: 'center',
   },
   scrollContent: {
     paddingBottom: layout.espacamento.social,
