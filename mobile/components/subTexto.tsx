@@ -26,12 +26,11 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.p, 
     fontFamily: fonts.family.sans,
     color: cores.texto,
-    textAlign: 'center',
     margin: 20,
   },
 
   line: {
-    width: '60%',
+    width: '90%',
     height: 1,
     backgroundColor: cores.borda,
   },
