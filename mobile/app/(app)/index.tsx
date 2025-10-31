@@ -1,6 +1,6 @@
 import ItemHome from '@/components/itensHome';
 import cores from '@/constants/cores';
-import { Stack, useRouter} from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Subtexto from '@/components/subTexto';
@@ -12,7 +12,6 @@ const rastrear = require('@/assets/images/rastrear.png');
 
 export default function Index() {
   const router = useRouter();
-;
 
   const items: Array<{
     title: string;
@@ -27,15 +26,16 @@ export default function Index() {
       { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
       { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
       { title: "Insumos", icon: "package", route: "/insumos" },
-      { title: "Produção de Mel", image: prodMel, route: "/producao/cadastrarProducao" },
-      { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
 
-      { title: "Relatórios", icon: "fileDocument", route: "/relatorios" },
+      // ROTAS DA PRODUÇÃO CORRIGIDAS:
+      { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
+      { title: "Relatórios Produção", icon: "fileDocument", route: "/producao/relatorio" },
+
+      { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
       { title: "Configurações", icon: "settings", route: "/configuracoes" },
     ];
 
   return (
-    
     <View style={styles.container}>
       <Stack.Screen
         options={{
@@ -64,13 +64,11 @@ const styles = StyleSheet.create({
     backgroundColor: cores.fundo,
     paddingHorizontal: layout.espacamento.amigavel,
   },
-
   subtexto: {
     width: '100%',
     marginBottom: layout.espacamento.amigavel,
-    paddingTop: layout.espacamento.amigavel, 
+    paddingTop: layout.espacamento.amigavel,
   },
-
   grid: {
     paddingTop: 0,
     flexDirection: 'row',
