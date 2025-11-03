@@ -19,6 +19,8 @@ export default function ModalSucesso({
   const animacaoOpacidade = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    console.log('ModalSucesso - visivel:', visivel); 
+
     if (visivel) {
       Animated.timing(animacaoOpacidade, {
         toValue: 1,
@@ -41,27 +43,28 @@ export default function ModalSucesso({
   if (!visivel) return null;
 
   return (
-    <Animated.View style={[styles.toast, { opacity: animacaoOpacidade }]}>
+    <Animated.View style={[styles.modal, { opacity: animacaoOpacidade }]}>
       <Text style={styles.textoMensagem}>{mensagem}</Text>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  toast: {
+  modal: {
     position: 'absolute',
-    bottom: 20,
-    left: '5%',
-    right: '5%',
-    backgroundColor: cores.sucesso[100],
-    borderRadius: layout.borderRadius.r25,
-    padding: layout.espacamento.amigavel,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  bottom: 20,
+  left: '5%',
+  right: '5%',
+  backgroundColor: cores.sucesso[100],
+  borderRadius: layout.borderRadius.r25,
+  padding: layout.espacamento.amigavel,
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  zIndex: 9999, 
   },
   textoMensagem: {
     fontSize: 16,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from './icon';
-import Botao from './botao'; // ✅ Importa o Botao existente
+import Botao from './botao';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 
@@ -43,13 +43,10 @@ export default function ModalConfirmacao({
                         </TouchableOpacity>
                     )}
 
-                    {/* Título */}
                     <Text style={styles.titulo}>{titulo}</Text>
 
-                    {/* Mensagem */}
                     <Text style={styles.mensagem}>{mensagem}</Text>
 
-                    {/* Linha com dois botões */}
                     <View style={styles.linhaBotoes}>
                         <Botao
                             title={textoCancelar}

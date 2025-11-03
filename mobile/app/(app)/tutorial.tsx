@@ -4,7 +4,7 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import fonts from '@/constants/fonts';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -12,9 +12,11 @@ export default function Tutorial() {
   const router = useRouter();
 
   return (
+    
     <View style={styles.container}>
+      <Stack.Screen options={{ title: 'Tutorial' }} />
       <Subtexto style={styles.subtexto}>Primeiros Passos</Subtexto>
-
+      
       <View style={styles.card}>
         <Icon name="video" size={100} color={cores.primaria} />
         <Text style={styles.cardTitle}>Tutorial</Text>
