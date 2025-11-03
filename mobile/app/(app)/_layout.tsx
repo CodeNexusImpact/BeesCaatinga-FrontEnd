@@ -12,8 +12,8 @@ export default function Layout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        
       }}>
+      <Stack.Screen name="home" options={{}} />
     </Stack>
   );
 }

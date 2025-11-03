@@ -1,7 +1,7 @@
 import cores from '@/constants/cores';
 import fonts from '@/constants/fonts';
 import React from 'react';
-import { StyleSheet, View, ViewStyle, Text } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 
 interface SubtextoProps {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ interface SubtextoProps {
 const Subtexto: React.FC<SubtextoProps> = ({ children, style }) => {
   return (
     <View style={[styles.container, style]}>
-        <Text>{children}</Text>
+      {children}
       <View style={styles.line} />
     </View>
   );
