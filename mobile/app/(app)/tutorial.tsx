@@ -13,7 +13,7 @@ export default function Tutorial() {
 
   return (
     <View style={styles.container}>
-      <Subtexto style={styles.subtexto}>{"Primeiros Passos"}</Subtexto>
+      <Subtexto style={styles.subtexto}>Primeiros Passos</Subtexto>
 
       <View style={styles.card}>
         <Icon name="video" size={100} color={cores.primaria} />

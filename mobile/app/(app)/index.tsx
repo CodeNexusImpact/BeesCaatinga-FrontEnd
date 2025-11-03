@@ -27,7 +27,7 @@ export default function Index() {
       { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
       { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
       { title: "Insumos", icon: "package", route: "/insumos" },
-      { title: "Produção de Mel", image: prodMel, route: "/producao/cadastrar" },
+      { title: "Produção de Mel", image: prodMel, route: "/producao/cadastrarProducao" },
       { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
 
       { title: "Relatórios", icon: "fileDocument", route: "/relatorios" },
@@ -42,7 +42,7 @@ export default function Index() {
           title: "Home",
         }}
       />
-      <Subtexto style={styles.subtexto}>{"Selecione uma opção para começar."}</Subtexto>
+      <Subtexto style={styles.subtexto}>Selecione uma opção para começar.</Subtexto>
       <View style={styles.grid}>
         {items.map((item, index) => (
           <ItemHome

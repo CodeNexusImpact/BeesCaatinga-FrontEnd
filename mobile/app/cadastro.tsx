@@ -101,7 +101,7 @@ function Cadastro() {
       <View style={styles.conteinerLogo}>
         <Image
           style={styles.image}
-          source={require("@/assets/images/LogoBeesCaatinga.png")}
+          source={require("../assets/images/LogoBeesCaatinga.png")}
           contentFit='cover'
         />
       </View>
