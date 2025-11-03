@@ -1,34 +1,47 @@
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import React from 'react';
+import React, { useImperativeHandle, useState } from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
 
 interface InputProps extends TextInputProps {
     label?: string;
-    placeholder?: string;
-    value?: string;
-    onChangeText?: (text: string) => void;
+    placeholder: string;
     secureTextEntry?: boolean;
     style?: object;
-    iconName?: string; // Nome do ícone a ser exibido
+    iconName?: string; 
     iconRightName?: string;
+    value: string; 
+    onChangeText: (text: string) => void;
 }
-const Input: React.FC<InputProps> = ({
+
+export interface InputRef {
+    getValue: () => string;
+}
+
+const Input = React.forwardRef<InputRef, InputProps>(({
     label,
     placeholder,
-    value,
-    onChangeText,
     secureTextEntry,
     style,
     iconName,
     iconRightName,
+    value,
+    onChangeText,
     ...textInputProps
-}) => {
-    const [isSecret, setIsSecret] = React.useState(secureTextEntry);
+}, ref) => {
+    
+    const [isSecret, setIsSecret] = useState(secureTextEntry);
+
     function viewPassword() {
         setIsSecret(!isSecret);
     }
+
+    useImperativeHandle(ref, () => ({
+        // Usamos textInputProps.value, que é o valor passado pelo pai
+        getValue: () => value, 
+    }));
+
     return (
         <View style={[styles.container, style]}>
             {iconName && <View style={{ marginRight: layout.espacamento.texto }}>
@@ -39,9 +52,9 @@ const Input: React.FC<InputProps> = ({
                 {...textInputProps}
                 style={styles.input}
                 placeholder={placeholder}
-                placeholderTextColor={cores.placeholder}
-                value={value}
-                onChangeText={onChangeText}
+                placeholderTextColor={cores.placeholder}   
+                value={value} 
+                onChangeText={onChangeText}             
                 secureTextEntry={isSecret}
             />
             {secureTextEntry && (
@@ -58,7 +71,7 @@ const Input: React.FC<InputProps> = ({
             )}
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {
@@ -86,9 +99,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     iconRight: {
-    position: 'absolute',
-    right: layout.espacamento.amigavel,
-  }
+        position: 'absolute',
+        right: layout.espacamento.amigavel,
+    }
 });
 
 export default Input;
