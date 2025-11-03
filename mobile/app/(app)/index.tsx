@@ -29,9 +29,10 @@ export default function Index() {
 
       // ROTAS DA PRODUÇÃO CORRIGIDAS:
       { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
-      { title: "Relatórios Produção", icon: "fileDocument", route: "/producao/relatorio" },
 
       { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
+      
+      { title: "Relatórios", icon: "fileDocument", route: "/relatorio" },
       { title: "Configurações", icon: "settings", route: "/configuracoes" },
     ];
 

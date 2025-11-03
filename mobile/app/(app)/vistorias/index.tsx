@@ -11,47 +11,42 @@ export default function Index() {
 
   return (
     <ScrollView style={styles.container}>
-      <Stack.Screen options={{ title: "Produção de Mel" }} />
-      
-      <Subtexto style={styles.subtexto}>Gerencie sua produção de mel</Subtexto>
+      <Stack.Screen options={{ title: 'Vistorias' }} />
+
+      <Subtexto style={styles.subtexto}>Gerencie suas vistorias</Subtexto>
 
       <View style={styles.botoesContainer}>
         <View style={styles.botaoCard}>
           <Botao
-            title="Cadastrar Nova Colheita"
+            title="Cadastrar Vistoria"
             cor="secundaria"
             iconName="add"
-            onPress={() => router.push('/producao/cadastrar')}
+            onPress={() => router.push('/vistorias/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
-        
         </View>
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Listar Produção"
+            title="Listar as Vistorias"
             cor="secundaria"
             iconName="clipboardCheck"
-            onPress={() => router.push('/producao/listar')}
+            onPress={() => router.push('/vistorias/listar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
-        
         </View>
-
-        
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Relatório da Produção"
+            title="Relatório de Vistorias"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/producao/relatorio')}
+            onPress={() => router.push('/vistorias/relatorio')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
-          
         </View>
       </View>
     </ScrollView>
@@ -77,7 +72,7 @@ const styles = StyleSheet.create({
     gap: layout.espacamento.colega,
   },
   botaoCard: {
-    backgroundColor: cores.cores.base[10], 
+    backgroundColor: cores.cores.base[10],
     borderRadius: layout.borderRadius.r25,
     padding: layout.espacamento.amigavel,
     shadowColor: cores.cores.base[100],
@@ -86,7 +81,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: cores.cores.base[40], 
+    borderColor: cores.cores.base[40],
   },
   botao: {
     marginBottom: layout.espacamento.texto,
