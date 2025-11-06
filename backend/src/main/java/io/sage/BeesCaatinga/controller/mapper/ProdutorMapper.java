@@ -1,7 +1,8 @@
 package io.sage.BeesCaatinga.controller.mapper;
 
-import io.sage.BeesCaatinga.controller.dto.ProdutorDTO;
-import io.sage.BeesCaatinga.controller.dto.ProdutorSimplificadoDTO;
+import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorAtualizadoDTO;
+import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorCriadoDTO;
+import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
 import io.sage.BeesCaatinga.model.Produtor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -9,7 +10,8 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ProdutorMapper {
     @Mapping(target = "id", ignore = true)
-    Produtor toEntity(ProdutorDTO dto);
-    ProdutorDTO toDTO(Produtor entidade);
-    ProdutorSimplificadoDTO toSimplificadoDTO(Produtor entidade);
+    Produtor toEntityFromCriado(ProdutorCriadoDTO dto);
+    Produtor toEntityFromAtualizado(ProdutorAtualizadoDTO dto);
+    @Mapping(target = "id", source = "id")
+    ProdutorRetornoDTO toRetornoDTO(Produtor entidade);
 }
