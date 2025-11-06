@@ -1,4 +1,3 @@
-# Desenvolvimento:
 * Quando adicionar segurança, lembrar de criptografar senha no service de produtor antes de mandar para o banco de dados
 * relatorio de vistoria
 * no service de produtor tem como atualizar email mas verificar com a galera do front posteriormente, a funcionalidade não é bem assim
