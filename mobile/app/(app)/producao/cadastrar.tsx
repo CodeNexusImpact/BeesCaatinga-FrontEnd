@@ -22,27 +22,21 @@ export default function CadastrarProducao() {
   const tipoProdutoOptions = [
     { label: 'Mel de Jandaíra', value: 'jandaira' },
     { label: 'Mel de Marmeleiro', value: 'marmeleiro' },
-    { label: 'Mel de Pajeú', value: 'pajeu' },
-    { label: 'Mel de Umbu', value: 'umbu' },
   ];
 
   const medidaOptions = [
     { label: 'Kg', value: 'kg' },
-    { label: 'g', value: 'g' },
     { label: 'L', value: 'l' },
-    { label: 'mL', value: 'ml' },
   ];
 
   const apiarioOptions = [
     { label: 'Rosa do Sertão', value: 'rosa' },
     { label: 'Vale das Abelhas', value: 'vale' },
-    { label: 'Serra do Mel', value: 'serra' },
   ];
 
   const colmeiaOptions = [
     { label: 'Colmeia 1', value: '1' },
     { label: 'Colmeia 2', value: '2' },
-    { label: 'Colmeia 3', value: '3' },
   ];
 
   // Conversão fixa só para exibição (pode ser calculada depois)
@@ -53,15 +47,16 @@ export default function CadastrarProducao() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-
       {/* Conversão (somente leitura) */}
       <Input
         label="Conversão para litro"
         value={conversao}
         editable={false}
         style={styles.conversaoInput}
+        placeholder="Cálculo automático"
+        onChangeText={() => {}} // Pode ser uma função vazia
       />
-      
+
       {/* Quantidade + Medida */}
       <View style={styles.row}>
         <Input
@@ -73,6 +68,7 @@ export default function CadastrarProducao() {
           }}
           keyboardType="decimal-pad"
           style={styles.inputMetade}
+          placeholder="0,0"
         />
         <Selector
           label="Medida"
@@ -110,13 +106,13 @@ export default function CadastrarProducao() {
         iconName="beehiveOutline"
       />
 
-      {/* Data Coleta — editável com ícone de calendário */}
+      {/* Data Coleta */}
       <Input
         label="Data de Coleta"
         value={dataColeta}
         onChangeText={setDataColeta}
         placeholder="dd/mm/aaaa"
-        iconName="calendar" 
+        iconName="calendar"
       />
 
       {/* Botão */}
@@ -131,7 +127,7 @@ export default function CadastrarProducao() {
             colmeia,
             dataColeta,
           });
-          router.push('/producao/visualizar');
+          router.push('/producao/listar'); // Redirecionado para 'listar'
         }}
         cor="primaria"
         style={styles.button}
@@ -140,6 +136,7 @@ export default function CadastrarProducao() {
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -153,15 +150,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: layout.espacamento.amigavel,
-    zIndex: 10, 
+    zIndex: 10,
     position: 'relative',
   },
   inputMetade: {
     flex: 1,
   },
   conversaoInput: {
-    backgroundColor: '#FFF8E1',
-    borderColor: '#FFECB3',
+    backgroundColor: cores.cores.primaria[10], 
+    borderColor: cores.cores.primaria[30], 
   },
   button: {
     marginTop: layout.espacamento.social,
