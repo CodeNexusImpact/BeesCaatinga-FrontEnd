@@ -1,10 +1,10 @@
 import ItemHome from '@/components/itensHome';
+import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
+import layout from '@/constants/layout';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Subtexto from '@/components/subTexto';
-import layout from '@/constants/layout';
 
 const prodMel = require('@/assets/images/prodMel.png');
 const apiarioColmeia = require('@/assets/images/apiario_colmeia.png');
@@ -43,7 +43,7 @@ export default function Index() {
           title: "Home",
         }}
       />
-      <Subtexto style={styles.subtexto}>Selecione uma opção para começar.</Subtexto>
+      <Subtexto style={styles.subtexto}>{"Selecione uma opção para começar."}</Subtexto>
       <View style={styles.grid}>
         {items.map((item, index) => (
           <ItemHome

@@ -6,9 +6,11 @@ export default {
     gg: 34,
     xg: 42,
   },
+  
   family: {
     display: 'Wix Madefor Display',
     sans: 'System',         // ou 'Roboto' se usar fonte custom
+    body: 'System', // 'Roboto-Regular'
     heading: 'System-Bold', // ou 'Roboto-Bold'
   },
 };

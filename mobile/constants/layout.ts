@@ -26,6 +26,7 @@ export default {
   buttonHeight: 48,
   
   // Raio de Borda
+
   borderRadius:{
     r25: 8,
     r50: 16,
