@@ -24,11 +24,9 @@ export default function Index() {
       { title: "Tutorial", icon: "video", route: "/tutorial" },
 
       { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
+      { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
       { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
       { title: "Insumos", icon: "package", route: "/insumos" },
-
-      // ROTAS DA PRODUÇÃO CORRIGIDAS:
-      { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
 
       { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
       
