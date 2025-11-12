@@ -11,7 +11,7 @@ export default function Index() {
 
     return (
         <ScrollView style={styles.container}>
-            <Stack.Screen options={{ title: 'Rastreabilidade' }} />
+            <Stack.Screen options={{ title: 'Relatórios' }} />
 
             <Subtexto style={styles.subtexto}>Gerencie seus relatórios</Subtexto>
 
@@ -21,7 +21,7 @@ export default function Index() {
                         title="Relatório Apiário"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/relatorio/apiario')}
+                        onPress={() => router.push('/apiario/relatorioApiario')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -32,7 +32,7 @@ export default function Index() {
                         title="Relatório Colmeia"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/relatorio/colmeia')}
+                        onPress={() => router.push('/apiario/relatorioColmeia')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -40,22 +40,21 @@ export default function Index() {
 
                 <View style={styles.botaoCard}>
                     <Botao
-                        title="Relatório Produto"
+                        title="Relatório Produção"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/relatorio/producao')}
+                        onPress={() => router.push('/producao/relatorio')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
                 </View>
-
 
                 <View style={styles.botaoCard}>
                     <Botao
                         title="Relatório Vistoria"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/relatorio/vistoria')}
+                        onPress={() => router.push('/vistorias/relatorio')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -66,7 +65,7 @@ export default function Index() {
                         title="Relatório Insumo"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/relatorio/insumo')}
+                        onPress={() => router.push('/insumos/relatorio')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -77,7 +76,7 @@ export default function Index() {
                         title="Relatório Rastreabilidade"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/relatorio/rastreabilidade')}
+                        onPress={() => router.push('/rastreabilidade/relatorio')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
