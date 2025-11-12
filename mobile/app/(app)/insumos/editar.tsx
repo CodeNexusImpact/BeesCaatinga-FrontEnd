@@ -37,6 +37,14 @@ export default function EditarInsumo() {
         { label: 'Unidade(s)', value: 'un' },
     ];
 
+    // Função para lidar com a mudança do checkbox "Sem validade"
+    const handleSemValidadeChange = (value: boolean) => {
+        setSemValidade(value);
+        if (value) {
+            setDataValidade('');
+        }
+    };
+
     return (
         <ScrollView
             style={styles.container}
@@ -89,12 +97,10 @@ export default function EditarInsumo() {
                 placeholder="Selecione o tipo de insumo"
             />
 
-
-
             {/* CAMPO: Status */}
             <View style={styles.validadeContainer}>
                 <Input
-                    label="Status:"
+                    label="Status"
                     value={isAtivo ? 'ativo no estoque' : 'inativo'}
                     editable={false}
                     style={styles.inputValidade}
@@ -107,6 +113,7 @@ export default function EditarInsumo() {
                         onValueChange={setIsAtivo}
                         color={isAtivo ? cores.cores.primaria[60] : undefined}
                     />
+                    <Text style={styles.checkboxLabel}>Ativo</Text>
                 </View>
             </View>
 
@@ -114,17 +121,20 @@ export default function EditarInsumo() {
             <View style={styles.validadeContainer}>
                 <Input
                     label="Data de validade"
-                    value={dataValidade}
+                    value={semValidade ? 'Sem validade' : dataValidade}
                     onChangeText={setDataValidade}
-                    placeholder="dd/mm/aaaa"
+                    placeholder={semValidade ? '' : 'dd/mm/aaaa'}
                     iconName="calendar"
-                    style={styles.inputValidade}
+                    style={[
+                        styles.inputValidade,
+                        semValidade && styles.inputDisabled
+                    ]}
                     editable={!semValidade}
                 />
                 <View style={styles.checkboxContainer}>
                     <Checkbox
                         value={semValidade}
-                        onValueChange={setSemValidade}
+                        onValueChange={handleSemValidadeChange}
                         color={semValidade ? cores.cores.primaria[60] : undefined}
                     />
                     <Text style={styles.checkboxLabel}>Sem validade</Text>
@@ -132,16 +142,21 @@ export default function EditarInsumo() {
             </View>
 
             {/* Observações */}
-            <Input
-                label="Observações (opcional)"
-                value={observacoes}
-                onChangeText={setObservacoes}
-                placeholder="Digite aqui..."
-                iconName="pencil"
-                multiline={true}
-                numberOfLines={4}
-                style={styles.observacoesInput}
-            />
+            <View style={styles.observacoesSection}>
+                <Text style={styles.observacoesLabel}>Observações (opcional)</Text>
+                <View style={styles.observacoesInputContainer}>
+                    <Input
+                        value={observacoes}
+                        onChangeText={setObservacoes}
+                        placeholder="Observações (opcional):"
+                        multiline={true}
+                        numberOfLines={6}
+                        style={styles.observacoesInput}
+                        textAlignVertical="top"
+                        label=""
+                    />
+                </View>
+            </View>
 
             {/* Botão Salvar */}
             <Botao
@@ -163,7 +178,7 @@ export default function EditarInsumo() {
                 style={styles.button}
             />
 
-            {/*BOTÃO: Apagar */}
+            {/* BOTÃO: Apagar */}
             <Botao
                 title="Apagar"
                 onPress={() => {
@@ -207,19 +222,47 @@ const styles = StyleSheet.create({
     inputValidade: {
         flex: 1,
     },
+    inputDisabled: {
+        backgroundColor: '#f5f5f5',
+        color: '#999',
+    },
     checkboxContainer: {
         paddingBottom: 14,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
+        minWidth: 120,
     },
     checkboxLabel: {
         fontSize: 14,
         color: cores.primaria,
     },
+  
+    observacoesSection: {
+        marginTop: 8,
+    },
+    observacoesLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: cores.primaria,
+        marginBottom: 8,
+        marginLeft: 4,
+    },
+    observacoesInputContainer: {
+        borderWidth: 1,
+        borderColor: cores.borda,
+        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+    },
     observacoesInput: {
-        height: 120,
+        height: 140,
         textAlignVertical: 'top',
+        textAlign: 'left',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 16,
+        lineHeight: 20,
     },
     button: {
         marginTop: layout.espacamento.social,

@@ -1,152 +1,91 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
-import GenericCard, { CardField } from '@/components/genericCard';
-import ModalConfirmacao from '@/components/modalConfirmacao';
-import ModalSucesso from '@/components/modalSucesso';
-import Subtexto from '@/components/subTexto';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
 
-// 1. Dados mock atualizados para Insumos
-const insumos = [
-  {
-    id: 1,
-    dataEntrada: '03/08/2025',
-    nome: 'Cera de Abelha',
-    tipo: 'Material de Colmeia',
-    quantidade: '500',
-    unidadeMedida: 'metros',
-    status: 'ativo no estoque',
-    observacoes: 'Não informado',
-  },
-  {
-    id: 2,
-    dataEntrada: '01/07/2025',
-    nome: 'Alimentador Boardman',
-    tipo: 'Equipamento',
-    quantidade: '20',
-    unidadeMedida: 'unidades',
-    status: 'ativo no estoque',
-    observacoes: 'Comprado na feira local',
-  },
-  {
-    id: 3,
-    dataEntrada: '15/06/2025',
-    nome: 'Xarope de Açúcar',
-    tipo: 'Alimentação',
-    quantidade: '10',
-    unidadeMedida: 'litros',
-    status: 'baixo estoque',
-    observacoes: 'Urgente',
-  },
+const statusColmeias = [
+  { id: 1, nome: 'Colmeia 1', status: 'Saudável' },
+  { id: 2, nome: 'Colmeia 2', status: 'Perigo Climático' },
+  { id: 3, nome: 'Colmeia 3', status: 'Saudável' },
+  { id: 4, nome: 'Colmeia 4', status: 'Manutenção Necessária' },
+  { id: 5, nome: 'Colmeia 5', status: 'Saudável' },
+  { id: 6, nome: 'Colmeia 6', status: 'Tratamento Necessário' },
+  { id: 7, nome: 'Colmeia 7', status: 'Saudável' },
+  { id: 8, nome: 'Colmeia 8', status: 'Saudável' },
+  { id: 9, nome: 'Colmeia 9', status: 'Saudável' },
+  { id: 10, nome: 'Colmeia 10', status: 'Inativa' },
 ];
 
-// 2. Função de cor de status adaptada para insumos
-const getStatusColor = (status: string) => {
-  if (status.toLowerCase().includes('ativo')) return cores.primaria[100];
-  if (status.toLowerCase().includes('baixo estoque')) return cores.alerta[100];
-  if (status.toLowerCase().includes('fora de estoque')) return cores.perigo[100];
+// Função de cor para os "pontos" (dots)
+const getStatusDotColor = (status: string) => {
+  if (status.includes('Saudável')) return cores.sucesso;
+  if (status.includes('Perigo')) return cores.perigo;
+  if (status.includes('Manutenção')) return cores.perigo;
+  if (status.includes('Tratamento')) return '#0800ffff';
+  if (status.includes('Inativa')) return cores.primaria;
   return cores.texto;
 };
 
-// 3. Nome do componente alterado (opcional, mas recomendado)
-export default function ListarInsumos() {
+
+export default function Listar() {
   const router = useRouter();
 
-  const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
-  const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
-  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
+  // Estado para controlar o card sanfonado (collapsible)
+  const [isEstoqueVisivel, setIsEstoqueVisivel] = useState(true);
 
-  const handleEdit = (id: number) => {
-    // 4. Rota de edição atualizada
-    router.push(`/insumos/editar?id=${id}`);
+  // Handler para navegar para detalhes da colmeia
+  const handleColmeiaPress = (nomeColmeia: string) => {
+    router.push(`/insumos/detalhe?nome=${nomeColmeia}`);
   };
-
-  // 5. Novo handler para a ação de "saída" do insumo
-  const handleTransfer = (id: number) => {
-    console.log('Registrar saída/uso do insumo com ID:', id);
-    // Exemplo de navegação:
-    // router.push(`/insumo/registrar-saida?id=${id}`);
-  };
-
-  const handleDelete = (id: number) => {
-    setIdParaExcluir(id);
-    setModalConfirmacaoVisivel(true);
-  };
-
-  const confirmarExclusao = () => {
-    if (idParaExcluir !== null) {
-      // 6. Mensagem de console
-      console.log('Insumo excluído com ID:', idParaExcluir);
-    }
-    setModalConfirmacaoVisivel(false);
-
-    setTimeout(() => {
-      setModalSucessoVisivel(true);
-    }, 350);
-  };
-
-  const cancelarExclusao = () => {
-    setModalConfirmacaoVisivel(false);
-    setIdParaExcluir(null);
-  };
-
+  
   return (
-    <>
-      <View style={styles.container}>
-        <Subtexto style={styles.subtexto}>Listagem do insumo selecionado</Subtexto>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
+      {/* Card de Status das Colmeias */}
+      <View style={styles.statusContainer}>
+        {/* Header do Card (Clicável) */}
+        <TouchableOpacity 
+          style={styles.statusHeader}
+          onPress={() => setIsEstoqueVisivel(!isEstoqueVisivel)}
+        >
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerIndex}>1</Text>
+            <Text style={styles.headerTitle}>Ferramenta</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <Text style={styles.headerTitle}>Status</Text>
+            <Text style={{ color: cores.texto }}>
+              {isEstoqueVisivel ? '▲' : '▼'}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* 8. Mapeando a lista de insumos */}
-          {insumos.map((insumo) => {
-            // 9. Campos do card atualizados 
-            const fields: CardField[] = [
-              { label: 'Data de entrada', value: insumo.dataEntrada },
-              { label: 'Nome do insumo', value: insumo.nome },
-              { label: 'Tipo do insumo', value: insumo.tipo },
-              { label: 'Quantidade em estoque', value: insumo.quantidade },
-              { label: 'Unidade de medida', value: insumo.unidadeMedida },
-              {
-                label: 'Status',
-                value: insumo.status,
-                valueStyle: { color: getStatusColor(insumo.status) },
-              },
-              { label: 'Observações', value: insumo.observacoes || '—' },
-            ];
+        {/* Conteúdo do Card (Sanfonado) */}
+        {isEstoqueVisivel && (
+          <View style={styles.statusContent}>
 
-            return (
-              <GenericCard
-                key={insumo.id}
-                id={insumo.id}
-                fields={fields}
-                actions={[
-                  { iconName: 'edit', onPress: () => handleEdit(insumo.id) },
-                  { iconName: 'delete', onPress: () => handleDelete(insumo.id) },
-                ]}
-              />
-            );
-          })}
-        </ScrollView>
 
-        {/* 11. Mensagem do modal de sucesso */}
-        <ModalSucesso
-          visivel={modalSucessoVisivel}
-          mensagem="Insumo excluído com sucesso!"
-          aoFechar={() => setModalSucessoVisivel(false)}
-        />
+            {/* O resto das colmeias */}
+            {statusColmeias.map((colmeia) => (
+              <TouchableOpacity
+                key={colmeia.nome}
+                style={styles.statusRow}
+                onPress={() => handleColmeiaPress(colmeia.nome)}
+              >
+                <Text style={[styles.rowText, styles.colmeiaClicavel]}>
+                  {colmeia.nome}
+                </Text>
+                <Text style={styles.rowStatusText}>{colmeia.status}</Text>
+                <View style={[styles.statusDot, { backgroundColor: getStatusDotColor(colmeia.status) }]} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
-
-      {/* 12. Mensagens do modal de confirmação  */}
-      <ModalConfirmacao
-        visivel={modalConfirmacaoVisivel}
-        titulo="Deseja mesmo apagar este insumo?"
-        mensagem="Entenda que esta ação não poderá ser desfeita."
-        aoConfirmar={confirmarExclusao}
-        aoCancelar={cancelarExclusao}
-        aoFechar={cancelarExclusao}
-      />
-    </>
+    </ScrollView>
   );
 }
 
@@ -154,15 +93,101 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: cores.fundo,
-    padding: layout.espacamento.amigavel,
-  },
-  subtexto: {
-    width: '100%',
-    paddingTop: layout.espacamento.amigavel,
-    marginBottom: layout.espacamento.amigavel,
-    alignItems: 'center',
   },
   scrollContent: {
+    padding: layout.espacamento.amigavel,
     paddingBottom: layout.espacamento.social,
+  },
+  subtituloLista: {
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: layout.espacamento.amigavel,
+    marginBottom: layout.espacamento.amigavel,
+    color: cores.texto,
+  },
+
+  // Estilos para o Card de Status
+  statusContainer: {
+    backgroundColor: cores.branco,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    overflow: 'hidden',
+    marginBottom: layout.espacamento.amigavel,
+  },
+  statusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: layout.espacamento.amigavel,
+    backgroundColor: '#FFF8E1',
+    borderBottomWidth: 1,
+    borderBottomColor: cores.borda,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  headerIndex: {
+    backgroundColor: cores.primaria[100],
+    color: cores.branco,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  headerTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: cores.texto,
+  },
+  statusContent: {
+    padding: layout.espacamento.amigavel,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: layout.espacamento.amigavel,
+    borderBottomWidth: 1,
+    borderBottomColor: cores.borda,
+  },
+  firstRow: {
+    borderBottomWidth: 0, 
+  },
+  rowText: {
+    fontSize: 14,
+    color: cores.texto,
+    flex: 1,
+  },
+  colmeiaClicavel: {
+    color: cores.primaria[100],
+    fontWeight: '500',
+  },
+  rowStatusText: {
+    fontSize: 14,
+    color: cores.texto,
+    flex: 2,
+    textAlign: 'left',
+    paddingHorizontal: 8,
+  },
+  statusDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+  insumoCard: {
+    marginBottom: layout.espacamento.amigavel,
   },
 });
