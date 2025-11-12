@@ -21,7 +21,7 @@ export default function Index() {
             title="Cadastrar Insumo"
             cor="secundaria"
             iconName="add"
-            onPress={() => router.push('/vistorias/cadastrar')}
+            onPress={() => router.push('/insumos/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
