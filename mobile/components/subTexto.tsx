@@ -26,7 +26,6 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.p, 
     fontFamily: fonts.family.sans,
     color: cores.texto,
-    textAlign: 'center',
     margin: 20,
   },
 

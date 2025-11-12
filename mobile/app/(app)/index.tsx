@@ -1,10 +1,10 @@
 import ItemHome from '@/components/itensHome';
+import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
-import { Stack, useRouter} from 'expo-router';
+import layout from '@/constants/layout';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Subtexto from '@/components/subTexto';
-import layout from '@/constants/layout';
 
 const prodMel = require('@/assets/images/prodMel.png');
 const apiarioColmeia = require('@/assets/images/apiario_colmeia.png');
@@ -12,7 +12,6 @@ const rastrear = require('@/assets/images/rastrear.png');
 
 export default function Index() {
   const router = useRouter();
-;
 
   const items: Array<{
     title: string;
@@ -25,17 +24,17 @@ export default function Index() {
       { title: "Tutorial", icon: "video", route: "/tutorial" },
 
       { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
+      { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
       { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
       { title: "Insumos", icon: "package", route: "/insumos" },
-      { title: "Produção de Mel", image: prodMel, route: "/producao/cadastrar" },
-      { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
 
-      { title: "Relatórios", icon: "fileDocument", route: "/relatorios" },
+      { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
+      
+      { title: "Relatórios", icon: "fileDocument", route: "/relatorio" },
       { title: "Configurações", icon: "settings", route: "/configuracoes" },
     ];
 
   return (
-    
     <View style={styles.container}>
       <Stack.Screen
         options={{
@@ -64,13 +63,11 @@ const styles = StyleSheet.create({
     backgroundColor: cores.fundo,
     paddingHorizontal: layout.espacamento.amigavel,
   },
-
   subtexto: {
     width: '100%',
     marginBottom: layout.espacamento.amigavel,
-    paddingTop: layout.espacamento.amigavel, 
+    paddingTop: layout.espacamento.amigavel,
   },
-
   grid: {
     paddingTop: 0,
     flexDirection: 'row',

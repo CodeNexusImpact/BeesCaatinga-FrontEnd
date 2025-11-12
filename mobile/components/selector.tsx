@@ -1,6 +1,6 @@
 import cores from '@/constants/cores';
 import styles from '@/styles/input.styles';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
 
@@ -15,7 +15,8 @@ interface SelectorProps {
     onSelect: (value: string) => void;
     placeholder?: string;
     iconName?: string;
-    style?: any; // ou ViewStyle se você preferir uma tipagem mais específica
+    style?: any;
+    value?: string; 
 }
 
 const Selector: React.FC<SelectorProps> = ({
@@ -24,36 +25,53 @@ const Selector: React.FC<SelectorProps> = ({
     placeholder = "Selecione uma opção",
     iconName,
     style,
+    value, 
 }) => {
-    const [selected, setSelected] = useState<string | null>(null);
+    const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    const handleSelect = (value: string) => {
-        setSelected(value.replace(/^\w/, (c) => c.toUpperCase()));
-        onSelect(value);
+    useEffect(() => {
+        if (value) {
+            const selectedOption = options.find(opt => opt.value === value);
+            setSelectedLabel(selectedOption ? selectedOption.label : null);
+        } else {
+            setSelectedLabel(null);
+        }
+    }, [value, options]); 
+
+   
+    const handleSelect = (selectedValue: string) => {
+        const selectedOption = options.find(opt => opt.value === selectedValue);
+
+        if (selectedOption) {
+            setSelectedLabel(selectedOption.label); // Define o rótulo interno
+            onSelect(selectedOption.value);       // Envia o valor para o pai (ex: 'jandaira')
+        }
         setIsOpen(false);
     };
 
-    return (        
-        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }, style]}> 
+    return (
+        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }, style]}>
             {iconName && <View style={styles.icon}>
                 <Icon name={iconName}></Icon>
             </View>}
-            
+
             <View style={styles.input}>
-                <TouchableOpacity style={{height:'100%', justifyContent:'center'}} onPress={() => setIsOpen(!isOpen)}>
-                    <Text style={[styles.label,{color: selected? cores.texto : cores.placeholder}]}>{selected ? selected : placeholder}</Text>
+                <TouchableOpacity style={{ height: '100%', justifyContent: 'center' }} onPress={() => setIsOpen(!isOpen)}>
+                    {/* ✅ 6. Usar o 'selectedLabel' para exibição */}
+                    <Text style={[styles.label, { color: selectedLabel ? cores.texto : cores.placeholder }]}>
+                        {selectedLabel ? selectedLabel : placeholder}
+                    </Text>
                 </TouchableOpacity>
             </View>
-            
+
             {isOpen && (
-                
                 <View style={stylesSelector.dropdown}>
                     <FlatList
                         data={options}
                         keyExtractor={(item) => item.value}
                         renderItem={({ item }) => (
-                            <TouchableOpacity style={stylesSelector.option} onPress={() => handleSelect(item.label)}>
+                            <TouchableOpacity style={stylesSelector.option} onPress={() => handleSelect(item.value)}>
                                 <Text style={stylesSelector.optionText}>{item.label}</Text>
                             </TouchableOpacity>
                         )}
@@ -83,8 +101,8 @@ const stylesSelector = StyleSheet.create({
     },
     dropdown: {
         marginTop: 0,
-        position: 'absolute', 
-        top: '100%',         
+        position: 'absolute',
+        top: '100%',
         width: '100%',
         borderWidth: 1,
         borderColor: '#ccc',
