@@ -86,7 +86,6 @@ function Login() {
           <Text style={styles.textoSimples}>Ou</Text>
           <Botao
             title="Cadastra" cor="secundaria" onPress={() => {
-              alert("Cadastro realizado!");
               router.push('/cadastro');
             }}
           />
