@@ -59,6 +59,9 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   inspection: 'clipboard-check-outline', // Vistorias
   honeycomb: 'hexagon-outline', // Produção de mel
   bottleTonic: 'bottle-tonic', // Garrafa de tônico
+
+  pizzaGraph: 'chart-pie', // Grafico pizza
+  logout: 'logout', // sair
 } as const;
 
 /**

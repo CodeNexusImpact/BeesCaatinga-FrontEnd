@@ -18,10 +18,10 @@ export default function Index() {
       <View style={styles.botoesContainer}>
         <View style={styles.botaoCard}>
           <Botao
-            title="Rastrear Produto"
+            title="Cadastrar Produto"
             cor="secundaria"
             iconName="add"
-            onPress={() => router.push('/rastreabilidade/rastrear')}
+            onPress={() => router.push('/rastreabilidade/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />

@@ -53,7 +53,7 @@ const cores = {
         5: '#fbf7f9',
     },
     complementarPositiva: {
-        100: '#1AEFAF',
+        100: '#13b213ff',
         90: '#3af1c7',
         80: '#4ff2d3',
         70: '#66f3de',

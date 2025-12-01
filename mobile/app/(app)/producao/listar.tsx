@@ -34,9 +34,9 @@ const producoes = [
 ];
 
 const getStatusColor = (status: string) => {
-  if (status.toLowerCase().includes('em estoque')) return cores.primaria[100];
-  if (status.toLowerCase().includes('vendido')) return cores.primaria[50];
-  if (status.toLowerCase().includes('fora de estoque')) return cores.perigo[100];
+  if (status.toLowerCase().includes('em estoque')) return cores.sucesso;
+  if (status.toLowerCase().includes('vendido')) return cores.alerta;
+  if (status.toLowerCase().includes('fora de estoque')) return cores.perigo;
   return cores.texto;
 };
 

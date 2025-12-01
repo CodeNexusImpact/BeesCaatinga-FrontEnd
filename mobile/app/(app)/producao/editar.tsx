@@ -8,7 +8,6 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, Text, Alert } from 'react-native';
 import Subtexto from '@/components/subTexto';
 
-
 const mockProducoesDatabase = [
     {
         id: 26,
@@ -36,20 +35,20 @@ interface Option {
     value: string;
 }
 
-// NOVO: Constante para a densidade (ex: 1.4kg/L para mel)
+// Constante para a densidade (ex: 1.4kg/L para mel)
 const DENSIDADE_MEL_KG_L = 1.4;
 
 export default function Editar() {
     const router = useRouter();
-
     const { id } = useLocalSearchParams();
+
     const [tipoProduto, setTipoProduto] = useState('');
     const [quantidade, setQuantidade] = useState('');
     const [medida, setMedida] = useState('');
     const [apiario, setApiario] = useState('');
     const [colmeia, setColmeia] = useState('');
     const [dataColeta, setDataColeta] = useState('');
-    // NOVO: Estado para o campo de conversão
+    // Estado para o campo de conversão
     const [conversao, setConversao] = useState('');
 
     // Efeito para carregar os dados
@@ -70,7 +69,7 @@ export default function Editar() {
         }
     }, [id]);
 
-    // NOVO: Efeito para calcular a conversão
+    // Efeito para calcular a conversão
     useEffect(() => {
         // Converte a quantidade para número (aceitando vírgula ou ponto)
         const numQuantidade = parseFloat(quantidade.replace(',', '.'));
@@ -100,27 +99,27 @@ export default function Editar() {
     }, [quantidade, medida]); // Roda sempre que quantidade ou medida mudar
 
     // ADICIONE O TIPO 
-    const tipoProdutoOptions: Option[] = [
+    const tipoProdutoOptions = [
         { label: 'Mel de Jandaíra', value: 'jandaira' },
         { label: 'Mel de Marmeleiro', value: 'marmeleiro' },
         { label: 'Mel de Pajeú', value: 'pajeu' },
         { label: 'Mel de Umbu', value: 'umbu' },
     ];
 
-    const medidaOptions: Option[] = [
+    const medidaOptions = [
         { label: 'Kg', value: 'kg' },
         { label: 'g', value: 'g' },
         { label: 'L', value: 'l' },
         { label: 'mL', value: 'ml' },
     ];
 
-    const apiarioOptions: Option[] = [
+    const apiarioOptions = [
         { label: 'Rosa do Sertão', value: 'rosa' },
         { label: 'Vale das Abelhas', value: 'vale' },
         { label: 'Serra do Mel', value: 'serra' },
     ];
 
-    const colmeiaOptions: Option[] = [
+    const colmeiaOptions = [
         { label: 'Colmeia 1', value: '1' },
         { label: 'Colmeia 2', value: '2' },
         { label: 'Colmeia 3', value: '3' },
@@ -142,7 +141,7 @@ export default function Editar() {
                         if (router.canGoBack()) {
                             router.back();
                         } else {
-                            router.push('/producao/visualizar');
+                            router.push('/producao/listar');
                         }
                     }
                 }
@@ -157,12 +156,14 @@ export default function Editar() {
         >
             <Subtexto style={styles.subtexto}>Edite os dados da produção.</Subtexto>
 
-            {/* NOVO: Campo ID não editável */}
+            {/*Campo ID não editável */}
             <Input
                 label="ID"
                 value={id ? id.toString() : ''}
                 editable={false}
                 style={styles.idInput}
+                placeholder=""
+                onChangeText={() => {}}
             />
 
             <Input
@@ -170,8 +171,9 @@ export default function Editar() {
                 value={conversao}
                 editable={false}
                 style={styles.conversaoInput}
+                placeholder=""
+                onChangeText={() => {}}
             />
-           
 
             {/* Quantidade + Medida */}
             <View style={styles.row}>
@@ -181,6 +183,7 @@ export default function Editar() {
                     onChangeText={setQuantidade}
                     keyboardType="decimal-pad"
                     style={styles.inputMetade}
+                    placeholder="0,0"
                 />
                 <Selector
                     label="Medida"
@@ -192,7 +195,7 @@ export default function Editar() {
                 />
             </View>
             
-             {/* Tipo de Mel */}
+            {/* Tipo de Mel */}
             <Selector
                 label="Tipo Produto"
                 options={tipoProdutoOptions}
@@ -201,7 +204,6 @@ export default function Editar() {
                 iconName="honeycomb"
                 value={tipoProduto}
             />
-            
 
             {/* Apiário */}
             <Selector
@@ -249,14 +251,13 @@ export default function Editar() {
                     if (router.canGoBack()) {
                         router.back();
                     } else {
-                        router.push('/producao/visualizar');
+                        router.push('/producao/listar');
                     }
                 }}
                 cor="primaria"
                 style={styles.buttonSave}
             />
 
-    
             <Botao
                 title="Apagar registro"
                 onPress={handleApagar}
@@ -278,12 +279,11 @@ const styles = StyleSheet.create({
         gap: layout.espacamento.colega,
         paddingBottom: layout.espacamento.social,
     },
-     subtexto: {
-          width: '100%',
-          paddingTop: layout.espacamento.amigavel, 
-          marginBottom: layout.espacamento.amigavel, 
-        },
-   
+    subtexto: {
+        width: '100%',
+        paddingTop: layout.espacamento.amigavel, 
+        marginBottom: layout.espacamento.amigavel, 
+    },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -307,6 +307,5 @@ const styles = StyleSheet.create({
     },
     buttonDelete: {
         marginTop: layout.espacamento.amigavel, 
-   
     },
 });
