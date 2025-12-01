@@ -1,3 +1,5 @@
+package io.sage.BeesCaatinga;
+
 public class HelloWorld {
 
     public static void main(String[] args) {
