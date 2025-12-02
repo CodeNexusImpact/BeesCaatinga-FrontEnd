@@ -62,6 +62,10 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
 
   pizzaGraph: 'chart-pie', // Grafico pizza
   logout: 'logout', // sair
+
+  'weather-night': "weather-night", // Ícone para tema escuro
+  'white-balance-sunny': "white-balance-sunny", // Ícone para tema claro
+  'check': "check", // Ícone de confirmação
 } as const;
 
 /**

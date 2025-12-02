@@ -19,20 +19,17 @@ export default function Index() {
     image?: any;
     route: string;
   }> = [
-      { title: "Notificações", icon: "bell", route: "/notificacoes" },
-      { title: "Meu Perfil", icon: "user", route: "/perfil" },
-      { title: "Tutorial", icon: "video", route: "/tutorial" },
-
-      { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
-      { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
-      { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
-      { title: "Insumos", icon: "package", route: "/insumos" },
-
-      { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
-      
-      { title: "Relatórios", icon: "fileDocument", route: "/relatorio" },
-      { title: "Configurações", icon: "settings", route: "/configuracoes" },
-    ];
+    { title: "Notificação", icon: "bell", route: "/notificacao" }, 
+    { title: "Meu Perfil", icon: "user", route: "/perfil" }, 
+    { title: "Tutorial", icon: "video", route: "/tutorial" },
+    { title: "Apiário e Colmeias", image: apiarioColmeia, route: "/apiario" },
+    { title: "Produção de Mel", image: prodMel, route: "/producao" }, 
+    { title: "Vistorias das Colmeias", icon: "clipboardCheck", route: "/vistorias" },
+    { title: "Insumos", icon: "package", route: "/insumos" },
+    { title: "Rastreabilidade", image: rastrear, route: "/rastreabilidade" },
+    { title: "Relatórios", icon: "fileDocument", route: "/relatorio" },
+    { title: "Configuração", icon: "settings", route: "/configuracao" },
+  ];
 
   return (
     <View style={styles.container}>
