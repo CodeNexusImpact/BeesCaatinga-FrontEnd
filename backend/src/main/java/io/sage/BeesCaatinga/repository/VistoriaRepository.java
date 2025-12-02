@@ -2,6 +2,7 @@ package io.sage.BeesCaatinga.repository;
 
 import io.sage.BeesCaatinga.model.Vistoria;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;

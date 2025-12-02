@@ -39,7 +39,7 @@ public interface ProducaoMapper {
                                     @Context ColmeiaRepository colmeiaRepository);
 
     @Mapping(target = "nomeApiario", source = "apiario.nome")
-    @Mapping(target = "identificadorColmeia", source = "colmeia.identificador")
+    @Mapping(target = "nomeColmeia", source = "colmeia.identificador")
     ProducaoRetornoDTO toRetornoDTO(Producao entidade);
 
     default Apiario mapApiario(Long apiarioId, @Context ApiarioRepository apiarioRepository) {

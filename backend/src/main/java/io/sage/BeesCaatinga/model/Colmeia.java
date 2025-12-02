@@ -21,6 +21,7 @@ public class Colmeia {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apiario_id", nullable = false)
     private Apiario apiario;
+    @Enumerated(EnumType.STRING)
     private TipoColmeia tipo;
     private Boolean ativa;
 
@@ -31,11 +32,12 @@ public class Colmeia {
     private BigDecimal longitude;
 
     private String observacoes;
+    @Enumerated(EnumType.STRING)
     private StatusColmeia situacao;
     @JsonFormat(pattern = "dd/MM/yyyy")
     @Column(name = "ultima_vistoria")
     private LocalDate ultimaVistoria;
-    @Column(name = "detalhes_da_lozalizacao")
+    @Column(name = "detalhes_da_localizacao")
     private String detalhesDaLocalizacao;
     private String caminhoDaFoto;
 }
