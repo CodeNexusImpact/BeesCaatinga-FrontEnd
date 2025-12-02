@@ -20,11 +20,13 @@ export function RootLayout() {
       headerShown: false,
       contentStyle: { backgroundColor: cores.branco, justifyContent: 'center' }
     }} >
-      <Stack.Protected guard={!!session}>
+      <Stack.Protected guard={!session}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
-        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(auth)/login" />
+        <Stack.Screen name="(auth)/cadastro" />
+        <Stack.Screen name="(auth)/redefinirSenha" />
       </Stack.Protected>
 
     </Stack>

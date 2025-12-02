@@ -10,6 +10,7 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   home: 'home-outline', // Ícone principal da tela inicial
   profile: 'account-circle', // Ícone da tela de perfil
   settings: 'cog', // Ícone da tela de configurações
+  sino: 'bell', // Ícone de notificações
 
   // --- Ações Comuns ---
   add: 'plus-circle', // Ícone para adicionar novos itens
@@ -36,7 +37,7 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   human: 'human-male-female', // Ícone de humano
   
   // --- Outros ---
-  back: 'arrow-left-bottom', // Ícone de voltar
+  back: 'keyboard-backspace', // Ícone de voltar
   forward: 'arrow-top-right-thick', // Ícone de avançar
   share: 'share', // Ícone de compartilhar
   info: 'information', // Ícone de informação
