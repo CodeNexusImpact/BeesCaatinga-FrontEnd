@@ -1,19 +1,13 @@
 import { Stack } from 'expo-router';
 import cores from '@/constants/cores';
+import Header from '@/components/header';
 
 export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: cores.primaria,
-        },
-        headerTintColor: cores.preto,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        
-      }}>
+        header:({ options }) => <Header title={options.title || 'BeesCaatinga'} />, 
+      }}>        
     </Stack>
   );
 }
