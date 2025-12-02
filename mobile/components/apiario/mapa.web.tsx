@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text} from 'react-native';
+import { StyleSheet, View, Text, Dimensions} from 'react-native';
 import cores from '@/constants/cores';
 
 export default function Mapa() {
@@ -11,9 +11,11 @@ export default function Mapa() {
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {    
-      height: '90%',
+      height: width > 600 ? height * 0.6 : height * 0.4,
       aspectRatio: 1 / 1,
       borderColor: cores.primaria,
       borderWidth: 8,

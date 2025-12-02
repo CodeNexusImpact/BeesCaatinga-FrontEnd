@@ -1,4 +1,4 @@
-const cores = {
+export const cores = {
     base: {
         0: '#FFFFFF',
         5: '#F7F8FA',
@@ -72,7 +72,8 @@ const opacity = (hexColor: string, opacityPercent: number) => {
     const opacityHex = Math.round((opacityPercent / 100) * 255).toString(16).padStart(2, '0');
     return hexColor + opacityHex;
 }
-export default {
+
+export const temaCores = {
     cores,
     primaria: cores.primaria[100],
     primariaHover: cores.primaria[90],
@@ -99,3 +100,5 @@ export default {
     sublinhado: cores.secundaria[30], 
     borda: opacity(cores.base[100], 50),        
 };
+
+export default temaCores

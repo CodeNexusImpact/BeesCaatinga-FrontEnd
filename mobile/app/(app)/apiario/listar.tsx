@@ -1,85 +1,82 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { Stack, useRouter } from 'expo-router';
+
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Subtexto from '@/components/subTexto';
 import Botao from '@/components/botao';
+import Mapa from '@/components/apiario/mapa';
+import ApiarioList from '@/components/apiario/apiarioList';
+
+import { useApiarios } from '@/hooks/useApiarios';
+
 
 export default function Index() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+
+  const { apiarios, loading } = useApiarios();
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Carregando Apiários...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={[styles.container, {height: height}]}>
       <Stack.Screen options={{ title: 'Apiário e Colmeias' }} />
+      <Subtexto style={styles.subtexto}>Apiarios</Subtexto>
 
-      <Subtexto style={styles.subtexto}>Gerencie seus apiários e colmeias</Subtexto>
+      <View style={{
+        flexDirection: width > 600 ? 'row' : 'column',
+        padding: layout.espacamento.amigavel,
+        gap: layout.espacamento.colega,
+        alignItems: 'center',
+      }}>
 
-      <View style={styles.botoesContainer}>
-        <View style={styles.botaoCard}>
-          <Botao
-            title="Cadastrar Apiário"
-            cor="secundaria"
-            iconName="add"
-            onPress={() => router.push('/apiario/cadastrarApiario')}
-            style={styles.botao}
-            textStyle={styles.botaoTexto}
-          />
-        </View>
-
-        <View style={styles.botaoCard}>
-          <Botao
-            title="Cadastrar Colmeia"
-            cor="secundaria"
-            iconName="add"
-            onPress={() => router.push('/apiario/cadastrarColmeia')}
-            style={styles.botao}
-            textStyle={styles.botaoTexto}
-          />
-        </View>
-
-        <View style={styles.botaoCard}>
-          <Botao
-            title="Listar Apiários e Colmeias"
-            cor="secundaria"
-            iconName="clipboardCheck"
-            onPress={() => router.push('/apiario/listar')}
-            style={styles.botao}
-            textStyle={styles.botaoTexto}
-          />
-        </View>
-
-        <View style={styles.botaoCard}>
-          <Botao
-            title="Relatório do Apiários"
-            cor="secundaria"
-            iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorioApiario')}
-            style={styles.botao}
-            textStyle={styles.botaoTexto}
-          />
-        </View>
-
-        <View style={styles.botaoCard}>
-          <Botao
-            title="Relatório de Colmeia"
-            cor="secundaria"
-            iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorioColmeia')}
-            style={styles.botao}
-            textStyle={styles.botaoTexto}
-          />
-        </View>
+        <Mapa />
+        <ScrollView style={{ flex: 1, height: width > 600 ? '90%' :'30%' , width: width > 600 ? '50%' : '90%'}}>
+        <FlatList
+          data={apiarios}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <ApiarioList {...item} />
+          )}
+          ListEmptyComponent={() => (
+            <Text style={styles.emptyText}>Nenhum apiário encontrado.</Text>
+          )}
+        />
+        </ScrollView>
 
       </View>
-    </ScrollView>
+
+    </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: cores.cores.base[10],
+    height: '100%',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 30,
+    color: '#666'
   },
   subtexto: {
     fontSize: 16,
@@ -89,28 +86,5 @@ const styles = StyleSheet.create({
     paddingTop: layout.espacamento.amigavel,
     paddingBottom: layout.espacamento.colega,
     fontWeight: '600',
-  },
-  botoesContainer: {
-    padding: layout.espacamento.amigavel,
-    gap: layout.espacamento.colega,
-  },
-  botaoCard: {
-    backgroundColor: cores.cores.base[10],
-    borderRadius: layout.borderRadius.r25,
-    padding: layout.espacamento.amigavel,
-    shadowColor: cores.cores.base[100],
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: cores.cores.base[40],
-  },
-  botao: {
-    marginBottom: layout.espacamento.texto,
-  },
-  botaoTexto: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  },  
 });
