@@ -33,8 +33,8 @@ const ItemHome: React.FC<ItemHomeProps> = ({ title, iconName, imageSource, onPre
 
 const styles = StyleSheet.create({
   container: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: cores.branco,
