@@ -2,6 +2,7 @@ package io.sage.BeesCaatinga.controller;
 
 import io.sage.BeesCaatinga.controller.dto.FiltroBuscaDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.RelatorioProducaoDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.RelatorioVistoriaDTO;
 import io.sage.BeesCaatinga.service.RelatorioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,14 @@ public class RelatorioController {
     ) {
         RelatorioProducaoDTO resumo = relatorioService.gerarRelatorioProducao(filtro);
         return ResponseEntity.ok(resumo);
+    }
+
+    @PostMapping("/vistorias")
+    public ResponseEntity<RelatorioVistoriaDTO> getRelatorioVistoria(
+            @RequestBody @Valid FiltroBuscaDTO filtro
+    ) {
+        RelatorioVistoriaDTO dto = relatorioService.gerarRelatorioVistoria(filtro);
+        return ResponseEntity.ok(dto);
     }
 
 }

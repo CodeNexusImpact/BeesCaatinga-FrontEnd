@@ -6,6 +6,9 @@ import io.sage.BeesCaatinga.controller.dto.relatorios.producao.LoteMelDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.ProducaoMensalDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.RelatorioProducaoDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.StatusColmeiasDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.RelatorioVistoriaDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.VistoriaMensalDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.VistoriaTabelaDTO;
 import io.sage.BeesCaatinga.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -94,6 +97,65 @@ public class RelatorioService {
                 lotes
         );
     }
+
+    public RelatorioVistoriaDTO gerarRelatorioVistoria(FiltroBuscaDTO filtro) {
+        IntervaloDatas range = calcularIntervaloDatas(filtro);
+
+        Long totalVistorias = vistoriaRepository.contarVistorias(
+                range.inicio(), range.fim(),
+                filtro.apiarioId(),
+                filtro.colmeiaId()
+        );
+
+        Long saudaveis = colmeiaRepository.countBySituacaoFiltrando(
+                "SAUDAVEL", filtro.apiarioId(), filtro.colmeiaId()
+        );
+
+        Long emAtencao = colmeiaRepository.countBySituacaoFiltrando(
+                "ATENCAO", filtro.apiarioId(), filtro.colmeiaId()
+        );
+
+        List<StatusColmeiasDTO> statusColmeias =
+                colmeiaRepository.obterStatusColmeias(filtro.apiarioId(), filtro.colmeiaId())
+                        .stream()
+                        .map(o -> {
+                            // o[0] = c.situacao (enum StatusColmeia)
+                            // o[1] = COUNT(c) (Number)
+                            var situacaoEnum = (io.sage.BeesCaatinga.model.enums.StatusColmeia) o[0];
+                            Long quantidade = o[1] == null ? 0L : ((Number) o[1]).longValue();
+                            return new StatusColmeiasDTO(situacaoEnum.name(), quantidade);
+                        })
+                        .toList();
+        List<VistoriaMensalDTO> vistoriasMensais =
+                vistoriaRepository.obterVistoriasMensais(
+                                range.inicio(),
+                                range.fim(),
+                                filtro.apiarioId(),
+                                filtro.colmeiaId()
+                        ).stream()
+                        .map(arr -> new VistoriaMensalDTO(
+                                (Integer) arr[0],
+                                (Long) arr[1]
+                        ))
+                        .toList();
+
+        List<VistoriaTabelaDTO> tabela = vistoriaRepository.listarVistorias(
+                range.inicio(),
+                range.fim(),
+                filtro.apiarioId(),
+                filtro.colmeiaId()
+        );
+
+        return new RelatorioVistoriaDTO(
+                totalVistorias,
+                saudaveis,
+                emAtencao,
+                statusColmeias,
+                vistoriasMensais,
+                tabela
+        );
+    }
+
 
     /*
     resultados:

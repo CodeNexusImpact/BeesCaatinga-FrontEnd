@@ -18,4 +18,13 @@ public interface ColmeiaRepository extends JpaRepository<Colmeia, Long> {
             Long apiarioId,
             Long colmeiaId
     );
+
+    @Query("""
+    SELECT COUNT(c)
+    FROM Colmeia c
+    WHERE c.situacao = :situacao
+    AND (:apiarioId IS NULL OR c.apiario.id = :apiarioId)
+    AND (:colmeiaId IS NULL OR c.id = :colmeiaId)
+    """)
+    Long countBySituacaoFiltrando(String situacao, Long apiarioId, Long colmeiaId);
 }
