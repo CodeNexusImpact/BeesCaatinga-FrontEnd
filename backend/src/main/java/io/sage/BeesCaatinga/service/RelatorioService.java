@@ -15,6 +15,7 @@ import java.time.Month;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Locale;
 
@@ -101,61 +102,70 @@ public class RelatorioService {
     * gráficos de pizza, de colunas (quantidades), de barras (com porcentagem), de área (area chart)
     */
 
-    public IntervaloDatas calcularIntervaloDatas(FiltroBuscaDTO filtro) {
+    private IntervaloDatas calcularIntervaloDatas(FiltroBuscaDTO filtro) {
+        int ano = filtro.ano();
 
-        int ano = filtro.ano(); // obrigatório
+        LocalDate inicio;
+        LocalDate fim;
 
-        // Se usuário não selecionou estação → filtrar o ano inteiro
-        if (filtro.estacao() == null) {
-            return new IntervaloDatas(
-                    LocalDate.of(ano, 1, 1),
-                    LocalDate.of(ano, 12, 31)
-            );
+        // --- Se NÃO escolheu estação: retorna o ANO INTEIRO ---
+        if (filtro.estacao() == null || filtro.estacao().isBlank()) {
+            inicio = LocalDate.of(ano, 1, 1);
+            fim = LocalDate.of(ano, 12, 31);
+            return new IntervaloDatas(inicio, fim);
         }
 
-        // Descobrir intervalo da estação
-        LocalDate inicioEstacao;
-        LocalDate fimEstacao;
+        // ------------------ ESTACAO SELECIONADA ------------------
+        String estacao = filtro.estacao().toUpperCase();
 
-        switch (filtro.estacao()) {
+        // Definimos o intervalo da estação inteira
+        switch (estacao) {
             case "VERAO" -> {
-                // Verão: Dezembro (ano) + Janeiro e Fevereiro (ano + 1)
-                inicioEstacao = LocalDate.of(ano, 12, 1);
-                fimEstacao = LocalDate.of(ano + 1, 2, 28); // tratamento de ano bissexto abaixo
-                if (Year.isLeap(ano + 1)) {
-                    fimEstacao = LocalDate.of(ano + 1, 2, 29);
+                // Dezembro do ano → Janeiro e Fevereiro do ano seguinte
+                inicio = LocalDate.of(ano, 12, 1);
+
+                int anoSeguinte = ano + 1;
+                if (Year.isLeap(anoSeguinte)) {
+                    fim = LocalDate.of(anoSeguinte, 2, 29);
+                } else {
+                    fim = LocalDate.of(anoSeguinte, 2, 28);
                 }
             }
             case "OUTONO" -> {
-                // Março, Abril, Maio
-                inicioEstacao = LocalDate.of(ano, 3, 1);
-                fimEstacao = LocalDate.of(ano, 5, 31);
+                inicio = LocalDate.of(ano, 3, 1);
+                fim = LocalDate.of(ano, 5, 31);
             }
             case "INVERNO" -> {
-                // Junho, Julho, Agosto
-                inicioEstacao = LocalDate.of(ano, 6, 1);
-                fimEstacao = LocalDate.of(ano, 8, 31);
+                inicio = LocalDate.of(ano, 6, 1);
+                fim = LocalDate.of(ano, 8, 31);
             }
             case "PRIMAVERA" -> {
-                // Setembro, Outubro, Novembro
-                inicioEstacao = LocalDate.of(ano, 9, 1);
-                fimEstacao = LocalDate.of(ano, 11, 30);
+                inicio = LocalDate.of(ano, 9, 1);
+                fim = LocalDate.of(ano, 11, 30);
             }
             default -> throw new IllegalArgumentException("Estação inválida");
         }
 
-        // Se NÃO selecionou mês → retorna só a estação inteira
+        // ------------------ MÊS DENTRO DA ESTAÇÃO ------------------
+        // Se não veio mês → retorna a estação inteira
         if (filtro.mes() == null) {
-            return new IntervaloDatas(inicioEstacao, fimEstacao);
+            return new IntervaloDatas(inicio, fim);
         }
 
-        // Se selecionou estação + mês → filtrar apenas aquele mês
-        int mes = filtro.mes(); // 1 a 12
-        return new IntervaloDatas(
-                LocalDate.of(ano, mes, 1),
-                LocalDate.of(ano, mes, YearMonth.of(ano, mes).lengthOfMonth())
-        );
+        // Se veio mês → recortamos apenas aquele mês dentro da estação
+        int mesSelecionado = filtro.mes(); // ex: 1 = Janeiro, 2 = Fevereiro...
+
+        // Ajuste para o verão — meses JAN/FEV pertencem ao ANO SEGUINTE
+        boolean mesDoAnoSeguinte = (estacao.equals("VERAO") && (mesSelecionado == 1 || mesSelecionado == 2));
+
+        int anoDoMes = mesDoAnoSeguinte ? ano + 1 : ano;
+
+        LocalDate primeiroDia = LocalDate.of(anoDoMes, mesSelecionado, 1);
+        LocalDate ultimoDia = primeiroDia.with(TemporalAdjusters.lastDayOfMonth());
+
+        return new IntervaloDatas(primeiroDia, ultimoDia);
     }
+
 
     private String nomeMes(int numero) {
         return Month.of(numero).getDisplayName(TextStyle.SHORT, new Locale("pt", "BR"));
