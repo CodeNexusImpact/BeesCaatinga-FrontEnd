@@ -1,0 +1,30 @@
+package io.sage.BeesCaatinga.controller;
+
+import io.sage.BeesCaatinga.controller.dto.FiltroBuscaDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.producao.RelatorioProducaoDTO;
+import io.sage.BeesCaatinga.service.RelatorioService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/relatorios")
+@RequiredArgsConstructor
+public class RelatorioController {
+
+    private final RelatorioService relatorioService;
+
+    @PostMapping("/producao")
+    // @Operation(summary = "Retorna produção com qualquer filtro")
+    public ResponseEntity<RelatorioProducaoDTO> getProducaoGeral(
+            @RequestBody @Valid FiltroBuscaDTO filtro
+    ) {
+        RelatorioProducaoDTO resumo = relatorioService.gerarRelatorioProducao(filtro);
+        return ResponseEntity.ok(resumo);
+    }
+
+}
