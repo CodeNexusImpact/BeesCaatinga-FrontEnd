@@ -22,6 +22,7 @@ public record LoteCriadoDTO(
         @NotNull(message = "Campo longitude é obrigatório!")
         BigDecimal longitude,
         @NotNull(message = "Campo tipo de abelha é obrigatório!")
-        TipoAbelha tipoAbelha
+        TipoAbelha tipoAbelha,
+        Boolean vendido
 ) {
 }

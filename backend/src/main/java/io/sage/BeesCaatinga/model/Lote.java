@@ -27,6 +27,7 @@ public class Lote {
     private TipoFlorada tipoFlorada;
     @Enumerated(EnumType.STRING)
     private TipoAbelha tipoAbelha;
+    private Boolean vendido;
 
     // LOCALIZAÇÃO
     @Column(precision = 9, scale = 6)

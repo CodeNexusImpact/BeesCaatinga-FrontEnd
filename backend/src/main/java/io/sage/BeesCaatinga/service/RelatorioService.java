@@ -2,13 +2,18 @@ package io.sage.BeesCaatinga.service;
 
 import io.sage.BeesCaatinga.controller.dto.FiltroBuscaDTO;
 import io.sage.BeesCaatinga.controller.dto.IntervaloDatas;
+import io.sage.BeesCaatinga.controller.dto.relatorios.insumos.InsumoTabelaDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.insumos.RelatorioInsumosDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.insumos.TipoInsumoQuantidadeDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.LoteMelDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.ProducaoMensalDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.RelatorioProducaoDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.StatusColmeiasDTO;
+import io.sage.BeesCaatinga.controller.dto.relatorios.rastreabilidade.*;
 import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.RelatorioVistoriaDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.VistoriaMensalDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.VistoriaTabelaDTO;
+import io.sage.BeesCaatinga.model.Insumo;
 import io.sage.BeesCaatinga.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,9 +22,11 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +37,8 @@ public class RelatorioService {
     private final ProducaoRepository producaoRepository;
     private final LoteRepository loteRepository;
     private final VistoriaRepository vistoriaRepository;
+    private final InsumoRepository insumoRepository;
+    private final ProdutorService produtorService;
 
     public RelatorioProducaoDTO gerarRelatorioProducao(FiltroBuscaDTO filtro){
         IntervaloDatas range = calcularIntervaloDatas(filtro);
@@ -156,12 +165,150 @@ public class RelatorioService {
         );
     }
 
+    public RelatorioRastreabilidadeDTO gerarRelatorioRastreabilidade(FiltroBuscaDTO filtro) {
 
-    /*
-    resultados:
-    * tabelas e cards
-    * gráficos de pizza, de colunas (quantidades), de barras (com porcentagem), de área (area chart)
-    */
+        IntervaloDatas range = calcularIntervaloDatas(filtro);
+
+        LocalDate inicio = range.inicio();
+        LocalDate fim = range.fim();
+
+        Long apiarioId = filtro.apiarioId();
+        Long colmeiaId = filtro.colmeiaId();
+
+        // ---------- CARDS ----------
+        Long totalLotes = loteRepository.contarLotes(inicio, fim, apiarioId, colmeiaId);
+        totalLotes = totalLotes == null ? 0L : totalLotes;
+
+        Double pesoTotal = loteRepository.somarPesoTotal(inicio, fim, apiarioId, colmeiaId);
+        double pesoTotalRastreavel = pesoTotal == null ? 0.0 : pesoTotal;
+
+        Long vendidos = loteRepository.contarVendidos(inicio, fim, apiarioId, colmeiaId);
+        vendidos = vendidos == null ? 0L : vendidos;
+
+        double porcentagemVendidos = totalLotes == 0 ? 0.0 : (vendidos.doubleValue() * 100.0 / totalLotes);
+
+        // tempo médio em dias = média da diferença entre dataProducao e fim do período
+        List<LoteTabelaDTO> todosLotes = loteRepository.listarLotesTabela(inicio, fim, apiarioId, colmeiaId);
+        double tempoMedioDias;
+        if (todosLotes.isEmpty()) {
+            tempoMedioDias = 0.0;
+        } else {
+            double media = todosLotes.stream()
+                    .mapToLong(l -> ChronoUnit.DAYS.between(l.dataProducao(), fim))
+                    .average().orElse(0.0);
+            tempoMedioDias = media;
+        }
+
+        // ---------- GRAFICOS ----------
+        List<LotesPorTipoAbelhaDTO> graficoTipoAbelha = loteRepository.agruparPorTipoAbelha(inicio, fim, apiarioId, colmeiaId)
+                .stream()
+                .map(o -> {
+                    // o[0] = enum TipoAbelha, o[1] = COUNT
+                    String tipo = o[0] == null ? "N/A" : o[0].toString();
+                    Long qtd = o[1] == null ? 0L : ((Number) o[1]).longValue();
+                    return new LotesPorTipoAbelhaDTO(tipo, qtd);
+                })
+                .collect(Collectors.toList());
+
+        List<LotesPorFloradaDTO> graficoFlorada = loteRepository.agruparPorFlorada(inicio, fim, apiarioId, colmeiaId)
+                .stream()
+                .map(o -> {
+                    String florada = o[0] == null ? "N/A" : o[0].toString();
+                    Long qtd = o[1] == null ? 0L : ((Number) o[1]).longValue();
+                    return new LotesPorFloradaDTO(florada, qtd);
+                })
+                .collect(Collectors.toList());
+
+        VendidosNaoVendidosDTO graficoVendidos = new VendidosNaoVendidosDTO(vendidos, totalLotes - vendidos);
+
+        // ---------- TABELA ----------
+        List<LoteTabelaDTO> tabela = todosLotes;
+
+        return new RelatorioRastreabilidadeDTO(
+                totalLotes,
+                pesoTotalRastreavel,
+                porcentagemVendidos,
+                tempoMedioDias,
+                graficoTipoAbelha,
+                graficoVendidos,
+                graficoFlorada,
+                tabela
+        );
+    }
+
+    public RelatorioInsumosDTO gerarRelatorioInsumos(FiltroBuscaDTO filtro) {
+
+        Long produtorId = produtorService.getProdutorIdLogado();
+
+        IntervaloDatas intervalo = calcularIntervaloDatas(filtro);
+
+        List<Insumo> insumos = insumoRepository.buscarPorPeriodo(
+                produtorId, intervalo.inicio(), intervalo.fim()
+        );
+
+        Long total = (long) insumos.size();
+
+        Long estoqueBaixo = insumos.stream()
+                .filter(i -> i.getQuantidade() != null && i.getQuantidade() < 10)
+                .count();
+
+        // Consumo médio estimado = total quantidade dividido por número de meses do período
+        double consumoMedioMensal = calcularConsumoEstimado(insumos, intervalo);
+
+        // Validade pizza
+        Long ok = insumos.stream()
+                .filter(i -> i.getDataValidade().isAfter(LocalDate.now().plusMonths(1)))
+                .count();
+
+        Long proximoVenc = insumos.stream()
+                .filter(i -> !i.getDataValidade().isAfter(LocalDate.now().plusMonths(1)))
+                .count();
+
+        // Gráfico por tipo
+        List<TipoInsumoQuantidadeDTO> porTipo =
+                insumoRepository.contarPorTipo(produtorId)
+                        .stream()
+                        .map(o -> new TipoInsumoQuantidadeDTO(
+                                (String) o[0],
+                                ((Number) o[1]).longValue()
+                        ))
+                        .toList();
+
+        // Tabela
+        List<InsumoTabelaDTO> tabela = insumos.stream()
+                .map(i -> new InsumoTabelaDTO(
+                        i.getId(),
+                        i.getDataEntrada(),
+                        i.getNome(),
+                        i.getTipo(),
+                        i.getQuantidade(),
+                        i.getUnidadeMedida().name(),
+                        i.getStatusInsumo().name(),
+                        i.getDataValidade()
+                ))
+                .toList();
+
+        return new RelatorioInsumosDTO(
+                total,
+                estoqueBaixo,
+                consumoMedioMensal,
+                ok,
+                proximoVenc,
+                porTipo,
+                tabela
+        );
+    }
+
+    private double calcularConsumoEstimado(List<Insumo> insumos, IntervaloDatas intervalo) {
+        double totalQtd = insumos.stream()
+                .map(i -> i.getQuantidade() == null ? 0 : i.getQuantidade())
+                .reduce(0.0, Double::sum);
+
+        long meses = ChronoUnit.MONTHS.between(intervalo.inicio(), intervalo.fim());
+        if (meses <= 0) meses = 1;
+
+        return totalQtd / meses;
+    }
 
     private IntervaloDatas calcularIntervaloDatas(FiltroBuscaDTO filtro) {
         int ano = filtro.ano();
