@@ -47,8 +47,6 @@ public interface VistoriaRepository  extends JpaRepository<Vistoria, Long>{
     @Query("""
     SELECT new io.sage.BeesCaatinga.controller.dto.relatorios.vistoria.VistoriaTabelaDTO(
         v.dataVistoria,
-        v.pragaDoenca,
-        v.perdaProducao,
         v.observacoes,
         v.colmeia.situacao
     )
@@ -64,4 +62,5 @@ public interface VistoriaRepository  extends JpaRepository<Vistoria, Long>{
             Long apiarioId,
             Long colmeiaId
     );
+
 }

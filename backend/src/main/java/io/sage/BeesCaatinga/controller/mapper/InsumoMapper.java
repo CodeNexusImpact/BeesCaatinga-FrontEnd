@@ -11,7 +11,7 @@ import org.mapstruct.Mapping;
 public interface InsumoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "produtor", ignore = true)
-    @Mapping(target = "statusInsumo", expression = "java(StatusInsumo.ATIVO)")
+    @Mapping(target = "statusInsumo", expression = "java(StatusInsumo.DISPONIVEL)")
     Insumo toEntityFromCriado(InsumoCriadoDTO dto);
 
     @Mapping(target = "id", ignore = true)
