@@ -39,6 +39,19 @@ export const cores = {
         10: '#f0f2f9',
         5: '#f7f8fb',
     },
+    terciaria: {
+        100: '#7D4CDB', // Roxo/roxo-escuro (exemplo)
+        90: '#8a5fe0',
+        80: '#9772e6',
+        70: '#a485eb',
+        60: '#b198f0',
+        50: '#bebaf6',
+        40: '#cccdfb',
+        30: '#dad0fe',
+        20: '#e8e3ff',
+        10: '#f4f1fd',
+        5: '#faf7ff',
+    },
     complementarNegativa: {
         100: '#EF1A5A',
         90: '#f13a73',
@@ -82,6 +95,7 @@ export const temaCores = {
     secundariaHover: cores.secundaria[90],
     secundariaActive: cores.secundaria[80],
     secundaria: cores.secundaria[100],
+    terciaria: cores.terciaria[100],
 
     branco: cores.base[0],
     preto: cores.base[100],
@@ -92,13 +106,13 @@ export const temaCores = {
 
     perigo: cores.complementarNegativa[100],
     alerta: cores.primaria[100],
-    sucesso: cores.complementarPositiva[100], 
+    sucesso: cores.complementarPositiva[100],
 
     texto: cores.base[100],
     fundo: cores.base[0],
     placeholder: cores.base[60],
-    sublinhado: cores.secundaria[30], 
-    borda: opacity(cores.base[100], 50),        
+    sublinhado: cores.secundaria[30],
+    borda: opacity(cores.base[100], 50),
 };
 
 export default temaCores

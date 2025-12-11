@@ -12,8 +12,10 @@ interface BotaoProps {
   iconPosition?: 'left' | 'right';
   style?: object;
   textStyle?: object;
-  cor?: 'primaria' | 'secundaria' | 'branca';
+  cor?: 'primaria' | 'secundaria' | 'branca' | 'terciaria'; // Adicionado 'terciaria'
   tamanho?: 'grande' | 'medio' | 'pequeno';
+  outline?: boolean; // Adicionado outline
+  size?: 'small' | 'medium' | 'large'; // Adicionado size (para compatibilidade com Dashboard)
 }
 
 const Botao: React.FC<BotaoProps> = ({
@@ -25,15 +27,20 @@ const Botao: React.FC<BotaoProps> = ({
   iconName,
   iconPosition = 'left',
   tamanho = 'grande',
+  outline = false, // Valor padrão
+  size, // Ignorado por enquanto, mas mantido para compatibilidade
 }) => {
   const corHex =
     cor === 'primaria'
       ? cores.primaria
       : cor === 'secundaria'
       ? cores.secundaria
+      : cor === 'terciaria'
+      ? cores.terciaria
       : cores.botaoBranco;
 
-  const textColor = cor === 'branca' ? cores.texto : cores.branco;
+  // Cor do texto: se for botão branco, usa a cor primária; caso contrário, branco.
+  const textColor = cor === 'branca' ? cores.primaria : cores.branco; // Corrigido: cores.texto -> cores.primaria
 
   // Estilo base do botão
   const getButtonStyle = () => {
@@ -67,7 +74,9 @@ const Botao: React.FC<BotaoProps> = ({
         getButtonStyle(),
         style,
         {
-          backgroundColor: corHex,
+          backgroundColor: outline ? 'transparent' : corHex,
+          borderWidth: outline ? 1 : 0,
+          borderColor: outline ? corHex : 'transparent',
           flexDirection: iconPosition === 'right' ? 'row-reverse' : 'row',
         },
       ]}
@@ -93,7 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: layout.borderRadius.r25,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    // Removido borderWidth aqui, agora é controlado pelo outline
   },
 
   // Tamanhos

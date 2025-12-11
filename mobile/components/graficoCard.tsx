@@ -4,7 +4,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Botao from './botao';
 import Subtexto from './subTexto';
-import KpiCard from './kpiCard';
+import KpiCard from './kpiCard'; // Certifique-se que este componente existe
 
 export interface KpiData {
     label: string;
@@ -15,8 +15,10 @@ export interface KpiData {
 interface GraficoCardProps {
     subtexto: string;
     kpis: KpiData[];
-    onBotaoPress: () => void;
-    tituloBotao: string;
+    // MUDANÇA AQUI: Tornando opcional (?)
+    onBotaoPress?: () => void;
+    // MUDANÇA AQUI: Tornando opcional (?)
+    tituloBotao?: string;
     children?: React.ReactNode;
     showSideBar?: boolean;
 }
@@ -35,10 +37,12 @@ export default function GraficoCard({
                 {subtexto}
             </Subtexto>
 
+            {/* Scroll horizontal dos KPIs */}
             <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
                 style={styles.kpiScroll}
+                contentContainerStyle={styles.kpiContent}
             >
                 <View style={styles.kpiRow}>
                     {kpis.map((kpi, index) => (
@@ -53,36 +57,55 @@ export default function GraficoCard({
                 </View>
             </ScrollView>
 
-            {children}
+            {/* Área do Gráfico */}
+            <View style={styles.childrenContainer}>
+                {children}
+            </View>
             
-            <Botao
-                title={tituloBotao}
-                cor="primaria"
-                onPress={onBotaoPress}
-                style={styles.botao}
-            />
+            {/* MUDANÇA AQUI: Só renderiza o botão se tiver título E função */}
+            {tituloBotao && onBotaoPress && (
+                <Botao
+                    title={tituloBotao}
+                    cor="primaria"
+                    onPress={onBotaoPress}
+                    style={styles.botao}
+                />
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: cores.fundo,
+        backgroundColor: cores.branco, // Mudei para branco para destacar o card
+        borderRadius: layout.borderRadius.r25,
         padding: layout.espacamento.amigavel,
+        marginBottom: layout.espacamento.amigavel,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     subtexto: {
-        fontSize: 16,
-        color: cores.texto,
+        fontSize: 14,
+        color: cores.preto,
         marginBottom: 15,
+        textAlign: 'center', // Centraliza o subtexto
     },
     kpiScroll: {
-        marginHorizontal: -2,
+        marginHorizontal: -layout.espacamento.amigavel, // Permite scroll ir até a borda
+        marginBottom: 15,
+    },
+    kpiContent: {
+        paddingHorizontal: layout.espacamento.amigavel,
     },
     kpiRow: {
         flexDirection: 'row',
         gap: 12,
-        paddingVertical: 5,
+    },
+    childrenContainer: {
+        marginTop: 10,
     },
     botao: {
         marginTop: 20,
