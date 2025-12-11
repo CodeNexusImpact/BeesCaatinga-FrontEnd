@@ -21,18 +21,17 @@ export default function Index() {
                         title="Relatório Apiário"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/apiario/relatorioApiario')}
+                        onPress={() => router.push('/apiario/tabelaApiario')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
                 </View>
-
                 <View style={styles.botaoCard}>
                     <Botao
                         title="Relatório Colmeia"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/apiario/relatorioColmeia')}
+                        onPress={() => router.push('/apiario/tabelaColmeia')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -43,7 +42,7 @@ export default function Index() {
                         title="Relatório Produção"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/producao/relatorio')}
+                        onPress={() => router.push('/producao/tabela')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -54,7 +53,7 @@ export default function Index() {
                         title="Relatório Vistoria"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/vistorias/relatorio')}
+                        onPress={() => router.push('/vistorias/tabela')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -65,7 +64,7 @@ export default function Index() {
                         title="Relatório Insumo"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/insumos/relatorio')}
+                        onPress={() => router.push('/insumos/tabela')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -76,7 +75,7 @@ export default function Index() {
                         title="Relatório Rastreabilidade"
                         cor="secundaria"
                         iconName="fileDocument"
-                        onPress={() => router.push('/rastreabilidade/relatorio')}
+                        onPress={() => router.push('/rastreabilidade/tabela')}
                         style={styles.botao}
                         textStyle={styles.botaoTexto}
                     />
@@ -124,4 +123,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-});
+}); 

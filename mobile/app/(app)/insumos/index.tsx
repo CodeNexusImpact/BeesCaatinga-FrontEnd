@@ -43,7 +43,17 @@ export default function Index() {
             title="Relatório de Insumos"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/insumos/relatorio')}
+            onPress={() => router.push('/insumos/tabela')}
+            style={styles.botao}
+            textStyle={styles.botaoTexto}
+          />
+        </View>
+        <View style={styles.botaoCard}>
+          <Botao
+            title="Dashboard de Insumos"
+            cor="secundaria"
+            iconName="fileDocument"
+            onPress={() => router.push('/insumos/dashboard')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />

@@ -54,7 +54,7 @@ export default function Index() {
             title="Relatório do Apiários"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorioApiario')}
+            onPress={() => router.push('/apiario/tabelaApiario')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
@@ -65,7 +65,29 @@ export default function Index() {
             title="Relatório de Colmeia"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorioColmeia')}
+            onPress={() => router.push('/apiario/tabelaColmeia')}
+            style={styles.botao}
+            textStyle={styles.botaoTexto}
+          />
+        </View>
+
+        <View style={styles.botaoCard}>
+          <Botao
+            title="Dashboard do Apiários"
+            cor="secundaria"
+            iconName="fileDocument"
+            onPress={() => router.push('/apiario/dashboardApiario')}
+            style={styles.botao}
+            textStyle={styles.botaoTexto}
+          />
+        </View>
+
+        <View style={styles.botaoCard}>
+          <Botao
+            title="Dashboard de Colmeia"
+            cor="secundaria"
+            iconName="fileDocument"
+            onPress={() => router.push('/apiario/dashboardColmeia')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />

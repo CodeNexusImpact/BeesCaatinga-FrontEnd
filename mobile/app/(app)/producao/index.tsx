@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import Botao from '@/components/botao';
+import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Subtexto from '@/components/subTexto';
-import Botao from '@/components/botao';
+import { Stack, useRouter } from 'expo-router';
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function Index() {
   const router = useRouter();
@@ -12,7 +12,6 @@ export default function Index() {
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ title: "Produção de Mel" }} />
-      
       <Subtexto style={styles.subtexto}>Gerencie sua produção de mel</Subtexto>
 
       <View style={styles.botoesContainer}>
@@ -25,7 +24,6 @@ export default function Index() {
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
-        
         </View>
 
         <View style={styles.botaoCard}>
@@ -37,21 +35,28 @@ export default function Index() {
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
-        
         </View>
-
-        
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Relatório da Produção"
+            title="Tabela da Produção"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/producao/relatorio')}
+            onPress={() => router.push('/producao/tabela')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
-          
+        </View>
+
+        <View style={styles.botaoCard}>
+          <Botao
+            title="Dashboard da Produção"
+            cor="secundaria"
+            iconName="fileDocument"
+            onPress={() => router.push('/producao/dashboard')}
+            style={styles.botao}
+            textStyle={styles.botaoTexto}
+          />
         </View>
       </View>
     </ScrollView>
@@ -60,7 +65,7 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 2,
     backgroundColor: cores.cores.base[10],
   },
   subtexto: {
