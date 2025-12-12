@@ -21,7 +21,7 @@ export default function Index() {
             title="Cadastrar Apiário"
             cor="secundaria"
             iconName="add"
-            onPress={() => router.push('/apiario/cadastrarApiario')}
+            onPress={() => router.push('/apiario/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
@@ -32,7 +32,7 @@ export default function Index() {
             title="Cadastrar Colmeia"
             cor="secundaria"
             iconName="add"
-            onPress={() => router.push('/apiario/cadastrarColmeia')}
+            onPress={() => router.push('/apiario/colmeia/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
@@ -54,7 +54,7 @@ export default function Index() {
             title="Relatório do Apiários"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorioApiario')}
+            onPress={() => router.push('/apiario/relatorio')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
@@ -65,7 +65,7 @@ export default function Index() {
             title="Relatório de Colmeia"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorioColmeia')}
+            onPress={() => router.push('/apiario/colmeia/relatorio')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
