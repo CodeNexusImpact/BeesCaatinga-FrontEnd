@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator, useWindowDimensions, FlatList } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import cores from '@/constants/cores';
@@ -29,7 +28,7 @@ export default function Index() {
   }
 
   return (
-    <View style={[styles.container, {height: height}]}>
+    <View style={[styles.container, { height: height }]}>
       <Stack.Screen options={{ title: 'Apiário e Colmeias' }} />
       <Subtexto style={styles.subtexto}>Apiarios</Subtexto>
 
@@ -41,18 +40,22 @@ export default function Index() {
       }}>
 
         <Mapa />
-        <ScrollView style={{ flex: 1, height: width > 600 ? '90%' :'30%' , width: width > 600 ? '50%' : '90%'}}>
-        <FlatList
-          data={apiarios}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <ApiarioList {...item} />
-          )}
-          ListEmptyComponent={() => (
-            <Text style={styles.emptyText}>Nenhum apiário encontrado.</Text>
-          )}
-        />
-        </ScrollView>
+        <View style={{
+          flex: 1,
+          height: width > 600 ? '90%' : '30%',
+          width: width > 600 ? '50%' : '90%'
+        }}>
+          <FlatList
+            data={apiarios}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <ApiarioList {...item} />
+            )}
+            ListEmptyComponent={() => (
+              <Text style={styles.emptyText}>Nenhum apiário encontrado.</Text>
+            )}
+          />
+        </View>
 
       </View>
 
@@ -86,5 +89,5 @@ const styles = StyleSheet.create({
     paddingTop: layout.espacamento.amigavel,
     paddingBottom: layout.espacamento.colega,
     fontWeight: '600',
-  },  
+  },
 });

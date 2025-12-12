@@ -13,6 +13,7 @@ interface InputProps extends TextInputProps {
     iconRightName?: string;
     value: string; 
     onChangeText: (text: string) => void;
+    multiline?: boolean;
 }
 
 export interface InputRef {
@@ -28,6 +29,7 @@ const Input = React.forwardRef<InputRef, InputProps>(({
     iconRightName,
     value,
     onChangeText,
+    multiline = false,
     ...textInputProps
 }, ref) => {
     
@@ -43,19 +45,21 @@ const Input = React.forwardRef<InputRef, InputProps>(({
     }));
 
     return (
-        <View style={[styles.container, style]}>
+        <View style={[styles.container, style, multiline && styles.multilineContainer]}>
             {iconName && <View style={{ marginRight: layout.espacamento.texto }}>
-                <Icon name={iconName}></Icon>
+                <Icon name={iconName}/>
             </View>}
             {label && <Text style={styles.label}>{label}:</Text>}
             <TextInput
                 {...textInputProps}
-                style={styles.input}
+                style={[styles.input, multiline && styles.multilineContainer]}
                 placeholder={placeholder}
                 placeholderTextColor={cores.placeholder}   
                 value={value} 
                 onChangeText={onChangeText}             
                 secureTextEntry={isSecret}
+                textAlignVertical={multiline ? 'top' : 'center'}
+                multiline={multiline}
             />
             {secureTextEntry && (
                 <TouchableOpacity onPress={viewPassword} style={styles.iconRight}>
@@ -85,6 +89,14 @@ const styles = StyleSheet.create({
         backgroundColor: cores.branco, 
         borderColor: cores.borda,
     },
+    multilineContainer: {
+        // Estilo para o container de inputs multiline (altura maior)
+        flexDirection: 'column',
+        width: '100%',
+        minHeight: 100, // Altura mínima para o campo de complemento
+        alignItems: 'flex-start', // Alinha o conteúdo (label, textinput) no topo
+        paddingVertical: layout.espacamento.amigavel, // Aumenta o padding para o texto não colar
+    },
     label: {
         fontSize: 14,
         color: '#333',
@@ -97,6 +109,11 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         paddingHorizontal: 10,
         fontSize: 16,
+    },
+    multilineInput: {
+        minHeight: 80, // Altura mínima para o TextInput em multiline
+        height: 'auto', // Permite que a altura se ajuste com o conteúdo se necessário
+        paddingVertical: layout.espacamento.texto, // Adiciona padding no topo/base do texto multiline
     },
     iconRight: {
         position: 'absolute',
