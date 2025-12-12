@@ -6,6 +6,7 @@ import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { Stack } from 'expo-router';
 
 // --- Interfaces e Dados ---
 interface DadosProducao {
@@ -38,7 +39,7 @@ const colunasDoRelatorio: TabelaColuna<DadosProducao>[] = [
 
 // --- Opções de Filtro ---
 const anoOptions = [
-    { label: 'Todos', value: '' }, 
+    { label: 'Todos os Anos', value: '' }, 
     { label: '2025', value: '2025' }, 
     { label: '2024', value: '2024' },
 ];
@@ -59,6 +60,8 @@ export default function RelatorioProducaoTabela() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Tabela' }} />
+
             <Subtexto style={styles.subtexto}>Relatório Detalhado</Subtexto>
 
             {/* Filtros */}

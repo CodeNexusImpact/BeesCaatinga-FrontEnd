@@ -4,7 +4,7 @@ import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Checkbox from 'expo-checkbox';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator, 
@@ -173,6 +173,7 @@ export default function EditarVistoria() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+      <Stack.Screen options={{ title: 'Editar' }} />
       {/* Data da Vistoria */}
       <Input
         label="Data da Vistoria:"

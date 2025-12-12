@@ -6,6 +6,7 @@ import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { Stack } from 'expo-router';
 
 // --- Interfaces e Dados ---
 interface DadosVistoria {
@@ -45,33 +46,54 @@ const anoOptions = [
 
 export default function RelatorioVistoriaTabela() {
     const [ano, setAno] = useState('');
+    const [status, setStatus] = useState(''); // ✅ Novo estado
 
     const handleExportar = () => {
         alert(`Exportando ${dadosFiltrados.length} vistorias...`);
     };
 
-    // --- Lógica de Filtro ---
+    // ✅ Opções de status (extraídas dos dados ou fixas)
+    const statusOptions = [
+        { label: 'Todos os Status', value: '' },
+        { label: 'Ativa', value: 'Ativa' },
+        { label: 'Inativa', value: 'Inativa' },
+    ];
+
+    // ✅ Filtragem por ano E status
     const dadosFiltrados = useMemo(() => {
         return MASTER_TABLE_DATA.filter(item => {
-            return ano === '' ? true : item.ano === ano;
+            const filtroAno = ano === '' ? true : item.ano === ano;
+            const filtroStatus = status === '' ? true : item.statusColmeia === status;
+            return filtroAno && filtroStatus;
         });
-    }, [ano]);
+    }, [ano, status]);
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Tabela' }} />
             <Subtexto style={styles.subtexto}>Vistorias Detalhadas</Subtexto>
 
-            {/* Filtros */}
-            <View style={styles.filtroContainer}>
-                <Selector 
-                    label="Filtrar por Ano" 
-                    options={anoOptions} 
-                    onSelect={setAno} 
-                    placeholder="Todos os Anos" 
-                />
+            {/* 👇 Filtros em linha */}
+            <View style={styles.filtroWrapper}>
+                <View style={styles.filtrosRow}>
+                    <Selector 
+                        label="Ano"
+                        options={anoOptions} 
+                        onSelect={setAno} 
+                        placeholder="Todos"
+                        style={styles.seletor}
+                    />
+                    <Selector 
+                        label="Status"
+                        options={statusOptions}
+                        onSelect={setStatus}
+                        placeholder="Todos"
+                        style={styles.seletor}
+                    />
+                </View>
             </View>
 
-            <Text style={{textAlign:'center', fontSize: 12, color: '#888', marginBottom: 5}}>
+            <Text style={styles.resultadosTexto}>
                 {dadosFiltrados.length} registros encontrados
             </Text>
 
@@ -82,7 +104,6 @@ export default function RelatorioVistoriaTabela() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContentTabela}
                 >
-                    {/* Largura mínima para garantir leitura confortável das observações */}
                     <View style={{ minWidth: 900 }}>
                         <TabelaGenerica
                             colunas={colunasDoRelatorio}
@@ -105,29 +126,64 @@ export default function RelatorioVistoriaTabela() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, overflow: 'visible' },
-    subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto, marginBottom: layout.espacamento.texto },
-    
-    filtroContainer: { zIndex: 10, marginBottom: layout.espacamento.texto },
-    
+    contentContainer: { 
+        padding: layout.espacamento.amigavel, 
+        gap: layout.espacamento.colega,
+        overflow: 'visible',
+    },
+    subtexto: { 
+        width: '100%', 
+        textAlign: 'center', 
+        fontSize: 18, 
+        fontWeight: 'bold', 
+        color: cores.texto, 
+        marginBottom: layout.espacamento.texto 
+    },
+
+    // ✅ Wrapper com zIndex alto
+    filtroWrapper: {
+        position: 'relative',
+        zIndex: 999,
+        marginBottom: layout.espacamento.texto,
+    },
+    filtrosRow: {
+        flexDirection: 'row',
+        gap: layout.espacamento.texto,
+        flexWrap: 'wrap', // permite quebrar em telas pequenas
+    },
+    seletor: {
+        flex: 1,
+        minWidth: 130, // ajustado para caber 2 em linha (ex: 360px → 130+130+gap)
+    },
+
+    resultadosTexto: {
+        textAlign: 'center',
+        fontSize: 12,
+        color: '#888',
+        marginBottom: 5,
+    },
+
     tabelaContainer: { 
         marginTop: layout.espacamento.texto,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#e0e0e0',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        backgroundColor: '#fff',
     },
     
     scrollContentTabela: {
-        paddingRight: 20
+        paddingRight: 20,
     },
 
     dicaScroll: {
         textAlign: 'center',
         fontSize: 10,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
     },
 
-    botaoExportar: { marginTop: layout.espacamento.amigavel },
+    botaoExportar: { 
+        marginTop: layout.espacamento.amigavel 
+    },
 });

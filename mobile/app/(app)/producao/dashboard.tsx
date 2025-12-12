@@ -6,6 +6,7 @@ import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { Stack } from 'expo-router';
 
 // --- DADOS MOCKADOS (Base de Dados Local) ---
 const MASTER_DATA = [
@@ -112,6 +113,7 @@ export default function Dashboard() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Dashboard' }} />
             <Subtexto style={styles.subtexto}>Dashboard de Produção</Subtexto>
 
             {/* --- Filtros (Botão removido) --- */}

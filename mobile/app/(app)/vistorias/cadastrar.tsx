@@ -6,6 +6,7 @@ import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { Stack } from 'expo-router';
 
 // --- DADOS MOCKADOS (Base de Dados Local) ---
 // Simulando vistorias com datas e diagnósticos
@@ -110,6 +111,7 @@ export default function DashboardVistoria() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Cadastrar' }} />
             <Subtexto style={styles.subtexto}>Dashboard de Vistorias</Subtexto>
 
             {/* --- Filtros --- */}

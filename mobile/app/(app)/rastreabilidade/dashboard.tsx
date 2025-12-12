@@ -7,6 +7,7 @@ import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { Stack } from 'expo-router';
 
 // --- DADOS MOCKADOS (Base de Dados Local) ---
 // Simulando uma resposta de API com vários registros
@@ -26,9 +27,11 @@ const MASTER_DATA = [
 
 // --- Opções de Filtro ---
 const anoOptions = [
-    { label: '2025', value: '2025' },
+    { label: 'Todos os Anos', value: '' }, 
+    { label: '2025', value: '2025' }, 
     { label: '2024', value: '2024' },
 ];
+
 const tipoAbelhasOptions = [
     { label: 'Todas as Espécies', value: '' }, // Valor vazio = Todos
     { label: 'Nativas', value: 'nativas' },
@@ -117,6 +120,8 @@ export default function DashboardRastreabilidade() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Dashboard' }} />
+
             <Subtexto style={styles.subtexto}>Rastreabilidade: Visão Geral</Subtexto>
 
             {/* --- Área de Filtros --- */}

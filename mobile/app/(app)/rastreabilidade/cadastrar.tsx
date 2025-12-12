@@ -1,11 +1,12 @@
 import Botao from '@/components/botao';
 import Input from '@/components/input';
 import Selector from '@/components/selector';
+import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Text } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
 export default function CadastrarLoteMel() {
   const router = useRouter();
@@ -45,11 +46,8 @@ export default function CadastrarLoteMel() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Título da página */}
-      <Text style={styles.titulo}>Cadastrar Lote de Mel</Text>
-      <Text style={styles.subtitulo}>
-        Preencha os dados do lote de mel para gerar um ID de rastreabilidade.
-      </Text>
+      <Stack.Screen options={{ title: 'Cadastrar' }} />
+      <Subtexto style={styles.subtitulo}>Preencha os dados do lote de mel para gerar um ID.</Subtexto>
 
       {/* Data de Produção/Extração */}
       <Input

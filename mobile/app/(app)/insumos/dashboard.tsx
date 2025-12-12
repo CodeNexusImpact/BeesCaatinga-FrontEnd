@@ -6,6 +6,7 @@ import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { Stack } from 'expo-router';
 
 // --- DADOS MOCKADOS (Base de Dados Local) ---
 const MASTER_DATA = [
@@ -105,6 +106,7 @@ export default function DashboardInsumos() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
             <Subtexto style={styles.subtexto}>Dashboard de Insumos</Subtexto>
 
             {/* --- Filtros --- */}

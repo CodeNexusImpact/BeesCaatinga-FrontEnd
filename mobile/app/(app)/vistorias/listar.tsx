@@ -3,7 +3,7 @@ import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ScrollView,
@@ -76,21 +76,18 @@ export default function ListarVistorias() {
   const [colmeia, setColmeia] = useState('');
   const [filtroTempo, setFiltroTempo] = useState('mes');
 
-  //  Estados dos Modais ---
+  //  Estados dos Modais --- 
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
   const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null); // <-- number
 
-  // Funções de Navegação ---
+  // Funções de Navegação --- 
   const handleEdit = (id: number) => {
-
-    //Usando query param, igual ao seu exemplo de Produção
     router.push(`/vistorias/editar?id=${id}`);
   };
 
-  // Funções de Exclusão ---
+  // Funções de Exclusão --- 
   const handleDelete = (id: number) => {
-
     setIdParaExcluir(id);
     setModalConfirmacaoVisivel(true);
   };
@@ -117,38 +114,42 @@ export default function ListarVistorias() {
 
   return (
     <>
+      <Stack.Screen options={{ title: 'Listar' }} />
       <View style={styles.container}>
+        
         <ScrollView contentContainerStyle={styles.contentContainer}>
-          {/* --- Seção de Filtros  */}
-          <View style={styles.filtroContainer}>
-            <Text style={styles.filtroTitulo}>Filtros</Text>
-            <Selector
-              label="Selecione o Apiário*"
-              options={apiarioOptions}
-              onSelect={setApiario}
-              placeholder="Selecione"
-              iconName="home"
-            />
-            <Selector
-              label="Selecione a Colmeia"
-              options={colmeiaOptions}
-              onSelect={setColmeia}
-              placeholder="Selecione"
-              iconName="beehiveOutline"
-            />
-            <View style={styles.botoesRow}>
-              <Botao
-                title="Mês"
-                onPress={() => setFiltroTempo('mes')}
-                cor={filtroTempo === 'mes' ? 'primaria' : 'secundaria'}
-                style={styles.botaoMetade}
+          {/* 👇 Área de Filtros — CORRIGIDA COM zIndex ALTO */}
+          <View style={styles.filtroWrapper}>
+            <View style={styles.filtroContainer}>
+              <Text style={styles.filtroTitulo}>Filtros</Text>
+              <Selector
+                label="Selecione o Apiário*"
+                options={apiarioOptions}
+                onSelect={setApiario}
+                placeholder="Selecione"
+                iconName="home"
               />
-              <Botao
-                title="Estação"
-                onPress={() => setFiltroTempo('estacao')}
-                cor={filtroTempo === 'estacao' ? 'primaria' : 'secundaria'}
-                style={styles.botaoMetade}
+              <Selector
+                label="Selecione a Colmeia"
+                options={colmeiaOptions}
+                onSelect={setColmeia}
+                placeholder="Selecione"
+                iconName="beehiveOutline"
               />
+              <View style={styles.botoesRow}>
+                <Botao
+                  title="Mês"
+                  onPress={() => setFiltroTempo('mes')}
+                  cor={filtroTempo === 'mes' ? 'primaria' : 'secundaria'}
+                  style={styles.botaoMetade}
+                />
+                <Botao
+                  title="Estação"
+                  onPress={() => setFiltroTempo('estacao')}
+                  cor={filtroTempo === 'estacao' ? 'primaria' : 'secundaria'}
+                  style={styles.botaoMetade}
+                />
+              </View>
             </View>
           </View>
 
@@ -167,7 +168,6 @@ export default function ListarVistorias() {
           </TouchableOpacity>
 
           {/*Lista de Vistorias --- */}
-          {/* Agora usa o GenericCard*/}
           <View style={styles.listaContainer}>
             {vistoriasMock.map((vistoria) => {
               // Monta os campos para o card
@@ -243,7 +243,7 @@ export default function ListarVistorias() {
   );
 }
 
-// --- Estilos ---
+// --- Estilos --- 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -252,6 +252,12 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: layout.espacamento.amigavel,
     gap: layout.espacamento.colega,
+    overflow: 'visible', // ⚠️ IMPORTANTE: evita cortar dropdowns
+  },
+  filtroWrapper: {
+    position: 'relative', // necessário para zIndex funcionar
+    zIndex: 999, // força estar acima de tudo
+    marginBottom: layout.espacamento.texto,
   },
   filtroContainer: {
     backgroundColor: cores.cores.base[5],
