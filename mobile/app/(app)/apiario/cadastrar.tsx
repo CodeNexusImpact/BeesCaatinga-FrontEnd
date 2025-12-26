@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Dimensions } from 'react-native';
 
 import { ApiarioCriacaoDTO } from '@/types/Apiarios';
 import { EnderecoProps } from '@/types/Endereco';
@@ -11,6 +11,9 @@ import TipoQuantidadeColmeia from '@/components/apiario/tipoQuantidadeColmeia';
 import Botao from '@/components/botao';
 import Subtexto from '@/components/subTexto';
 import ImagePickerExample from '@/components/imagemPicker';
+
+import {styles as hero } from '@/styles/hero.styles';
+import {styles as formStyles} from '@/styles/forms.styles';
 
 
 
@@ -40,10 +43,10 @@ const CadastrarApiario = () => {
     //quantidade colmeias por tipo    
     const [colmeiasMadeiraAtivas, setColmeiasMadeiraAtivas] = useState(0);
     const [colmeiasMadeiraInativas, setColmeiasMadeiraInativas] = useState(0);
-    
+
     const [colmeiasConcretoAtivas, setColmeiasConcretoAtivas] = useState(0);
     const [colmeiasConcretoInativas, setColmeiasConcretoInativas] = useState(0);
-    
+
     const [colmeiasPoliestirenoAtivas, setColmeiasPoliestirenoAtivas] = useState(0);
     const [colmeiasPoliestirenoInativas, setColmeiasPoliestirenoInativas] = useState(0);
 
@@ -101,13 +104,16 @@ const CadastrarApiario = () => {
         });
     }, []);
 
+    const windowWidth = Dimensions.get('window').width;
+    const windowHeight = Dimensions.get('window').height;
+
     return (
         <ScrollView>
             <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
-            <View style={{ padding: 16 }}>                
-                <Text>Cadastrar Novo Apiário</Text>
-                
-                <View> {/* dados do apiario */}
+            
+            <View style={hero.formStyle}>                
+                <View style={formStyles.formStyle}>
+                    <Subtexto>Dados</Subtexto>
                     <Input
                         label='Nome'
                         placeholder="Apiário Bees Caatinga "
@@ -127,51 +133,54 @@ const CadastrarApiario = () => {
                         onChangeText={setDataCriacao}
                     />
                 </View>
-                <View> {/* endereço */}
-                    <Text>Endereço</Text>
-                    <FormEndereco enderecoInicial={endereco} onEnderecoChange={setEndereco } />
+                <View style={formStyles.formStyle}>
+                    <Subtexto>Endereço</Subtexto>
+                    <FormEndereco enderecoInicial={endereco} onEnderecoChange={setEndereco} />
                 </View>
-                <View> {/* quantidade colmeias por tipo */}
-                    <Subtexto>Colmeias </Subtexto>    
-                    <Text>tipo - quantidade colmeias: (ativas / inativas)</Text>                
-                    <TipoQuantidadeColmeia 
+                <View style={formStyles.formStyle}> 
+                    <Subtexto>Colmeias</Subtexto>
+                    <Text>tipo - quantidade colmeias: (ativas / inativas)</Text>
+                    <TipoQuantidadeColmeia
                         isEditable={true}
-                        tipo={'Madeira'} 
-                        ativas={colmeiasMadeiraAtivas} 
-                        inativas={colmeiasMadeiraInativas} 
-                        onAtivasChange={setColmeiasMadeiraAtivas} 
-                        onInativasChange={setColmeiasMadeiraInativas} 
+                        tipo={'Madeira'}
+                        ativas={colmeiasMadeiraAtivas}
+                        inativas={colmeiasMadeiraInativas}
+                        onAtivasChange={setColmeiasMadeiraAtivas}
+                        onInativasChange={setColmeiasMadeiraInativas}
                     />
-                    <TipoQuantidadeColmeia 
+                    <TipoQuantidadeColmeia
                         isEditable={false}
-                        tipo={'Concreto'} 
-                        ativas={colmeiasConcretoAtivas} 
-                        inativas={colmeiasConcretoInativas} 
-                        onAtivasChange={setColmeiasConcretoAtivas} 
-                        onInativasChange={setColmeiasConcretoInativas} 
+                        tipo={'Concreto'}
+                        ativas={colmeiasConcretoAtivas}
+                        inativas={colmeiasConcretoInativas}
+                        onAtivasChange={setColmeiasConcretoAtivas}
+                        onInativasChange={setColmeiasConcretoInativas}
                     />
-                    <TipoQuantidadeColmeia 
+                    <TipoQuantidadeColmeia
                         isEditable={false}
-                        tipo={'Poliestireno'} 
-                        ativas={colmeiasPoliestirenoAtivas} 
-                        inativas={colmeiasPoliestirenoInativas} 
-                        onAtivasChange={setColmeiasPoliestirenoAtivas} 
-                        onInativasChange={setColmeiasPoliestirenoInativas} 
+                        tipo={'Poliestireno'}
+                        ativas={colmeiasPoliestirenoAtivas}
+                        inativas={colmeiasPoliestirenoInativas}
+                        onAtivasChange={setColmeiasPoliestirenoAtivas}
+                        onInativasChange={setColmeiasPoliestirenoInativas}
                     />
                 </View>
-                <View> {/* dados adicionais */}
-                    <Text>Dados Adicionais</Text>
+                <View style={formStyles.formStyle}> 
+                    <Subtexto>Dados Adicionais</Subtexto>
                     <Input
                         label='Observações'
                         placeholder="Observações adicionais sobre o apiário"
                         value={observacoes}
                         onChangeText={setObservacoes}
-                        multiline ={true}
+                        multiline={true}
                     />
                 </View>
                 <ImagePickerExample />
-                <Botao title="Cadastrar Apiário" onPress={handleSubmit} />
+                <Botao title="Cadastrar Apiário" onPress={handleSubmit} /> 
+
+
             </View>
+
         </ScrollView>
     );
 };

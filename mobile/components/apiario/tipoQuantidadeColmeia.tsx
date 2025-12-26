@@ -36,13 +36,18 @@ const TipoQuantidadeColmeia: React.FC<TipoQuantidadeColmeiaProps> = ({
     return (
         <View style={styles.container}>
             <View style={styles.frame}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+
+                <View style={styles.subFrame}>
                     <TouchableOpacity onPress={toggleSwitch}>
                         <Switch value={isEnabled} />
                     </TouchableOpacity>
+
                     <Text style={styles.text}>{tipo}</Text>
+
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+
+
+                <View style={styles.subFrame}>
                     <View style={styles.numberInput}>
                         <TextInput
                             style={styles.text}
@@ -79,7 +84,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
         backgroundColor: temaCores.branco,
         gap: 8,
@@ -87,11 +92,19 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderWidth: 1,
         borderRadius: 999,
+        width: '100%',
     },
     frame: {
+        flex: 1,
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         gap: 12,
+    },
+    subFrame: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     numberInput: {
         borderWidth: 1,

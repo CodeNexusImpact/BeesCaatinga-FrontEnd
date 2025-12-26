@@ -1,8 +1,9 @@
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import React, { useImperativeHandle, useState } from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
+import { Typography } from '@/styles/fonts.styles';
 
 interface InputProps extends TextInputProps {
     label?: string;
@@ -49,10 +50,10 @@ const Input = React.forwardRef<InputRef, InputProps>(({
             {iconName && <View style={{ marginRight: layout.espacamento.texto }}>
                 <Icon name={iconName}/>
             </View>}
-            {label && <Text style={styles.label}>{label}:</Text>}
+            {label && <Text style={[styles.label, Typography.Negrito]}>{label}:</Text>}
             <TextInput
                 {...textInputProps}
-                style={[styles.input, multiline && styles.multilineContainer]}
+                style={[styles.input, Typography.Texto, multiline && styles.multilineInput]}
                 placeholder={placeholder}
                 placeholderTextColor={cores.placeholder}   
                 value={value} 
@@ -80,14 +81,30 @@ const Input = React.forwardRef<InputRef, InputProps>(({
 const styles = StyleSheet.create({
     container: {
         width: '100%',
+        height: 'auto',
         paddingHorizontal: layout.espacamento.amigavel,
         alignItems: 'center',
         flexDirection: 'row',
         borderWidth: 1,
         borderRadius: layout.borderRadius.r25,
         paddingVertical: layout.espacamento.texto,
-        backgroundColor: cores.branco, 
+        backgroundColor: cores.cores.base[5], 
         borderColor: cores.borda,
+        // --- NOVO ESTILO: SHADOW ---
+        ...Platform.select({
+            ios: {
+                shadowColor: cores.secundaria, 
+                shadowOffset: { width: 1, height: 2 }, 
+                shadowRadius: 2, 
+                shadowOpacity: 0.4, 
+            },
+            android: {
+                elevation: 2,                 
+            },
+            web: {
+                boxShadow: `2px 2px 4px ${cores.secundaria}80`, 
+            },
+        }), 
     },
     multilineContainer: {
         // Estilo para o container de inputs multiline (altura maior)
@@ -97,13 +114,12 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start', // Alinha o conteúdo (label, textinput) no topo
         paddingVertical: layout.espacamento.amigavel, // Aumenta o padding para o texto não colar
     },
-    label: {
-        fontSize: 14,
-        color: '#333',
-        marginRight: layout.espacamento.texto
+    label: {        
+        marginRight: layout.espacamento.texto,
+        minWidth: 96,
     },
     input: {
-        height: 40,
+        height: 'auto',
         borderColor: '#ccc',
         flexShrink: 1,
         flexGrow: 1,
@@ -118,7 +134,8 @@ const styles = StyleSheet.create({
     iconRight: {
         position: 'absolute',
         right: layout.espacamento.amigavel,
-    }
+    },
+    
 });
 
 export default Input;
