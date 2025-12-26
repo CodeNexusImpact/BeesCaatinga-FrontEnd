@@ -10,7 +10,6 @@ export default {
   family: {
     display: 'Wix Madefor Display',
     sans: 'System',         // ou 'Roboto' se usar fonte custom
-    body: 'System', // 'Roboto-Regular'
-    heading: 'System-Bold', // ou 'Roboto-Bold'
+    bold: 'System-Bold', // 'Roboto-Regular'
   },
 };

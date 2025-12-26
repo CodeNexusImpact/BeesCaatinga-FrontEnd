@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Input from '@/components/input';
 import { EnderecoProps } from '@/types/Endereco';
+import {styles as formStyles} from '@/styles/forms.styles';
 
 interface FormEnderecoProps {
     enderecoInicial: EnderecoProps;
@@ -18,7 +19,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
     };
 
     return (
-        <View>
+        <View style={formStyles.formStyle}>
             <Input
                 label="Rua"
                 value={endereco.rua}
