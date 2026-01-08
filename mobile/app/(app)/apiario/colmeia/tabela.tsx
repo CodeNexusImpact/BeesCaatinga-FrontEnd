@@ -10,72 +10,69 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 
-// --- Interface Atualizada ---
+// --- Interface e Dados (Baseados no seu cadastro de colmeia) ---
 interface DadosColmeia {
     id: string;
     identificador: string;
     apiario: string;
     tipo: string;
     status: 'Ativo' | 'Inativo';
-    dataCriacao: string; // Ex: "15/01/2025"
-    ano: string;         // Campo auxiliar para o filtro
 }
 
-// --- Dados de Exemplo (Mock) com Datas ---
+// Dados de exemplo (Mock)
 const MOCK_COLMEIAS: DadosColmeia[] = [
-    { id: '1', identificador: 'COL-01', apiario: 'Rosa do Sertão', tipo: 'Madeira', status: 'Ativo', dataCriacao: '10/01/2025', ano: '2025' },
-    { id: '2', identificador: 'COL-02', apiario: 'Rosa do Sertão', tipo: 'Concreto', status: 'Ativo', dataCriacao: '15/02/2025', ano: '2025' },
-    { id: '3', identificador: 'COL-03', apiario: 'Vale das Abelhas', tipo: 'Poliestireno', status: 'Inativo', dataCriacao: '20/11/2024', ano: '2024' },
-    { id: '4', identificador: 'COL-04', apiario: 'Vale das Abelhas', tipo: 'Madeira', status: 'Ativo', dataCriacao: '05/12/2024', ano: '2024' },
-    { id: '5', identificador: 'COL-05', apiario: 'Bees Caatinga', tipo: 'Concreto', status: 'Ativo', dataCriacao: '12/08/2023', ano: '2023' },
+    { id: '1', identificador: 'COL-01', apiario: 'Rosa do Sertão', tipo: 'Madeira', status: 'Ativo' },
+    { id: '2', identificador: 'COL-02', apiario: 'Rosa do Sertão', tipo: 'Concreto', status: 'Ativo' },
+    { id: '3', identificador: 'COL-03', apiario: 'Vale das Abelhas', tipo: 'Poliestireno', status: 'Inativo' },
+    { id: '4', identificador: 'COL-04', apiario: 'Vale das Abelhas', tipo: 'Madeira', status: 'Ativo' },
+    { id: '5', identificador: 'COL-05', apiario: 'Bees Caatinga', tipo: 'Concreto', status: 'Ativo' },
 ];
 
-// --- Configuração das Colunas (Data Adicionada) ---
+// --- Configuração das Colunas ---
 const colunasColmeia: TabelaColuna<DadosColmeia>[] = [
     { label: 'Identificador', dataKey: 'identificador', sortable: true, flex: 2 },
-    { label: 'Criação', dataKey: 'dataCriacao', sortable: true, flex: 2.5 }, // Nova Coluna
     { label: 'Apiário', dataKey: 'apiario', sortable: true, flex: 3 },
     { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
     { label: 'Status', dataKey: 'status', sortable: true, flex: 2 },
 ];
 
-// --- Opções de Filtro por Ano ---
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' },
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-    { label: '2023', value: '2023' },
+// --- Opções de Filtro ---
+const apiarioFiltroOptions = [
+    { label: 'Todos os Apiários', value: '' },
+    { label: 'Rosa do Sertão', value: 'Rosa do Sertão' },
+    { label: 'Vale das Abelhas', value: 'Vale das Abelhas' },
+    { label: 'Bees Caatinga', value: 'Bees Caatinga' },
 ];
 
 export default function TabelaColmeias() {
-    const [filtroAno, setFiltroAno] = useState('');
+    const [filtroApiario, setFiltroApiario] = useState('');
 
-    // --- LÓGICA: Filtra as colmeias pelo ano selecionado ---
+    // --- LÓGICA: Filtra as colmeias por apiário ---
     const dadosFiltrados = useMemo(() => {
         return MOCK_COLMEIAS.filter(item => {
-            return filtroAno === '' ? true : item.ano === filtroAno;
+            return filtroApiario === '' ? true : item.apiario === filtroApiario;
         });
-    }, [filtroAno]);
+    }, [filtroApiario]);
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Relatório de Colmeias' }} />
+            <Stack.Screen options={{ title: 'Lista de Colmeias' }} />
 
-            <Subtexto style={styles.subtexto}>Relatório Detalhado</Subtexto>
+            <Subtexto style={styles.subtexto}>Colmeias Cadastradas</Subtexto>
 
-            {/* Filtro por Ano */}
+            {/* Filtros */}
             <View style={styles.filtroContainer}>
                 <Selector 
-                    label="Filtrar por Ano" 
-                    options={anoOptions} 
-                    onSelect={setFiltroAno} 
-                    placeholder="Selecione o ano" 
-                    iconName="calendar" // Ícone de calendário condizente com data
+                    label="Filtrar por Apiário" 
+                    options={apiarioFiltroOptions} 
+                    onSelect={setFiltroApiario} 
+                    placeholder="Todos os Apiários" 
+                    iconName="home"
                 />
             </View>
 
             <Text style={styles.contagemTexto}>
-                {dadosFiltrados.length} colmeias encontradas no período
+                {dadosFiltrados.length} colmeias encontradas
             </Text>
 
             {/* --- TABELA COM SCROLL HORIZONTAL --- */}
@@ -85,8 +82,8 @@ export default function TabelaColmeias() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContentTabela}
                 >
-                    {/* minWidth aumentado para comportar a nova coluna de data sem espremer */}
-                    <View style={{ minWidth: 750 }}>
+                    {/* minWidth garante que colunas não fiquem espremidas em telas pequenas */}
+                    <View style={{ minWidth: 600 }}>
                         <TabelaGenerica
                             colunas={colunasColmeia}
                             data={dadosFiltrados}
@@ -95,12 +92,12 @@ export default function TabelaColmeias() {
                 </ScrollView>
             </View>
             
-            <Text style={styles.dicaScroll}>Deslize lateralmente para ver todos os dados</Text>
+            <Text style={styles.dicaScroll}>Deslize para o lado para ver mais detalhes</Text>
 
             <Botao
-                title="Exportar Relatório"
+                title="Novo Cadastro"
                 cor="primaria"
-                onPress={() => alert('Exportando dados para CSV...')}
+                onPress={() => { /* router.push('/colmeias/cadastrar') */ }}
                 style={styles.botaoAcao}
             />
         </ScrollView>
@@ -125,7 +122,7 @@ const styles = StyleSheet.create({
         marginBottom: layout.espacamento.texto 
     },
     filtroContainer: { 
-        zIndex: 10, 
+        zIndex: 10, // Garante que o dropdown sobreponha a tabela
         marginBottom: layout.espacamento.texto 
     },
     contagemTexto: {

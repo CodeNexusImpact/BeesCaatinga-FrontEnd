@@ -51,7 +51,7 @@ const Selector: React.FC<SelectorProps> = ({
     };
 
     return (
-        <View style={[styles.container, { zIndex: isOpen ? 10 : 1 }, style]}>
+        <View style={[styles.container, { zIndex: isOpen ? 1000 : 1 }, style]}>
             {iconName && <View style={styles.icon}>
                 <Icon name={iconName}></Icon>
             </View>}
