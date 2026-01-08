@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import Input from '@/components/input';
 import { EnderecoProps } from '@/types/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
+import { maskCEP } from '@/utils/masks';
 
 interface FormEnderecoProps {
     enderecoInicial: EnderecoProps;
@@ -13,13 +14,27 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
     const [endereco, setEndereco] = useState<EnderecoProps>(enderecoInicial);
 
     const handleChange = (field: string, value: string) => {
-        const updatedEndereco = { ...endereco, [field]: value };
+        let formattedValue = value;
+        
+        if (field === 'cep') {
+            formattedValue = maskCEP(value);        } 
+
+        const updatedEndereco = { ...endereco, [field]: formattedValue };
         setEndereco(updatedEndereco);
         onEnderecoChange(updatedEndereco);
     };
 
     return (
         <View style={formStyles.formStyle}>
+
+            <Input
+                label="CEP"
+                value={endereco.cep}
+                onChangeText={(value) => handleChange('cep', value)}
+                placeholder="Digite o CEP"
+                keyboardType="numeric"
+            />
+
             <Input
                 label="Rua"
                 value={endereco.rua}
@@ -33,6 +48,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
                 onChangeText={(value) => handleChange('numero', value)}
                 placeholder="Digite o número"
                 keyboardType="numeric"
+                maxLength={10}
             />
 
             <Input
@@ -54,15 +70,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
                 value={endereco.estado}
                 onChangeText={(value) => handleChange('estado', value)}
                 placeholder="Digite o estado"
-            />
-
-            <Input
-                label="CEP"
-                value={endereco.cep}
-                onChangeText={(value) => handleChange('cep', value)}
-                placeholder="Digite o CEP"
-                keyboardType="numeric"
-            />
+            />            
 
             <Input
                 label="Propriedade"
