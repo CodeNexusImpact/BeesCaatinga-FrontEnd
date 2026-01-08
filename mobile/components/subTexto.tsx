@@ -11,7 +11,7 @@ interface SubtextoProps {
 const Subtexto: React.FC<SubtextoProps> = ({ children, style }) => {
   return (
     <View style={[styles.container, style]}>
-        <Text>{children}</Text>
+        <Text style = {styles.text}>{children}</Text>
       <View style={styles.line} />
     </View>
   );
@@ -20,17 +20,19 @@ const Subtexto: React.FC<SubtextoProps> = ({ children, style }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    width: '100%',
+    alignContent: 'center',
   },
 
   text: {
-    fontSize: fonts.size.p, 
+    marginBottom: 4,
+    fontSize: fonts.size.g, 
     fontFamily: fonts.family.sans,
     color: cores.texto,
-    margin: 20,
   },
 
   line: {
-    width: '90%',
+    width: '100%',
     height: 1,
     backgroundColor: cores.borda,
   },

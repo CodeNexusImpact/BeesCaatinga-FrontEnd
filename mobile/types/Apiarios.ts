@@ -1,4 +1,5 @@
-import { ColmeiaItemProps } from './Colmeias';
+import { ColmeiaItemProps } from '@/types/Colmeias';
+import { EnderecoProps } from '@/types/Endereco';
 
 // 1. Tipo Simplificado para Listas
 export interface ApiarioListProps {
@@ -17,18 +18,7 @@ export interface ApiarioCompletoProps extends ApiarioListProps {
     registro: string;
     dataCriacao: string;
     observacoes: string;
-    localizacao: {
-        cep: string;
-        propriedade: string;
-        estado: string;
-        cidade: string;
-        bairro: string;
-        rua: string;
-        numero: string;
-        complemento: string;
-        latitude: number;
-        longitude: number;
-    };
+    endereco: EnderecoProps;
 }
 
 // 3. Tipo para Criação (O que o Front-end ENVIA)
@@ -38,32 +28,22 @@ export interface ApiarioCriacaoDTO {
     registro: string;
     dataCriacao: string;
 
-    localizacao: {
-        cep: string;
-        propriedade: string;
-        estado: string;
-        cidade: string;
-        bairro: string;
-        rua: string;
-        numero: string;
-        complemento: string;
-        latitude: number;
-        longitude: number;
-    };
+    endereco: EnderecoProps;
+
     colmeiasAtivas: number;
     colmeiasTotal: number;
     colmeias: {
         madeira: {
-            ativa: number;
-            inativa: number;
+            ativas: number;
+            inativas: number;
         };
         concreto: {
-            ativa: number;
-            inativa: number;
+            ativas: number;
+            inativas: number;
         }
         poliestireno: {
-            ativa: number;
-            inativa: number;
+            ativas: number;
+            inativas: number;
         };        
     }
     //foto: string[]; // URLs ou caminhos das fotos
