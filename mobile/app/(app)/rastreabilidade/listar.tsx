@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
 // Dados mockados dos lotes de mel
 const lotesMel = [
@@ -53,6 +53,8 @@ export default function ListarLotesMel() {
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
     >
+      <Stack.Screen options={{ title: 'Listar' }} />
+
       {/* Card de Lista de Lotes */}
       <View style={styles.listaContainer}>
         {/* Header do Card (Clicável) */}

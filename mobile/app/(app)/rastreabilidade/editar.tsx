@@ -3,7 +3,7 @@ import Input from '@/components/input';
 import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, Text, Alert } from 'react-native';
 import Checkbox from 'expo-checkbox';
@@ -104,6 +104,7 @@ export default function EditarLote() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+      <Stack.Screen options={{ title: 'Editar' }} />
       {/* ID do Lote (readonly) */}
       <Input
         label="ID do Lote"
@@ -116,7 +117,7 @@ export default function EditarLote() {
 
       {/* Data de Produção */}
       <Input
-        label="Data de Produção *"
+        label="Data de Produção"
         value={dataProducao}
         onChangeText={setDataProducao}
         placeholder="DD/MM/AAAA"
@@ -126,7 +127,7 @@ export default function EditarLote() {
 
       {/* Quantidade */}
       <Input
-        label="Quantidade (kg) *"
+        label="Quantidade (kg)"
         value={quantidade}
         onChangeText={(text) => {
           const cleaned = text.replace(/[^0-9.,]/g, '');
@@ -138,7 +139,7 @@ export default function EditarLote() {
 
       {/* Apiário */}
       <Selector
-        label="Apiário *"
+        label="Apiário"
         options={apiariosDisponiveis}
         onSelect={setApiario}
         placeholder="Selecione o apiário"
@@ -147,12 +148,12 @@ export default function EditarLote() {
 
       {/* Observações */}
       <View style={styles.observacoesSection}>
-        <Text style={styles.observacoesLabel}>Observações (opcional)</Text>
+        <Text style={styles.observacoesLabel}>Observações(opcional)</Text>
         <View style={styles.observacoesInputContainer}>
           <Input
             value={notas}
             onChangeText={setNotas}
-            placeholder="Observações sobre o lote..."
+            placeholder=""
             multiline={true}
             numberOfLines={6}
             style={styles.observacoesInput}
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
   observacoesLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: cores.primaria,
+    color: cores.preto,
     marginBottom: 8,
     marginLeft: 4,
   },

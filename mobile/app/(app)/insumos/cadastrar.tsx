@@ -4,7 +4,7 @@ import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Checkbox from 'expo-checkbox';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -70,6 +70,7 @@ export default function CadastrarInsumo() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+      <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
       {/* Data de Entrada */}
       <Input
         label="Data de Entrada:"

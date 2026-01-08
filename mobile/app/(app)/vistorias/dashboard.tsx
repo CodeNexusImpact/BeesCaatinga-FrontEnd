@@ -111,7 +111,7 @@ export default function DashboardVistoria() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Cadastrar' }} />
+            <Stack.Screen options={{ title: 'Dashboard' }} />
             <Subtexto style={styles.subtexto}>Dashboard de Vistorias</Subtexto>
 
             {/* --- Filtros --- */}

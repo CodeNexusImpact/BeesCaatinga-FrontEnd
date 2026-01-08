@@ -40,10 +40,21 @@ export default function Index() {
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Relatório dos Lotes"
+            title="Tabela da Produção"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/rastreabilidade/relatorio')}
+            onPress={() => router.push('/rastreabilidade/tabela')}
+            style={styles.botao}
+            textStyle={styles.botaoTexto}
+          />
+        </View>
+
+        <View style={styles.botaoCard}>
+          <Botao
+            title="Dashboard da Produção"
+            cor="secundaria"
+            iconName="fileDocument"
+            onPress={() => router.push('/rastreabilidade/dashboard')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />

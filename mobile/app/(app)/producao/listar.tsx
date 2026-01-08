@@ -6,7 +6,7 @@ import ModalSucesso from '@/components/modalSucesso';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
 const producoes = [
   {
@@ -74,6 +74,7 @@ export default function Visualizar() {
 
   return (
     <>
+    <Stack.Screen options={{ title: 'Listar' }} />
       <View style={styles.container}>
         {/* Conteúdo Principal */}
         <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>

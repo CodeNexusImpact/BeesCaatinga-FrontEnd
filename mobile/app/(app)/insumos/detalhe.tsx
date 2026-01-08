@@ -8,7 +8,7 @@ import Selector from '@/components/selector';
 import Input from '@/components/input'; 
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 
 const insumos = [
   {
@@ -83,6 +83,7 @@ export default function Detalhe() {
 
   return (
     <>
+    <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
       <View style={styles.container}>
         <Subtexto style={styles.filtroTitulo}>Filtros</Subtexto>
 

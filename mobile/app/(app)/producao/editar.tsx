@@ -3,7 +3,7 @@ import Input from '@/components/input';
 import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, Text, Alert } from 'react-native';
 import Subtexto from '@/components/subTexto';
@@ -154,6 +154,7 @@ export default function Editar() {
             style={styles.container}
             contentContainerStyle={styles.contentContainer}
         >
+            <Stack.Screen options={{ title: 'Editar' }} />
             <Subtexto style={styles.subtexto}>Edite os dados da produção.</Subtexto>
 
             {/*Campo ID não editável */}
