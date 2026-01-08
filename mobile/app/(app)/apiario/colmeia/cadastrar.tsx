@@ -47,6 +47,7 @@ export default function Cadastrar() {
                     label="Identificador:"
                     placeholder="Colmeia"
                     value={identificador}
+                    editable={false}
                     onChangeText={setIdentificador}
                 />
 

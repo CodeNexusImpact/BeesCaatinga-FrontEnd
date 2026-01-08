@@ -54,7 +54,7 @@ export default function Index() {
             title="Relatório do Apiários"
             cor="secundaria"
             iconName="fileDocument"
-            onPress={() => router.push('/apiario/relatorio')}
+            onPress={() => router.push('/apiario/tabelaApiario')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />

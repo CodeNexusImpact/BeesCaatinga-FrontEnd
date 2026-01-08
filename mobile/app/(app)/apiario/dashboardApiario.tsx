@@ -1,58 +1,78 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Dimensions, 
+  useWindowDimensions, // Essencial para responsividade Web/Mobile
+  Platform 
+} from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit'; 
 import Selector from '@/components/selector';
 import GraficoCard from '@/components/graficoCard';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Subtexto from '@/components/subTexto';
+import { Stack } from 'expo-router';
 
-const screenWidth = Dimensions.get('window').width;
-
-export default function DashboardApiarios() {
+export default function DashboardApiario() {
     const [ano, setAno] = useState('');
+    const { width } = useWindowDimensions(); // Detecta a largura da tela em tempo real
 
-    // Dados Mockados Dinâmicos
+    // Ajuste dinâmico de largura para ser responsivo
+    const chartWidth = width > 600 ? width * 0.4 : width - 60;
+
+    // Dados baseados na sua interface
     const apiariosData = [
-        { nome: 'Rosa do Sertão', cidade: 'Pombal', colmeias: 15, ano: '2025', mesIndex: 0 },
-        { nome: 'Vale das Abelhas', cidade: 'Sousa', colmeias: 22, ano: '2024', mesIndex: 5 },
-        { nome: 'Bees Caatinga', cidade: 'Pombal', colmeias: 10, ano: '2025', mesIndex: 8 },
+        { nome: 'Rosa do Sertão', cidade: 'Pombal', colmeias: 15, ano: '2025' },
+        { nome: 'Vale das Abelhas', cidade: 'Sousa', colmeias: 22, ano: '2024' },
+        { nome: 'Bees Caatinga', cidade: 'Pombal', colmeias: 10, ano: '2025' },
     ];
 
     const filtrados = useMemo(() => {
         return apiariosData.filter(d => ano === '' || d.ano === ano);
     }, [ano]);
 
-    // Gráfico de Pizza: Apiários por Cidade
     const dataCidade = useMemo(() => {
         const cidades = filtrados.reduce((acc: any, curr) => {
             acc[curr.cidade] = (acc[curr.cidade] || 0) + 1;
             return acc;
         }, {});
-
         return Object.keys(cidades).map((c, i) => ({
             name: c,
             population: cidades[c],
-            color: [cores.verde, '#f1c40f', '#e74c3c'][i % 3],
+            color: ['#2ecc71', '#f1c40f', '#3498db'][i % 3],
             legendFontColor: cores.texto,
-            legendFontSize: 12,
+            legendFontSize: width > 600 ? 14 : 11, // Fonte menor no mobile
         }));
-    }, [filtrados]);
+    }, [filtrados, width]);
 
-    // Gráfico de Barras: Colmeias por Apiário
-    const dataColmeias = useMemo(() => ({
-        labels: filtrados.map(a => a.nome.split(' ')[0]), // Pega o primeiro nome
-        datasets: [{ data: filtrados.map(a => a.colmeias) }]
-    }), [filtrados]);
+    const chartConfig = {
+        backgroundGradientFrom: cores.branco,
+        backgroundGradientTo: cores.branco,
+        decimalPlaces: 0,
+        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        labelColor: () => cores.texto,
+        // Reduz o tamanho da fonte das etiquetas para mobile
+        propsForLabels: {
+            fontSize: width > 600 ? 12 : 10,
+        }
+    };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Subtexto style={{ textAlign: 'center' }}>Dashboard de Apiários</Subtexto>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+            <Stack.Screen options={{ title: 'Dashboard' }} />
+            
+            {/* Título com tamanho adaptável */}
+            <Text style={[styles.mainTitle, { fontSize: width > 600 ? 24 : 18 }]}>
+                Dashboard de Apiários
+            </Text>
 
-            <View style={{ zIndex: 100 }}>
+            <View style={styles.filterContainer}>
                 <Selector 
                     label="Ano de Referência" 
-                    options={[{label: 'Todos', value: ''}, {label: '2025', value: '2025'}, {label: '2024', value: '2024'}]} 
+                    options={[{label: 'Todos', value: ''}, {label: '2025', value: '2025'}]} 
                     onSelect={setAno} 
                 />
             </View>
@@ -63,39 +83,42 @@ export default function DashboardApiarios() {
                     { label: 'Total Apiários', value: filtrados.length.toString() },
                     { label: 'Total Colmeias', value: filtrados.reduce((a,b) => a + b.colmeias, 0).toString() }
                 ]}
-                showSideBar={true}
+                showSideBar={width > 600} // Esconde a barra lateral no mobile para ganhar espaço
             >
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Distribuição por Cidade</Text>
-                    <PieChart
-                        data={dataCidade}
-                        width={screenWidth - 60}
-                        height={200}
-                        accessor={"population"}
-                        backgroundColor={"transparent"}
-                        paddingLeft={"15"}
-                        absolute
-                        chartConfig={{ color: () => cores.texto }}
-                    />
-                </View>
+                {/* Container flexível para alinhar lado a lado no Web ou empilhado no Mobile */}
+                <View style={[styles.chartsWrapper, { flexDirection: width > 800 ? 'row' : 'column' }]}>
+                    
+                    <View style={styles.chartBox}>
+                        <Text style={styles.chartTitle}>Distribuição por Cidade</Text>
+                        <PieChart
+                            data={dataCidade}
+                            width={chartWidth}
+                            height={200}
+                            accessor={"population"}
+                            backgroundColor={"transparent"}
+                            paddingLeft={"15"}
+                            absolute
+                            chartConfig={chartConfig}
+                        />
+                    </View>
 
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Colmeias por Apiário</Text>
-                    <BarChart
-                        data={dataColmeias}
-                        width={screenWidth - 60}
-                        height={220}
-                        yAxisLabel=""
-                        yAxisSuffix=""
-                        fromZero
-                        chartConfig={{
-                            backgroundGradientFrom: cores.branco,
-                            backgroundGradientTo: cores.branco,
-                            color: (opacity = 1) => `rgba(46, 204, 113, ${opacity})`,
-                            labelColor: () => cores.texto,
-                        }}
-                        style={{ borderRadius: 16 }}
-                    />
+                    <View style={styles.chartBox}>
+                        <Text style={styles.chartTitle}>Capacidade por Apiário</Text>
+                        <BarChart
+                            data={{
+                                labels: filtrados.map(a => a.nome.substring(0, 6)), // Abrevia nomes longos
+                                datasets: [{ data: filtrados.map(a => a.colmeias) }]
+                            }}
+                            width={chartWidth}
+                            height={220}
+                            yAxisLabel=""
+                            yAxisSuffix=""
+                            fromZero
+                            chartConfig={chartConfig}
+                            style={styles.chartStyle}
+                            showValuesOnTopOfBars
+                        />
+                    </View>
                 </View>
             </GraficoCard>
         </ScrollView>
@@ -104,7 +127,20 @@ export default function DashboardApiarios() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: 20 },
-    chartContainer: { marginTop: 20, alignItems: 'center', backgroundColor: cores.branco, borderRadius: 16, padding: 15, elevation: 3 },
-    chartTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 15, color: cores.texto }
+    content: { padding: '4%', gap: 15 },
+    mainTitle: { fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: cores.texto },
+    filterContainer: { zIndex: 100, marginBottom: 10 },
+    chartsWrapper: { justifyContent: 'space-around', alignItems: 'center', gap: 20 },
+    chartBox: { 
+        alignItems: 'center', 
+        backgroundColor: cores.branco, 
+        borderRadius: 12, 
+        padding: 10,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        width: Platform.OS === 'web' ? '45%' : '100%' 
+    },
+    chartTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 10, color: cores.texto },
+    chartStyle: { borderRadius: 12 }
 });
