@@ -22,6 +22,7 @@ export default function Index() {
             cor="secundaria"
             iconName="add"
             onPress={() => router.push('/apiario/cadastrar')}
+            onPress={() => router.push('/apiario/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
           />
@@ -32,6 +33,7 @@ export default function Index() {
             title="Cadastrar Colmeia"
             cor="secundaria"
             iconName="add"
+            onPress={() => router.push('/apiario/colmeia/cadastrar')}
             onPress={() => router.push('/apiario/colmeia/cadastrar')}
             style={styles.botao}
             textStyle={styles.botaoTexto}
