@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { PieChart, BarChart } from 'react-native-chart-kit'; 
+import { PieChart, BarChart } from 'react-native-chart-kit';
 import Selector from '@/components/selector';
 import GraficoCard from '@/components/graficoCard';
 import cores from '@/constants/cores';
@@ -52,10 +52,10 @@ export default function DashboardColmeias() {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             <View style={{ zIndex: 100 }}>
-                <Selector 
-                    label="Filtrar por Ano" 
-                    options={[{label: '2025', value: '2025'}, {label: '2024', value: '2024'}]} 
-                    onSelect={setAno} 
+                <Selector
+                    label="Filtrar por Ano"
+                    options={[{ label: '2025', value: '2025' }, { label: '2024', value: '2024' }]}
+                    onSelect={setAno}
                 />
             </View>
 
@@ -71,9 +71,11 @@ export default function DashboardColmeias() {
                 <View style={styles.chartContainer}>
                     <Text style={styles.chartTitle}>Saúde Geral das Colmeias</Text>
                     <BarChart
-                        data={dataBarra}
+                        data={dataBarra as any} // Adicione o "as any" aqui para silenciar o erro
                         width={screenWidth - 60}
                         height={220}
+                        yAxisLabel="" // Adicione estas duas linhas vazias para garantir compatibilidade
+                        yAxisSuffix=""
                         chartConfig={chartConfig}
                         style={{
                             borderRadius: 16,
@@ -81,7 +83,7 @@ export default function DashboardColmeias() {
                         }}
                         fromZero
                         showValuesOnTopOfBars
-                        withCustomBarColorFromData={true} // ESSENCIAL para as cores funcionarem
+                        withCustomBarColorFromData={true}
                         flatColor={true}
                     />
                 </View>
@@ -108,8 +110,8 @@ export default function DashboardColmeias() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.fundo },
     contentContainer: { padding: layout.espacamento.amigavel, gap: 20 },
-    chartContainer: { 
-        marginTop: 20, 
+    chartContainer: {
+        marginTop: 20,
         alignItems: 'center',
         backgroundColor: cores.branco,
         borderRadius: 16,

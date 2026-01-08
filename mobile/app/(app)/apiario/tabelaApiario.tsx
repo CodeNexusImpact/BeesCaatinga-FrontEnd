@@ -43,7 +43,7 @@ export default function TabelaApiarios() {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             <Stack.Screen options={{ title: 'Relatório de Apiários' }} />
-            <Subtexto style={styles.titulo}>Listagem de Apiários</Subtexto>
+            <Subtexto textStyle={styles.titulo}>Relatório de Apiários</Subtexto>
 
             <View style={{ zIndex: 100 }}>
                 <Selector 
