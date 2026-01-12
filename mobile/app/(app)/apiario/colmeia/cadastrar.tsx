@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 // Importe o React Native como um objeto completo
 import * as RN from 'react-native';
 import { maskDate } from '@/utils/masks';
-const { 
-  ScrollView, 
-  StyleSheet, 
-  View, 
-  Text, 
-  KeyboardAvoidingView, 
-  Platform} = RN;
+const {
+    ScrollView,
+    StyleSheet,
+    View,
+    Text,
+    KeyboardAvoidingView,
+    Platform } = RN;
 
 import { Stack, useRouter } from 'expo-router';
 
@@ -35,11 +35,19 @@ export default function Cadastrar() {
 
     const handleSubmit = () => {
         // Lógica de submissão aqui
+        console.log('Dados da colmeia:', {
+            identificador,
+            dataCriacao,
+            apiario,
+            tipo,
+            ativo,
+            observacoes,
+        });
         // router.push('/(app)/apiario/colmeia/listar'); // Exemplo de navegação
     };
 
     const handleDateChange = (text: string) => {
-      setDataCriacao(maskDate(text));
+        setDataCriacao(maskDate(text));
     };
 
 
@@ -55,12 +63,12 @@ export default function Cadastrar() {
     ];
 
     return (
-        <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
         >
-            <ScrollView 
-                style={styles.container} 
+            <ScrollView
+                style={styles.container}
                 contentContainerStyle={styles.contentContainer}
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
@@ -115,7 +123,7 @@ export default function Cadastrar() {
                     <View style={{ zIndex: 10 }}>
                         <Selector
                             label="Ativo:"
-                            options={[{label: 'Sim', value: 'sim'}, {label: 'Não', value: 'nao'}]}
+                            options={[{ label: 'Sim', value: 'sim' }, { label: 'Não', value: 'nao' }]}
                             onSelect={setAtivo}
                             placeholder="Está ativa?"
                         />
@@ -128,13 +136,21 @@ export default function Cadastrar() {
                     <View style={styles.mapaPlaceholder}>
                         <Text style={{ color: cores.cores.base[40] }}>Mapa Interativo</Text>
                     </View>
-                    <Botao title="📍 Usar localização atual" onPress={() => {}} cor="secundaria" />
+                    <Botao title="📍 Usar localização atual" onPress={() => { }} cor="secundaria" />
                 </View>
 
                 {/* SEÇÃO DADOS ADICIONAIS */}
                 <View style={[styles.secao, { zIndex: 0 }]}>
                     <Subtexto>Dados Adicionais</Subtexto>
-                    <ImagePickerExample />
+                    <View style={[styles.secao, { flex: 1,flexDirection: RN.Dimensions.get('window').width > 600 ? 'row' : 'column' , justifyContent: 'space-between', width: '100%'}]}>
+                    <Input
+                        label='Foto'
+                        useImagePicker={true}
+                        onImagePicked={(uri) => {
+                            // Aqui você pode gerenciar a URI da imagem selecionada
+                            console.log('Imagem selecionada:', uri);
+                        }}
+                    />
                     <Input
                         label="Observações:"
                         placeholder="---"
@@ -143,6 +159,7 @@ export default function Cadastrar() {
                         multiline={true}
                         style={styles.inputObservacoes}
                     />
+                    </View>
                 </View>
 
                 <Botao title="Cadastrar ↗" onPress={handleSubmit} cor="primaria" style={styles.buttonFinal} />
@@ -153,20 +170,20 @@ export default function Cadastrar() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.cores.base[10] },
-    contentContainer: { 
-        padding: layout.espacamento.amigavel, 
+    contentContainer: {
+        padding: layout.espacamento.amigavel,
         gap: layout.espacamento.colega,
-        flexGrow: 1 
+        flexGrow: 1
     },
-    secao: { gap: layout.espacamento.amigavel },
-    mapaPlaceholder: { 
-        height: 220, 
-        backgroundColor: '#E0E0E0', 
-        borderRadius: layout.borderRadius.r25, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        borderWidth: 1, 
-        borderColor: cores.cores.base[20] 
+    secao: { flex: 1, height: 'auto', gap: layout.espacamento.amigavel },
+    mapaPlaceholder: {
+        height: 220,
+        backgroundColor: '#E0E0E0',
+        borderRadius: layout.borderRadius.r25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: cores.cores.base[20]
     },
     inputObservacoes: { minHeight: 80, textAlignVertical: 'top' },
     buttonFinal: { marginTop: layout.espacamento.social, marginBottom: 20 },
