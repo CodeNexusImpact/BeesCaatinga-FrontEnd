@@ -4,6 +4,7 @@ import Selector from '@/components/selector';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
@@ -18,6 +19,15 @@ export default function CadastrarLoteMel() {
   const [nomeFlorada, setNomeFlorada] = useState('');
   const [localidadeProducao, setLocalidadeProducao] = useState('');
   const [tipoAbelhas, setTipoAbelhas] = useState('');
+
+  const handleSubmit = () => {
+    // Redireciona para a listagem após cadastro
+    router.push('/producao/listar');
+  };
+
+  const handleDateChange = (text: string) => {
+    setDataProducao(maskDate(text));
+  };
 
   // Opções
   const apiarioOptions = [
@@ -53,9 +63,10 @@ export default function CadastrarLoteMel() {
       <Input
         label="Data de Produção/Extração"
         value={dataProducao}
-        onChangeText={setDataProducao}
+        onChangeText={handleDateChange}
         placeholder="dd/mm/aaaa"
         iconName="calendar"
+        maxLength={10}
       />
 
       {/* Quantidade Produzida */}
@@ -109,18 +120,7 @@ export default function CadastrarLoteMel() {
       {/* Botão Cadastrar */}
       <Botao
         title="Cadastrar"
-        onPress={() => {
-          console.log({
-            dataProducao,
-            quantidadeProduzida,
-            apiario,
-            nomeFlorada,
-            localidadeProducao,
-            tipoAbelhas,
-          });
-          // Redireciona para a listagem após cadastro
-          router.push('/producao/listar');
-        }}
+        onPress={handleSubmit}
         cor="primaria"
         style={styles.button}
       />
