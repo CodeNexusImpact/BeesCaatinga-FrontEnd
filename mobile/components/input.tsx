@@ -4,17 +4,20 @@ import React, { useImperativeHandle, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 import Icon from './icon';
 import { Typography } from '@/styles/fonts.styles';
+import ImagemPicker from './imagemPicker'; // Import ImagemPicker
 
 interface InputProps extends TextInputProps {
     label?: string;
-    placeholder: string;
+    placeholder?: string; // Made optional
     secureTextEntry?: boolean;
     style?: object;
     iconName?: string; 
     iconRightName?: string;
-    value: string; 
-    onChangeText: (text: string) => void;
+    value?: string; // Made optional
+    onChangeText?: (text: string) => void; // Made optional
     multiline?: boolean;
+    useImagePicker?: boolean; // New prop to enable image picker mode
+    onImagePicked?: (uri: string | null) => void; // Callback for the picked image
 }
 
 export interface InputRef {
@@ -31,45 +34,61 @@ const Input = React.forwardRef<InputRef, InputProps>(({
     value,
     onChangeText,
     multiline = false,
+    useImagePicker = false, // Default to false
+    onImagePicked,
     ...textInputProps
 }, ref) => {
     
     const [isSecret, setIsSecret] = useState(secureTextEntry);
+    
+    // Force multiline when useImagePicker is true
+    const isMultiline = multiline || useImagePicker;
 
     function viewPassword() {
         setIsSecret(!isSecret);
     }
 
     useImperativeHandle(ref, () => ({
-        // Usamos textInputProps.value, que é o valor passado pelo pai
-        getValue: () => value, 
+        // getValue is not relevant for image picker mode, but we keep it for consistency
+        getValue: () => value || '', 
     }));
 
     return (
-        <View style={[styles.container, style, multiline && styles.multilineContainer]}>
-            {iconName && <View style={{ marginRight: layout.espacamento.texto }}>
-                <Icon name={iconName}/>
-            </View>}
+        <View style={[styles.container, style, isMultiline && styles.multilineContainer]}>
+            {iconName && !useImagePicker && (
+                <View style={{ marginRight: layout.espacamento.texto }}>
+                    <Icon name={iconName}/>
+                </View>
+            )}
             {label && <Text style={[styles.label, Typography.Negrito]}>{label}:</Text>}
-            <TextInput
-                {...textInputProps}
-                style={[styles.input, Typography.Texto, multiline && styles.multilineInput]}
-                placeholder={placeholder}
-                placeholderTextColor={cores.placeholder}   
-                value={value} 
-                onChangeText={onChangeText}             
-                secureTextEntry={isSecret}
-                textAlignVertical={multiline ? 'top' : 'center'}
-                multiline={multiline}
-            />
-            {secureTextEntry && (
+
+            {useImagePicker ? (
+                <View style={styles.imagePickerWrapper}>
+                    <ImagemPicker 
+                        onImagePicked={onImagePicked || (() => {})}                         
+                    />
+                </View>
+            ) : (
+                <TextInput
+                    {...textInputProps}
+                    style={[styles.input, Typography.Texto, isMultiline && styles.multilineInput]}
+                    placeholder={placeholder}
+                    placeholderTextColor={cores.placeholder}   
+                    value={value} 
+                    onChangeText={onChangeText}             
+                    secureTextEntry={isSecret}
+                    textAlignVertical={isMultiline ? 'top' : 'center'}
+                    multiline={isMultiline}
+                />
+            )}
+            
+            {!useImagePicker && secureTextEntry && (
                 <TouchableOpacity onPress={viewPassword} style={styles.iconRight}>
                     <Icon name={isSecret ? "olho" : "olhoFechado"}></Icon>
                 </TouchableOpacity>
             )}
 
-            {/* Se não for senha E tiver um iconRightName, mostra ele */}
-            {!secureTextEntry && iconRightName && (
+            {!useImagePicker && !secureTextEntry && iconRightName && (
                 <View style={styles.iconRight}>
                     <Icon name={iconRightName} size={20} color={cores.primaria}></Icon>
                 </View>
@@ -80,6 +99,7 @@ const Input = React.forwardRef<InputRef, InputProps>(({
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         width: '100%',
         height: 'auto',
         paddingHorizontal: layout.espacamento.amigavel,
@@ -107,16 +127,16 @@ const styles = StyleSheet.create({
         }), 
     },
     multilineContainer: {
-        // Estilo para o container de inputs multiline (altura maior)
         flexDirection: 'column',
         width: '100%',
-        minHeight: 100, // Altura mínima para o campo de complemento
-        alignItems: 'flex-start', // Alinha o conteúdo (label, textinput) no topo
-        paddingVertical: layout.espacamento.amigavel, // Aumenta o padding para o texto não colar
+        minHeight: 100, 
+        alignItems: 'flex-start',
+        paddingVertical: layout.espacamento.amigavel, 
     },
     label: {        
         marginRight: layout.espacamento.texto,
         minWidth: 96,
+        marginBottom: layout.espacamento.texto, // Add some margin below the label in all cases
     },
     input: {
         height: 'auto',
@@ -127,15 +147,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     multilineInput: {
-        minHeight: 80, // Altura mínima para o TextInput em multiline
-        height: 'auto', // Permite que a altura se ajuste com o conteúdo se necessário
-        paddingVertical: layout.espacamento.texto, // Adiciona padding no topo/base do texto multiline
+        minHeight: 80, 
+        height: 'auto',
+        alignSelf: 'stretch', // Make sure it stretches
+        paddingVertical: layout.espacamento.texto,
     },
     iconRight: {
         position: 'absolute',
         right: layout.espacamento.amigavel,
+        // Adjust vertical alignment for non-multiline inputs
+        top: '50%',
+        transform: [{ translateY: -12 }], // Center the icon
     },
-    
+    imagePickerWrapper: {
+        width: '100%',
+        alignItems: 'center', // Center the image picker
+        justifyContent: 'center',
+        paddingVertical: layout.espacamento.amigavel,
+    },
 });
 
 export default Input;

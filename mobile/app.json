@@ -48,7 +48,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
+          "photosPermission": "O aplicativo acessa suas fotos para permitir que você as defina como imagem de perfil ou anexe em relatórios.",
+          "cameraPermission": "O aplicativo acessa sua câmera para permitir que você tire fotos para seu perfil ou para anexar em relatórios."
         }
       ],
       "expo-secure-store",
