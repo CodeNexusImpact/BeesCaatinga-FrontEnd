@@ -3,6 +3,7 @@ import Input from '@/components/input';
 import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -17,6 +18,14 @@ export default function CadastrarProducao() {
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
   const [dataColeta, setDataColeta] = useState('');
+
+  const handleSubmit = () => {
+    router.push('/producao/listar'); // Redirecionado para 'listar'
+  };
+
+  const handleDateChange = (text: string) => {
+    setDataColeta(maskDate(text));
+  };
 
   // Opções fixas (substitua por dados dinâmicos depois, se necessário)
   const tipoProdutoOptions = [
@@ -111,25 +120,16 @@ export default function CadastrarProducao() {
       <Input
         label="Data de Coleta"
         value={dataColeta}
-        onChangeText={setDataColeta}
+        onChangeText={handleDateChange}
         placeholder="dd/mm/aaaa"
         iconName="calendar"
+        maxLength={10}
       />
 
       {/* Botão */}
       <Botao
         title="Cadastrar"
-        onPress={() => {
-          console.log({
-            tipoProduto,
-            quantidade,
-            medida,
-            apiario,
-            colmeia,
-            dataColeta,
-          });
-          router.push('/producao/listar'); // Redirecionado para 'listar'
-        }}
+        onPress={handleSubmit}
         cor="primaria"
         style={styles.button}
       />

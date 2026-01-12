@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Dimensions } from 'react-native';
 
 import { ApiarioCriacaoDTO } from '@/types/Apiarios';
 import { EnderecoProps } from '@/types/Endereco';
+import { maskDate } from '@/utils/masks';
 import { Stack } from 'expo-router';
 
 import Input from '@/components/input';
@@ -23,6 +24,10 @@ const CadastrarApiario = () => {
     const [nome, setNome] = useState('');
     const [registro, setRegistro] = useState('');
     const [dataCriacao, setDataCriacao] = useState('');
+
+    const handleDateChange = (text: string) => {
+        setDataCriacao(maskDate(text));
+    };
 
     //endereço
     const [endereco, setEndereco] = useState<EnderecoProps>({
@@ -74,8 +79,6 @@ const CadastrarApiario = () => {
             //foto,
             observacoes,
         };
-
-        console.log('Apiário a ser cadastrado:', apiarioData);
 
         // Aqui você pode fazer uma chamada à API para salvar os dados
         // Exemplo:
@@ -130,7 +133,8 @@ const CadastrarApiario = () => {
                         label='Data de Criação'
                         placeholder="31/12/2000"
                         value={dataCriacao}
-                        onChangeText={setDataCriacao}
+                        onChangeText={handleDateChange}
+                        maxLength={10}
                     />
                 </View>
                 <View style={formStyles.formStyle}>

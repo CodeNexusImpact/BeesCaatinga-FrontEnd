@@ -3,6 +3,7 @@ import Input from '@/components/input';
 import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { maskDate } from '@/utils/masks';
 import Checkbox from 'expo-checkbox';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -20,6 +21,19 @@ export default function CadastrarInsumo() {
   const [dataValidade, setDataValidade] = useState('18/09/2025');
   const [semValidade, setSemValidade] = useState(false); // Estado para o checkbox
   const [observacoes, setObservacoes] = useState('');
+
+  const handleSubmit = () => {
+    // Redireciona para a listagem de insumos
+    router.push('/insumos/cadastrar');
+  };
+
+  const handleDataInsumoChange = (text: string) => {
+    setDataInsumo(maskDate(text));
+  };
+
+  const handleDataValidadeChange = (text: string) => {
+    setDataValidade(maskDate(text));
+  };
 
   // --- Opções (Mock Data) ---
   const nomeInsumoOptions = [
@@ -75,9 +89,10 @@ export default function CadastrarInsumo() {
       <Input
         label="Data de Entrada:"
         value={dataInsumo}
-        onChangeText={setDataInsumo}
+        onChangeText={handleDataInsumoChange}
         placeholder="dd/mm/aaaa"
         iconName="calendar"
+        maxLength={10}
       />
       {/* Quantidade + Unidade de Medida (baseado no seu código de produção) */}
       <View style={styles.row}>
@@ -124,11 +139,12 @@ export default function CadastrarInsumo() {
       <Input
         label="Data de validade:"
         value={semValidade ? 'Não se aplica' : dataValidade}
-        onChangeText={setDataValidade}
+        onChangeText={handleDataValidadeChange}
         placeholder="dd/mm/aaaa"
         iconName="calendar"
         editable={!semValidade} // Desabilita se o checkbox estiver marcado
         style={semValidade ? styles.inputDisabled : {}}
+        maxLength={10}
       />
       {/* Checkbox para "Não se aplica" */}
       <CheckboxItem
@@ -150,19 +166,7 @@ export default function CadastrarInsumo() {
       {/* Botão */}
       <Botao
         title="Salvar"
-        onPress={() => {
-          console.log({
-            dataInsumo,
-            nomeInsumo,
-            tipoInsumo,
-            quantidade,
-            unidadeMedida,
-            dataValidade: semValidade ? 'N/A' : dataValidade,
-            observacoes,
-          });
-          // Redireciona para a listagem de insumos
-          router.push('/insumos/cadastrar');
-        }}
+        onPress={handleSubmit}
         cor="primaria"
         style={styles.button}
       />

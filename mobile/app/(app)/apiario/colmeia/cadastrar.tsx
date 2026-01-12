@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 // Importe o React Native como um objeto completo
 import * as RN from 'react-native';
+import { maskDate } from '@/utils/masks';
 const { 
   ScrollView, 
   StyleSheet, 
@@ -31,6 +32,16 @@ export default function Cadastrar() {
     const [tipo, setTipo] = useState('');
     const [ativo, setAtivo] = useState('');
     const [observacoes, setObservacoes] = useState('');
+
+    const handleSubmit = () => {
+        // Lógica de submissão aqui
+        // router.push('/(app)/apiario/colmeia/listar'); // Exemplo de navegação
+    };
+
+    const handleDateChange = (text: string) => {
+      setDataCriacao(maskDate(text));
+    };
+
 
     const apiarioOptions = [
         { label: 'Rosa do Sertão', value: 'rosa' },
@@ -73,11 +84,12 @@ export default function Cadastrar() {
                         label="Data de Criação:"
                         placeholder="DD/MM/AAAA"
                         value={dataCriacao}
-                        onChangeText={setDataCriacao}
+                        onChangeText={handleDateChange}
                         iconName="calendar"
                         autoComplete="off"
                         importantForAutofill="no"
                         textContentType="none"
+                        maxLength={10}
                     />
 
                     <View style={{ zIndex: 30 }}>
@@ -133,7 +145,7 @@ export default function Cadastrar() {
                     />
                 </View>
 
-                <Botao title="Cadastrar ↗" onPress={() => {}} cor="primaria" style={styles.buttonFinal} />
+                <Botao title="Cadastrar ↗" onPress={handleSubmit} cor="primaria" style={styles.buttonFinal} />
             </ScrollView>
         </KeyboardAvoidingView>
     );
