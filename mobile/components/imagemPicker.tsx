@@ -1,53 +1,126 @@
-import { useState } from 'react';
-import { Alert, Button, Image, View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import Icon from './icon';
+import temaCores from '@/constants/cores';
+import layout from '@/constants/layout';
+import ModalSelecaoImagem from './modalSelecaoImagem'; // Importe o novo modal
 
-export default function ImagePickerExample() {
-  const [image, setImage] = useState<string | null>(null);
+interface ImagemPickerProps {
+  onImagePicked: (uri: string | null) => void;
+  style?: object;
+  width?: number;
+  height?: number;
+  shape?: 'circle' | 'square';
+}
 
-  const pickImage = async () => {
-    // No permissions request is necessary for launching the image library.
-    // Manually request permissions for videos on iOS when `allowsEditing` is set to `false`
-    // and `videoExportPreset` is `'Passthrough'` (the default), ideally before launching the picker
-    // so the app users aren't surprised by a system dialog after picking a video.
-    // See "Invoke permissions for videos" sub section for more details.
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+const ImagemPicker: React.FC<ImagemPickerProps> = ({
+  onImagePicked,
+  style,
+  width,
+  height,
+  shape = 'square',
+}) => {
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [modalVisivel, setModalVisivel] = useState(false); // Estado para controlar a visibilidade do modal
 
-    if (!permissionResult.granted) {
-      Alert.alert('Permission required', 'Permission to access the media library is required.');
+  // Lógica de dimensionamento
+  const defaultSize = 160;
+  const finalWidth = width || height || defaultSize;
+  const finalHeight = height || width || defaultSize;
+  const isCircle = shape === 'circle';
+
+  const containerStyle = {
+    width: finalWidth,
+    height: finalHeight,
+    borderRadius: isCircle ? finalWidth / 2 : layout.borderRadius.r25,
+    borderWidth: 2,
+    borderColor: temaCores.borda,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: temaCores.cores.base[5],
+    overflow: 'hidden',
+  };
+
+  const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      setImageUri(uri);
+      onImagePicked(uri);
+    } else {
+      onImagePicked(null);
+    }
+    setModalVisivel(false); // Fechar o modal após a seleção
+  };
+
+  const takePhoto = async () => {
+    const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!cameraPermission.granted) {
+      // O ideal é tratar o caso de permissão negada
+      setModalVisivel(false);
       return;
     }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'],
+    const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [finalWidth, finalHeight],
       quality: 1,
     });
+    handleImageResult(result);
+  };
 
-    console.log(result);
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+  const pickFromGallery = async () => {
+    const mediaLibraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!mediaLibraryPermission.granted) {
+      // O ideal é tratar o caso de permissão negada
+      setModalVisivel(false);
+      return;
     }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [finalWidth, finalHeight],
+      quality: 1,
+    });
+    handleImageResult(result);
+  };
+
+  // Abre o modal
+  const selectImage = () => {
+    setModalVisivel(true);
   };
 
   return (
-    <View style={styles.container}>
-      <Button title="Pick an image from camera roll" onPress={pickImage} />
-      {image && <Image source={{ uri: image }} style={styles.image} />}
-    </View>
+    <>
+      <TouchableOpacity onPress={selectImage} style={[containerStyle, style]}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.image} />
+        ) : (
+          <View style={styles.placeholder}>
+            <Icon name="camera" size={80} color={temaCores.placeholder} />
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <ModalSelecaoImagem
+        visivel={modalVisivel}
+        aoTirarFoto={takePhoto}
+        aoEscolherDaGaleria={pickFromGallery}
+        aoCancelar={() => setModalVisivel(false)}
+      />
+    </>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
+  placeholder: {
     justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
-    width: 200,
-    height: 200,
+    width: '100%',
+    height: '100%',
   },
 });
+
+export default ImagemPicker;

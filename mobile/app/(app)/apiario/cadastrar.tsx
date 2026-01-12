@@ -11,10 +11,10 @@ import FormEndereco from '@/components/formEndereco';
 import TipoQuantidadeColmeia from '@/components/apiario/tipoQuantidadeColmeia';
 import Botao from '@/components/botao';
 import Subtexto from '@/components/subTexto';
-import ImagePickerExample from '@/components/imagemPicker';
 
-import {styles as hero } from '@/styles/hero.styles';
-import {styles as formStyles} from '@/styles/forms.styles';
+import { styles as hero } from '@/styles/hero.styles';
+import { styles as formStyles } from '@/styles/forms.styles';
+import ImagemPicker from '@/components/imagemPicker';
 
 
 
@@ -113,8 +113,8 @@ const CadastrarApiario = () => {
     return (
         <ScrollView>
             <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
-            
-            <View style={hero.formStyle}>                
+
+            <View style={hero.formStyle}>
                 <View style={formStyles.formStyle}>
                     <Subtexto>Dados</Subtexto>
                     <Input
@@ -141,7 +141,7 @@ const CadastrarApiario = () => {
                     <Subtexto>Endereço</Subtexto>
                     <FormEndereco enderecoInicial={endereco} onEnderecoChange={setEndereco} />
                 </View>
-                <View style={formStyles.formStyle}> 
+                <View style={formStyles.formStyle}>
                     <Subtexto>Colmeias</Subtexto>
                     <Text>tipo - quantidade colmeias: (ativas / inativas)</Text>
                     <TipoQuantidadeColmeia
@@ -169,18 +169,28 @@ const CadastrarApiario = () => {
                         onInativasChange={setColmeiasPoliestirenoInativas}
                     />
                 </View>
-                <View style={formStyles.formStyle}> 
+                <View style={formStyles.formStyle}>
                     <Subtexto>Dados Adicionais</Subtexto>
-                    <Input
-                        label='Observações'
-                        placeholder="Observações adicionais sobre o apiário"
-                        value={observacoes}
-                        onChangeText={setObservacoes}
-                        multiline={true}
-                    />
+                    <View style={[formStyles.formStyle, { flex: 1,flexDirection: Dimensions.get('window').width > 600 ? 'row' : 'column' , justifyContent: 'space-between', width: '100%'}]}>
+                        <Input
+                            label='Foto'
+                            useImagePicker={true}
+                            onImagePicked={(uri) => {
+                                // Aqui você pode gerenciar a URI da imagem selecionada
+                                console.log('Imagem selecionada:', uri);
+                            }}
+                        />
+                        <Input
+                            label='Observações'
+                            placeholder="Observações adicionais sobre o apiário"
+                            value={observacoes}
+                            onChangeText={setObservacoes}
+                            multiline={true}
+                        />
+                    </View>
                 </View>
-                <ImagePickerExample />
-                <Botao title="Cadastrar Apiário" onPress={handleSubmit} /> 
+                <Botao title="Cadastrar Apiário" onPress={handleSubmit} />
+
 
 
             </View>

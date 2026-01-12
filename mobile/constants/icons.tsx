@@ -35,6 +35,7 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   olhoFechado: 'eye-off', // Ícone de olho fechado
   phone: 'phone', // Ícone de telefone 
   human: 'human-male-female', // Ícone de humano
+  camera: 'camera-outline',
   
   // --- Outros ---
   back: 'keyboard-backspace', // Ícone de voltar
