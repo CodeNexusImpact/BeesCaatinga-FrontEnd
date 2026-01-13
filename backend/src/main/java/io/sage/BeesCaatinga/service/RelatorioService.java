@@ -239,68 +239,68 @@ public class RelatorioService {
         );
     }
 
-    public RelatorioInsumosDTO gerarRelatorioInsumos(FiltroBuscaDTO filtro) {
+//     public RelatorioInsumosDTO gerarRelatorioInsumos(FiltroBuscaDTO filtro) {
 
-        Long produtorId = produtorService.getProdutorIdLogado();
+//         Long produtorId = produtorService.getProdutorIdLogado();
 
-        IntervaloDatas intervalo = calcularIntervaloDatas(filtro);
+//         IntervaloDatas intervalo = calcularIntervaloDatas(filtro);
 
-        List<Insumo> insumos = insumoRepository.buscarPorPeriodo(
-                produtorId, intervalo.inicio(), intervalo.fim()
-        );
+//         List<Insumo> insumos = insumoRepository.buscarPorPeriodo(
+//                 produtorId, intervalo.inicio(), intervalo.fim()
+//         );
 
-        Long total = (long) insumos.size();
+//         Long total = (long) insumos.size();
 
-        Long estoqueBaixo = insumos.stream()
-                .filter(i -> i.getQuantidade() != null && i.getQuantidade() < 10)
-                .count();
+//         Long estoqueBaixo = insumos.stream()
+//                 .filter(i -> i.getQuantidade() != null && i.getQuantidade() < 10)
+//                 .count();
 
-        // Consumo médio estimado = total quantidade dividido por número de meses do período
-        double consumoMedioMensal = calcularConsumoEstimado(insumos, intervalo);
+//         // Consumo médio estimado = total quantidade dividido por número de meses do período
+//         double consumoMedioMensal = calcularConsumoEstimado(insumos, intervalo);
 
-        // Validade pizza
-        Long ok = insumos.stream()
-                .filter(i -> i.getDataValidade().isAfter(LocalDate.now().plusMonths(1)))
-                .count();
+//         // Validade pizza
+//         Long ok = insumos.stream()
+//                 .filter(i -> i.getDataValidade().isAfter(LocalDate.now().plusMonths(1)))
+//                 .count();
 
-        Long proximoVenc = insumos.stream()
-                .filter(i -> !i.getDataValidade().isAfter(LocalDate.now().plusMonths(1)))
-                .count();
+//         Long proximoVenc = insumos.stream()
+//                 .filter(i -> !i.getDataValidade().isAfter(LocalDate.now().plusMonths(1)))
+//                 .count();
 
-        // Gráfico por tipo
-        List<TipoInsumoQuantidadeDTO> porTipo =
-                insumoRepository.contarPorTipo(produtorId)
-                        .stream()
-                        .map(o -> new TipoInsumoQuantidadeDTO(
-                                (String) o[0],
-                                ((Number) o[1]).longValue()
-                        ))
-                        .toList();
+//         // Gráfico por tipo
+//         List<TipoInsumoQuantidadeDTO> porTipo =
+//                 insumoRepository.contarPorTipo(produtorId)
+//                         .stream()
+//                         .map(o -> new TipoInsumoQuantidadeDTO(
+//                                 (String) o[0],
+//                                 ((Number) o[1]).longValue()
+//                         ))
+//                         .toList();
 
-        // Tabela
-        List<InsumoTabelaDTO> tabela = insumos.stream()
-                .map(i -> new InsumoTabelaDTO(
-                        i.getId(),
-                        i.getDataEntrada(),
-                        i.getNome(),
-                        i.getTipo(),
-                        i.getQuantidade(),
-                        i.getUnidadeMedida().name(),
-                        i.getStatusInsumo().name(),
-                        i.getDataValidade()
-                ))
-                .toList();
+//         // Tabela
+//         List<InsumoTabelaDTO> tabela = insumos.stream()
+//                 .map(i -> new InsumoTabelaDTO(
+//                         i.getId(),
+//                         i.getDataEntrada(),
+//                         i.getNome(),
+//                         i.getTipo(),
+//                         i.getQuantidade(),
+//                         i.getUnidadeMedida().name(),
+//                         i.getStatusInsumo().name(),
+//                         i.getDataValidade()
+//                 ))
+//                 .toList();
 
-        return new RelatorioInsumosDTO(
-                total,
-                estoqueBaixo,
-                consumoMedioMensal,
-                ok,
-                proximoVenc,
-                porTipo,
-                tabela
-        );
-    }
+//         return new RelatorioInsumosDTO(
+//                 total,
+//                 estoqueBaixo,
+//                 consumoMedioMensal,
+//                 ok,
+//                 proximoVenc,
+//                 porTipo,
+//                 tabela
+//         );
+//     }
 
     private double calcularConsumoEstimado(List<Insumo> insumos, IntervaloDatas intervalo) {
         double totalQtd = insumos.stream()

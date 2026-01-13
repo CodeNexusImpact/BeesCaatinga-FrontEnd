@@ -578,17 +578,17 @@ public class ProdutorService {
                 .toList();
     }
 
-    private Long getProdutorIdLogado() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    // private Long getProdutorIdLogado() {
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Usuário não autenticado");
-        }
+    //     if (authentication == null || !authentication.isAuthenticated()) {
+    //         throw new RuntimeException("Usuário não autenticado");
+    //     }
 
-        // Aqui você terá seu UserDetails implementado pelo Produtor (ou Usuario)
-        var usuarioLogado = (UserDetailsImpl) authentication.getPrincipal();
+    //     // Aqui você terá seu UserDetails implementado pelo Produtor (ou Usuario)
+    //     var usuarioLogado = (UserDetailsImpl) authentication.getPrincipal();
 
-        return usuarioLogado.getId(); // retornar o ID do produtor
-    }
+    //     return usuarioLogado.getId(); // retornar o ID do produtor
+    // }
 
 }
