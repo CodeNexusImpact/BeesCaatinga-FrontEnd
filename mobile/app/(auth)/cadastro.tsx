@@ -1,12 +1,16 @@
 import Botao from "@/components/botao";
 import Input from "@/components/input";
+import ModalSucesso from "@/components/modalSucesso";
 import Selector from "@/components/selector";
 import cores from "@/constants/cores";
+import { cadastrarProdutor } from "@/services/produtorService";
 import { styles as formStyle } from "@/styles/forms.styles";
+import { Genero, ProdutorCriado } from "@/types/user";
+import { maskDate, maskPhone, validateEmail, validatePassword } from "@/utils/masks";
 import { Image } from "expo-image";
 import { Link, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
 // --- DEFINIR A INTERFACE PARA OS ERROS ---
 interface ValidationErrors {
@@ -23,28 +27,35 @@ function Cadastro() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  // --- Estados dos campos (sem mudança) ---
+  // --- Estados dos campos ---
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
-  const [genero, setGenero] = useState("");
+  const [genero, setGenero] = useState<Genero | "">("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  const generoOptions = [
-    { label: 'Masculino', value: 'masculino' },
-    { label: 'Feminino', value: 'feminino' },
-    { label: 'Outro', value: 'outro' },];
+  // --- Estado do modal ---
+  const [modalVisible, setModalVisible] = useState(false);
 
-  // --- USAR A INTERFACE NO useState ---
+  const generoOptions = [
+    { label: 'Masculino', value: 'MASCULINO' },
+    { label: 'Feminino', value: 'FEMININO' },
+    { label: 'Outro', value: 'OUTRO' },];
+
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
-  const handleCadastro = () => {
+  const handleModalClose = () => {
+    setModalVisible(false);
+    router.push('/(auth)/login');
+  };
+
+  const handleCadastro = async () => {
     const validationErrors: ValidationErrors = {};
 
     // Validação do nome
@@ -55,7 +66,7 @@ function Cadastro() {
     // Validação do email
     if (!email.trim()) {
       validationErrors.email = "O email é obrigatório.";
-    } else if (!/\S+@\S+\.\S+/.test(email)) { // Regex simples para email
+    } else if (!validateEmail(email)) {
       validationErrors.email = "O email é inválido.";
     }
 
@@ -77,8 +88,8 @@ function Cadastro() {
     // Validação da senha
     if (!senha) {
       validationErrors.senha = "A senha é obrigatória.";
-    } else if (senha.length < 6) {
-      validationErrors.senha = "A senha deve ter no mínimo 6 caracteres.";
+    } else if (!validatePassword(senha)) {
+      validationErrors.senha = "A senha deve ter 8+ caracteres, com maiúscula, minúscula, número e caractere especial.";
     }
 
     // Validação da confirmação de senha
@@ -89,8 +100,23 @@ function Cadastro() {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      alert("Cadastro realizado!");
-      router.push('/login');
+      const produtorData: ProdutorCriado = {
+        nomeCompleto: nome,
+        telefone: telefone,
+        email: email,
+        dataDeNascimento: dataNascimento,
+        genero: genero as Genero,
+        senha: senha,
+      };
+
+      try {
+        await cadastrarProdutor(produtorData);
+        setModalVisible(true);
+      } catch (error) {
+        console.error("Erro no cadastro:", error);
+        Alert.alert("Erro", "Não foi possível realizar o cadastro. Tente novamente.");
+      }
+
     } else {
       console.log("Erros de validação:", validationErrors);
     }
@@ -98,6 +124,11 @@ function Cadastro() {
 
   return (
     <View style={{ flex: 1 }}>
+      <ModalSucesso
+        visivel={modalVisible}
+        mensagem="Cadastro realizado com sucesso! Você será redirecionado para a tela de login."
+        aoFechar={handleModalClose}
+      />
       <View style={styles.conteinerLogo}>
         <Image
           style={styles.image}
@@ -126,8 +157,9 @@ function Cadastro() {
             iconName="phone"
             placeholder="Digite o número do seu celular"
             value={telefone}
-            onChangeText={setTelefone}
+            onChangeText={(text) => setTelefone(maskPhone(text))}
             keyboardType="phone-pad"
+            maxLength={15}
           />
           {errors.telefone && <Text style={styles.errorText}>{errors.telefone}</Text>}
 
@@ -143,13 +175,15 @@ function Cadastro() {
 
           <Input
             iconName="calendar"
-            placeholder="Digite sua data de nascimento"
+            placeholder="Digite sua data de nascimento (dd/MM/yyyy)"
             value={dataNascimento}
-            onChangeText={setDataNascimento}
+            onChangeText={(text) => setDataNascimento(maskDate(text))}
+            keyboardType="numeric"
+            maxLength={10}
           />
           {errors.dataNascimento && <Text style={styles.errorText}>{errors.dataNascimento}</Text>}
 
-          <Selector options={generoOptions} onSelect={setGenero} iconName="human"></Selector>
+          <Selector options={generoOptions} onSelect={(value) => setGenero(value as Genero)} iconName="human"></Selector>
 
           {errors.genero && <Text style={styles.errorText}>{errors.genero}</Text>}
 
@@ -176,7 +210,7 @@ function Cadastro() {
             onPress={handleCadastro}
           />
 
-          <Link href="/login" style={styles.link}>
+          <Link href="/(auth)/login" style={styles.link}>
             <Text style={styles.textoLink}>Já tem conta? Faça login</Text>
           </Link>
         </View>
@@ -193,15 +227,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   conteinerLogo: {
-    height: 'auto',
+    height: '30%',
     backgroundColor: cores.primaria,
     alignItems: 'center',
   },
   image: {
     width: "100%",
-    height: 200,
-    marginTop: 50,
-    marginBottom: 20,
+    height: '100%',
     alignSelf: 'center',
   },
   scrollView: {

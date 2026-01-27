@@ -38,3 +38,23 @@ export const maskDate = (value: string) => {
 
     return v.substring(0, 10);
 };
+
+export const maskPhone = (value: string) => {
+    if (!value) return "";
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .substring(0, 15);
+};
+
+export const validateEmail = (email: string) => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+};
+
+export const validatePassword = (password: string) => {
+    // Requisitos: 8+ caracteres, 1 maiúscula, 1 minúscula, 1 número, 1 especial
+    const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[.,@$!%*?&])[A-Za-z\d.,@$!%*?&]{8,}$/;
+    return re.test(password);
+};
