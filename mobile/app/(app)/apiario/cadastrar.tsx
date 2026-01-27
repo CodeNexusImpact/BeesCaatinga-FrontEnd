@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 
-import { ApiarioCriacaoDTO } from '@/types/Apiarios';
-import { EnderecoProps } from '@/types/Endereco';
+import { ApiarioCriadoDTO } from '@/types/apiario/ApiarioCriadoDTO';
+import { EnderecoProps } from '@/types/common/Endereco';
 import { maskDate } from '@/utils/masks';
 import { Stack } from 'expo-router';
 
@@ -61,24 +61,34 @@ const CadastrarApiario = () => {
 
 
     const handleSubmit = () => {
-        const totalColmeiasAtivas = colmeiasMadeiraAtivas + colmeiasConcretoAtivas + colmeiasPoliestirenoAtivas;
-        const totalColmeias = totalColmeiasAtivas + colmeiasMadeiraInativas + colmeiasConcretoInativas + colmeiasPoliestirenoInativas;
-
-        const apiarioData: ApiarioCriacaoDTO = {
+        // Adaptando para o DTO do Backend (ApiarioCriadoDTO)
+        // Nota: O backend atualmente não aceita criação de colmeias aninhadas neste endpoint.
+        // As colmeias devem ser criadas posteriormente ou endpoint ajustado.
+        
+        const apiarioData: ApiarioCriadoDTO = {
             nome,
-            registro,
-            dataCriacao,
-            endereco,
-            colmeias: {
-                madeira: { ativas: colmeiasMadeiraAtivas, inativas: colmeiasMadeiraInativas },
-                concreto: { ativas: colmeiasConcretoAtivas, inativas: colmeiasConcretoInativas },
-                poliestireno: { ativas: colmeiasPoliestirenoAtivas, inativas: colmeiasPoliestirenoInativas },
-            },
-            colmeiasAtivas: totalColmeiasAtivas,
-            colmeiasTotal: totalColmeias,
-            //foto,
-            observacoes,
+            nRegistro: registro,
+            dataDeCriacao: dataCriacao,
+            
+            // Dados de Endereço (Flat)
+            cep: endereco.cep,
+            nomeDaPropriedade: endereco.propriedade,
+            estado: endereco.estado,
+            cidade: endereco.cidade,
+            bairro: endereco.bairro,
+            rua: endereco.rua,
+            numero: endereco.numero,
+            complemento: endereco.complemento,
+            
+            // Coordenadas
+            latitude: endereco.coordenadas.latitude,
+            longitude: endereco.coordenadas.longitude,
+
+            // Campos obrigatórios temporários
+            produtor_id: 1, // TODO: Pegar do AuthContext
         };
+
+        console.log('Payload ApiarioCriadoDTO:', JSON.stringify(apiarioData, null, 2));
 
         // Aqui você pode fazer uma chamada à API para salvar os dados
         // Exemplo:

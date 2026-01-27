@@ -1,58 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from '../icon';
 import {cores, temaCores} from '@/constants/cores';
-import { ColmeiaItemProps } from '@/types/Colmeias';
+import { ColmeiaRetornoEmApiarioDTO, StatusColmeia } from '@/types/apiario/colmeia';
 
-
-function opemColmeiaDetails(id: number) {
-    // Lógica para abrir os detalhes da colmeia
-    console.log("Abrir detalhes da colmeia com ID:", id);
+function openColmeiaDetails(identificador: number) {
+    console.log("Abrir detalhes da colmeia:", identificador);
 }
 
-const ColmeiaItem: React.FC<ColmeiaItemProps> = ({ id, nome, condicao}) => {
+const ColmeiaItem: React.FC<ColmeiaRetornoEmApiarioDTO> = ({ id, identificador, statusColmeia }) => {
     const [cor, setCorStatus] = useState(temaCores.sucesso);
+    const [statusTexto, setStatusTexto] = useState('');
+
     useEffect(() => {
-        switch (condicao) {
-            case 'Saudavel':
-                // Estado positivo: Verde
+        // Mapeamento visual para o Enum
+        switch (statusColmeia) {
+            case 'SAUDAVEL':
                 setCorStatus(temaCores.sucesso); 
+                setStatusTexto('Saudável');
                 break;
             
-            case 'Pronto para Coleta':
-                // Estado de Ação/Sucesso: Pode ser um verde diferente ou um amarelo/laranja de notificação
-                setCorStatus(temaCores.sucesso); 
+            case 'TRATAMENTO_NECESSARIO': // Antigo "Tratamento Necessário"
+                setCorStatus(temaCores.alerta);
+                setStatusTexto('Tratamento');
                 break;
             
-            case 'Manutenção Necessária':
-                // Estado de Alerta/Aviso: Amarelo
+            case 'MANUTENCAO_NECESSARIA':
                 setCorStatus(temaCores.alerta); 
+                setStatusTexto('Manutenção');
                 break;
 
-            case 'Tratamento Necessário':
-                // Estado de Urgência Média/Atenção: Laranja
-                setCorStatus(temaCores.alerta);
-                break;
-                
-            case 'Perigo Climático':
-                // Estado Crítico/Perigo: Vermelho
+            case 'PERIGO_CLIMATICO':
                 setCorStatus(temaCores.perigo); 
+                setStatusTexto('Perigo Climático');
                 break;
                 
-            case 'Inativa':
-                // Estado Neutro/Desativado: Cinza (como você já especificou)
+            case 'INATIVO':
                 setCorStatus(cores.base[60]); 
+                setStatusTexto('Inativa');
                 break;
 
             default:
-                // Caso o valor seja indefinido ou inesperado
                 setCorStatus('gray'); 
+                setStatusTexto(statusColmeia);
         }
-    }, [condicao]);
+    }, [statusColmeia]);
+
     return (
-        <TouchableOpacity style={styles.subItem} onPress={() => opemColmeiaDetails(id)}>
-            <Text style={styles.subItemText}>{nome}</Text>
-            <Text style={styles.subItemDescription}>{condicao}</Text>
+        <TouchableOpacity style={styles.subItem} onPress={() => openColmeiaDetails(id)}>
+            <Text style={styles.subItemText}>{identificador}</Text>
+            <Text style={styles.subItemDescription}>{statusTexto}</Text>
             <View style={[styles.circle, { backgroundColor: cor }]} />
         </TouchableOpacity>
     );
@@ -66,17 +62,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         overflow: 'hidden',
     },    
-    numberContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginLeft: 'auto',
-        backgroundColor: cores.base[10],
-        borderRadius: 18,
-    },
-    values: {
-        fontSize: 16,
-        marginHorizontal: 5,
-    },
     subItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -101,7 +86,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#666',
     },
-    
 });
 
 export default ColmeiaItem;

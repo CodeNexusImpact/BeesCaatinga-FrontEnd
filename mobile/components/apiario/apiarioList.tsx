@@ -5,11 +5,16 @@ import Icon from '../icon';
 import cores from '@/constants/cores';
 import LinhaDivisoria from '../linhaDivisoria';
 
-import { ApiarioListProps } from '@/types/Apiarios';
+import { ApiarioRetornoDTO } from '@/types/apiario';
 
 
-const ApiarioList: React.FC<ApiarioListProps> = ({ id, nome, colmeiasAtivas, colmeiasTotal, colmeias }) => {
+const ApiarioList: React.FC<{ apiario: ApiarioRetornoDTO }> = ({ apiario }) => {
+    const { id, nome, colmeias } = apiario;
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const colmeiasTotal = colmeias.length;
+    const colmeiasAtivas = colmeias.filter(c => c.statusColmeia !== 'INATIVO').length;
+
 
     return (
         <View style={styles.container}>
@@ -35,10 +40,7 @@ const ApiarioList: React.FC<ApiarioListProps> = ({ id, nome, colmeiasAtivas, col
                         keyExtractor={(item) => item.id.toString()}
                         style={{ backgroundColor: cores.cores.base[10] }}
                         renderItem={({ item }) => (
-
-                            <View>
-                                <ColmeiaItem id={item.id} nome={item.nome} condicao={item.condicao} />
-                            </View>
+                            <ColmeiaItem id={item.id} identificador={item.identificador} statusColmeia={item.statusColmeia} />
                         )}
                     />
                 </View>

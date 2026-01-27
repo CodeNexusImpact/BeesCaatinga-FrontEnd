@@ -1,36 +1,75 @@
 import { useState, useEffect } from 'react';
-import type { Producao, KpiProducao, GraficoProducao } from '@/types/producao';
+import type { ProducaoRetornoDTO } from '@/types/producao';
+import type { Kpi, GraficoConfig } from '@/types/common';
 
 interface UseProducaoResult {
-  data: Producao[];
-  kpis: KpiProducao[];
-  graficos: GraficoProducao[];
+  data: ProducaoRetornoDTO[];
+  kpis: Kpi[];
+  graficos: GraficoConfig[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
 }
 
 export const useProducao = (filtros: any = {}): UseProducaoResult => {
-  const [data, setData] = useState<Producao[]>([]);
-  const [kpis, setKpis] = useState<KpiProducao[]>([]);
-  const [graficos, setGraficos] = useState<GraficoProducao[]>([]);
+  const [data, setData] = useState<ProducaoRetornoDTO[]>([]);
+  const [kpis, setKpis] = useState<Kpi[]>([]);
+  const [graficos, setGraficos] = useState<GraficoConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Dados simulados (fixos para todos os usuários)
-  const mockData: Producao[] = [
-    { loteId: 'ID-01', dataExtracao: '20/06/2025', pesoLitro: '1.3', apiario: 'Serra do Mel', colmeia: 'C1', producaoTotal: '100' },
-    { loteId: 'ID-02', dataExtracao: '04/07/2025', pesoLitro: '1.7', apiario: 'Vale das Abelhas', colmeia: 'C2', producaoTotal: '120' },
-    { loteId: 'ID-03', dataExtracao: '15/08/2025', pesoLitro: '2.0', apiario: 'Rosa do Sertão', colmeia: 'C3', producaoTotal: '150' },
-    { loteId: 'ID-04', dataExtracao: '03/06/2024', pesoLitro: '4.6', apiario: 'Apiário Central', colmeia: 'C5', producaoTotal: '200' },
+  const mockData: ProducaoRetornoDTO[] = [
+    { 
+        id: 1, 
+        tipoProducao: "Mel",
+        quantidade: 100,
+        statusProduto: "EM_ESTOQUE",
+        dataColeta: "2025-06-20", 
+        dataVenda: undefined,
+        nomeApiario: "Serra do Mel", 
+        nomeColmeia: "C1",
+        statusQualidade: "APROVADO"
+    },
+    { 
+        id: 2, 
+        tipoProducao: "Mel",
+        quantidade: 120,
+        statusProduto: "EM_ESTOQUE",
+        dataColeta: "2025-07-04", 
+        nomeApiario: "Vale das Abelhas", 
+        nomeColmeia: "C2",
+        statusQualidade: "NAO_AVALIADO"
+    },
+    { 
+        id: 3, 
+        tipoProducao: "Própolis",
+        quantidade: 150,
+        statusProduto: "VENDIDO",
+        dataColeta: "2025-08-15", 
+        dataVenda: "2025-09-01",
+        nomeApiario: "Rosa do Sertão", 
+        nomeColmeia: "C3",
+        statusQualidade: "APROVADO"
+    },
+    { 
+        id: 4, 
+        tipoProducao: "Mel",
+        quantidade: 200,
+        statusProduto: "EM_ESTOQUE",
+        dataColeta: "2024-06-03", 
+        nomeApiario: "Apiário Central", 
+        nomeColmeia: "C5",
+        statusQualidade: "APROVADO"
+    },
   ];
 
-  const mockKpis: KpiProducao[] = [
+  const mockKpis: Kpi[] = [
     { label: 'Produção Total', value: '570 kg' },
     { label: 'Média/Colmeia', value: '142.5 kg' },
   ];
 
-  const mockGraficos: GraficoProducao[] = [
+  const mockGraficos: GraficoConfig[] = [
     {
       tipo: 'linha',
       titulo: 'Produção Mensal (kg)',
@@ -57,14 +96,14 @@ export const useProducao = (filtros: any = {}): UseProducaoResult => {
       // Aplica filtros (simulação simples)
       let filteredData = [...mockData];
       if (filtros.ano) {
-        filteredData = filteredData.filter(item => item.dataExtracao.includes(filtros.ano));
+        filteredData = filteredData.filter(item => item.dataColeta.includes(filtros.ano));
       }
       if (filtros.mes) {
         const mesPreenchido = filtros.mes.padStart(2, '0');
-        filteredData = filteredData.filter(item => item.dataExtracao.includes(`/${mesPreenchido}/`));
+        filteredData = filteredData.filter(item => item.dataColeta.includes(`-${mesPreenchido}-`));
       }
       if (filtros.apiario) {
-        filteredData = filteredData.filter(item => item.apiario === filtros.apiario);
+        filteredData = filteredData.filter(item => item.nomeApiario === filtros.apiario);
       }
 
       setData(filteredData);

@@ -1,12 +1,12 @@
-export * from './user';
-export * from './filtros';
-export * from './relatorio';
-export * from './grafico';
-export * from './kpi';
-export * from './analise';
+// Tipos comuns/UI
+export * from './common';
 
-// Tipos específicos dos módulos (criaremos depois)
+// Tipos de Domínio (DTOs organizados por módulos)
+export * from './apiario';
+export * from './apiario/colmeia';
+export * from './insumos';
 export * from './producao';
 export * from './rastreabilidade';
-export * from './vistoria';
-export * from './insumo';
+export * from './relatorio';
+export * from './vistorias';
+export * from './perfil';

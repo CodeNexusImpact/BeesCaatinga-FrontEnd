@@ -49,7 +49,7 @@ export default function Index() {
             data={apiarios}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <ApiarioList {...item} />
+              <ApiarioList apiario={item} />
             )}
             ListEmptyComponent={() => (
               <Text style={styles.emptyText}>Nenhum apiário encontrado.</Text>

@@ -1,5 +1,4 @@
-import { ColmeiaItemProps } from '@/types/Colmeias';
-import { EnderecoProps } from '@/types/Endereco';
+import { EnderecoProps } from '@/types/common/Endereco';
 
 // 1. Tipo Simplificado para Listas
 export interface ApiarioListProps {
@@ -7,7 +6,7 @@ export interface ApiarioListProps {
     nome: string;
     colmeiasAtivas: number;
     colmeiasTotal: number;
-    colmeias: ColmeiaItemProps[];
+    // colmeias: ColmeiaItemProps[];
 }
 
 

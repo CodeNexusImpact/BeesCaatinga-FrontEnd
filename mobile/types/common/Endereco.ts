@@ -1,4 +1,4 @@
-import { CoordenadasProps } from '@/types/Coordenadas';
+import { CoordenadasProps } from './Coordenadas';
 
 export interface EnderecoProps {
     cep: string;

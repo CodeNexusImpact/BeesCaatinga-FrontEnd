@@ -1,4 +1,4 @@
-import type { Producao } from '@/types/producao';
+import type { ProducaoRetornoDTO } from '@/types/producao';
 
 interface FiltrosProducao {
   ano?: string;
@@ -7,30 +7,69 @@ interface FiltrosProducao {
   userId: string;
 }
 
-// ✅ Dados simulados
-const mockProducao: Producao[] = [
-  { loteId: 'ID-01', dataExtracao: '20/06/2025', pesoLitro: '1.3', apiario: 'Serra do Mel', colmeia: 'C1', producaoTotal: '100' },
-  { loteId: 'ID-02', dataExtracao: '04/07/2025', pesoLitro: '1.7', apiario: 'Vale das Abelhas', colmeia: 'C2', producaoTotal: '120' },
-  { loteId: 'ID-03', dataExtracao: '15/08/2025', pesoLitro: '2.0', apiario: 'Rosa do Sertão', colmeia: 'C3', producaoTotal: '150' },
-  { loteId: 'ID-04', dataExtracao: '03/06/2024', pesoLitro: '4.6', apiario: 'Apiário Central', colmeia: 'C5', producaoTotal: '200' },
+// ✅ Dados simulados atualizados para ProducaoRetornoDTO
+const mockProducao: ProducaoRetornoDTO[] = [
+  { 
+      id: 1, 
+      tipoProducao: "Mel",
+      quantidade: 100,
+      statusProduto: "EM_ESTOQUE",
+      dataColeta: "2025-06-20", 
+      dataVenda: undefined,
+      nomeApiario: "Serra do Mel", 
+      nomeColmeia: "C1",
+      statusQualidade: "APROVADO"
+  },
+  { 
+      id: 2, 
+      tipoProducao: "Mel",
+      quantidade: 120,
+      statusProduto: "EM_ESTOQUE",
+      dataColeta: "2025-07-04", 
+      nomeApiario: "Vale das Abelhas", 
+      nomeColmeia: "C2",
+      statusQualidade: "NAO_AVALIADO"
+  },
+  { 
+      id: 3, 
+      tipoProducao: "Própolis",
+      quantidade: 150,
+      statusProduto: "VENDIDO",
+      dataColeta: "2025-08-15", 
+      dataVenda: "2025-09-01",
+      nomeApiario: "Rosa do Sertão", 
+      nomeColmeia: "C3",
+      statusQualidade: "APROVADO"
+  },
+  { 
+      id: 4, 
+      tipoProducao: "Mel",
+      quantidade: 200,
+      statusProduto: "EM_ESTOQUE",
+      dataColeta: "2024-06-03", 
+      nomeApiario: "Apiário Central", 
+      nomeColmeia: "C5",
+      statusQualidade: "APROVADO"
+  },
 ];
 
-export const getProducao = async (filtros: FiltrosProducao): Promise<Producao[]> => {
+export const getProducao = async (filtros: FiltrosProducao): Promise<ProducaoRetornoDTO[]> => {
   // Simula delay de rede
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  // Aplica filtros simples (ano, mês, apiário)
+  // Aplica filtros simples
   let resultado = [...mockProducao];
 
   if (filtros.ano) {
-    resultado = resultado.filter(item => item.dataExtracao.includes(filtros.ano as string));
+    resultado = resultado.filter(item => item.dataColeta.includes(filtros.ano as string));
   }
   if (filtros.mes) {
+    // Filtro simplificado para string YYYY-MM-DD
     const mesPreenchido = filtros.mes.padStart(2, '0');
-    resultado = resultado.filter(item => item.dataExtracao.includes(`/${mesPreenchido}/`));
+    resultado = resultado.filter(item => item.dataColeta.includes(`-${mesPreenchido}-`));
   }
   if (filtros.apiario) {
-    resultado = resultado.filter(item => item.apiario === filtros.apiario);
+    resultado = resultado.filter(item => item.nomeApiario === filtros.apiario);
   }
 
   return resultado;

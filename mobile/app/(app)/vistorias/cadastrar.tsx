@@ -1,190 +1,277 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { LineChart, PieChart } from 'react-native-chart-kit'; 
+import Botao from '@/components/botao';
+import Input from '@/components/input';
 import Selector from '@/components/selector';
-import GraficoCard, { KpiData } from '@/components/graficoCard';
-import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack } from 'expo-router';
+import Checkbox from 'expo-checkbox';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-// --- DADOS MOCKADOS (Base de Dados Local) ---
-// Simulando vistorias com datas e diagnósticos
-const MASTER_DATA = [
-    { ano: '2025', mes: 'Ago', mesIndex: 7, status: 'Saudável', apiario: 'Apiário A' },
-    { ano: '2025', mes: 'Ago', mesIndex: 7, status: 'Atenção', apiario: 'Apiário A' },
-    { ano: '2025', mes: 'Set', mesIndex: 8, status: 'Saudável', apiario: 'Apiário B' },
-    { ano: '2025', mes: 'Set', mesIndex: 8, status: 'Crítica', apiario: 'Apiário A' },
-    { ano: '2025', mes: 'Out', mesIndex: 9, status: 'Saudável', apiario: 'Apiário B' },
-    { ano: '2025', mes: 'Out', mesIndex: 9, status: 'Saudável', apiario: 'Apiário A' },
+export default function CadastrarVistoria() {
+  const router = useRouter();
+
+  // --- Estados da Vistoria ---
+  const [dataVistoria, setDataVistoria] = useState('18/09/2025');
+  const [apiario, setApiario] = useState('');
+  const [colmeia, setColmeia] = useState('');
+  const [condicao, setCondicao] = useState('manutencao');
+  const [observacoes, setObservacoes] = useState('');
+
+  // Estados para os checkboxes
+  const [pragas, setPragas] = useState({
+    varroa: false,
+    formiga: false,
+    traca: false,
+    lagartixa: false,
+    outro: false,
+  });
+
+  const [perdas, setPerdas] = useState({
+    alimentacao: false,
+    veneno: false,
+    clima: false,
+    outro: false,
+  });
+
+  // --- Opções (mock data) ---
+  const apiarioOptions = [
+    { label: 'Rosa do Sertão', value: 'rosa' },
+    { label: 'Vale das Abelhas', value: 'vale' },
+    { label: 'Serra do Mel', value: 'serra' },
+  ];
+
+  const colmeiaOptions = [
+    { label: 'Colmeia 1', value: '1' },
+    { label: 'Colmeia 2', value: '2' },
+    { label: 'Colmeia 3', value: '3' },
+  ];
+
+  const condicaoOptions = [
+    { label: 'Manutenção Necessária', value: 'manutencao' },
+    { label: 'Saudável', value: 'saudavel' },
+    { label: 'Em Risco', value: 'risco' },
+    { label: 'Perdida', value: 'perdida' },
+  ];
+
+  // --- Funções Auxiliares ---
+  const setPraga = (key: keyof typeof pragas, value: boolean) => {
+    setPragas((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const setPerda = (key: keyof typeof perdas, value: boolean) => {
+    setPerdas((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSalvar = () => {
+    console.log('Dados da Vistoria:');
+    console.log({
+      dataVistoria,
+      apiario,
+      colmeia,
+      condicao,
+      pragas,
+      perdas,
+      observacoes,
+    });
     
-    { ano: '2024', mes: 'Ago', mesIndex: 7, status: 'Atenção', apiario: 'Apiário B' },
-    { ano: '2024', mes: 'Set', mesIndex: 8, status: 'Crítica', apiario: 'Apiário A' },
-    { ano: '2024', mes: 'Out', mesIndex: 9, status: 'Saudável', apiario: 'Apiário B' },
-];
+    // Navega para a tela de listagem 
+    router.push('/vistorias/listar');
+  };
 
-const screenWidth = Dimensions.get('window').width;
+  // Componente auxiliar para renderizar cada item de checkbox
+  const CheckboxItem = ({
+    label,
+    value,
+    onValueChange,
+  }: {
+    label: string;
+    value: boolean;
+    onValueChange: (value: boolean) => void;
+  }) => (
+    <View style={styles.checkboxContainer}>
+      <Checkbox
+        style={styles.checkbox}
+        value={value}
+        onValueChange={onValueChange}
+        color={value ? cores.primaria : undefined}
+      />
+      <Text style={styles.checkboxLabel}>{label}</Text>
+    </View>
+  );
 
-// --- Opções de Filtro ---
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' },
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-];
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
+      {/* Data da Vistoria */}
+      <Input
+        label="Data da Vistoria:"
+        value={dataVistoria}
+        onChangeText={setDataVistoria}
+        placeholder="dd/mm/aaaa"
+        iconName="calendar"
+      />
 
-const statusOptions = [
-    { label: 'Todos os Status', value: '' },
-    { label: 'Saudável', value: 'Saudável' },
-    { label: 'Atenção', value: 'Atenção' },
-    { label: 'Crítica', value: 'Crítica' },
-];
+      {/* Apiário */}
+      <Selector
+        label="Selecione o Apiário*"
+        options={apiarioOptions}
+        onSelect={setApiario}
+        placeholder="Selecione"
+        iconName="home"
+      />
 
-export default function DashboardVistoria() {
-    const [ano, setAno] = useState(''); // '' = Todos
-    const [statusFiltro, setStatusFiltro] = useState('');
+      {/* Colmeia */}
+      <Selector
+        label="Selecione a Colmeia*"
+        options={colmeiaOptions}
+        onSelect={setColmeia}
+        placeholder="Selecione"
+        iconName="beehiveOutline"
+      />
 
-    // --- 1. Lógica de Filtragem ---
-    const dadosFiltrados = useMemo(() => {
-        return MASTER_DATA.filter(item => {
-            const filtroAno = ano === '' ? true : item.ano === ano;
-            const filtroStatus = statusFiltro === '' ? true : item.status === statusFiltro;
-            return filtroAno && filtroStatus;
-        });
-    }, [ano, statusFiltro]);
+      {/* Condição */}
+      <Selector
+        label="Condição:"
+        options={condicaoOptions}
+        onSelect={setCondicao}
+        placeholder="Selecione a condição da colmeia"
+        value={condicao}
+      />
 
-    // --- 2. Cálculo dos KPIs ---
-    const kpisCalculados: KpiData[] = useMemo(() => {
-        const total = dadosFiltrados.length;
-        const saudaveis = dadosFiltrados.filter(d => d.status === 'Saudável').length;
-        const criticas = dadosFiltrados.filter(d => d.status === 'Crítica').length;
-        // Simulação de taxa de ocupação
-        const taxaOcupacao = total > 0 ? ((saudaveis / total) * 100).toFixed(0) : '0';
+      {/* Seção de Checkboxes */}
+      <View style={styles.checkboxSection}>
+        {/* Coluna Pragas */}
+        <View style={styles.checkboxColumn}>
+          <Text style={styles.checkboxTitle}>Pragas</Text>
+          <CheckboxItem
+            label="Varroa"
+            value={pragas.varroa}
+            onValueChange={(v) => setPraga('varroa', v)}
+          />
+          <CheckboxItem
+            label="Formiga"
+            value={pragas.formiga}
+            onValueChange={(v) => setPraga('formiga', v)}
+          />
+          <CheckboxItem
+            label="Traça"
+            value={pragas.traca}
+            onValueChange={(v) => setPraga('traca', v)}
+          />
+          <CheckboxItem
+            label="Lagartixa"
+            value={pragas.lagartixa}
+            onValueChange={(v) => setPraga('lagartixa', v)}
+          />
+          <CheckboxItem
+            label="Outro"
+            value={pragas.outro}
+            onValueChange={(v) => setPraga('outro', v)}
+          />
+        </View>
 
-        return [
-            { label: 'Vistorias Realizadas', value: total.toString() },
-            { label: 'Colmeias Saudáveis', value: saudaveis.toString() },
-            { label: 'Situação Crítica', value: criticas.toString() },
-            { label: 'Saúde Geral (%)', value: `${taxaOcupacao}%` },
-        ];
-    }, [dadosFiltrados]);
+        {/* Coluna Perda por */}
+        <View style={styles.checkboxColumn}>
+          <Text style={styles.checkboxTitle}>Perda por</Text>
+          <CheckboxItem
+            label="Alimentação"
+            value={perdas.alimentacao}
+            onValueChange={(v) => setPerda('alimentacao', v)}
+          />
+          <CheckboxItem
+            label="Veneno"
+            value={perdas.veneno}
+            onValueChange={(v) => setPerda('veneno', v)}
+          />
+          <CheckboxItem
+            label="Clima"
+            value={perdas.clima}
+            onValueChange={(v) => setPerda('clima', v)}
+          />
+          <CheckboxItem
+            label="Outro"
+            value={perdas.outro}
+            onValueChange={(v) => setPerda('outro', v)}
+          />
+        </View>
+      </View>
 
-    // --- 3. Gráfico de Pizza (Status) ---
-    const dataPizza = useMemo(() => {
-        const countStatus = (st: string) => dadosFiltrados.filter(d => d.status === st).length;
-        
-        const dados = [
-            { name: 'Saudável', population: countStatus('Saudável'), color: '#2ecc71', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'Atenção', population: countStatus('Atenção'), color: '#f1c40f', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'Crítica', population: countStatus('Crítica'), color: '#e74c3c', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-        ];
-        
-        // Filtra para não mostrar fatias com 0
-        return dados.filter(d => d.population > 0);
-    }, [dadosFiltrados]);
+      {/* Observações */}
+      <Input
+        value={observacoes}
+        onChangeText={setObservacoes}
+        placeholder="Observações (opcional):"
+        multiline={true}
+        numberOfLines={5}
+        style={styles.textArea}
+      />
 
-    // --- 4. Gráfico de Linha (Vistorias por mês - recorte Ago/Set/Out) ---
-    const dataLinha = useMemo(() => {
-        const vistoriasPorMes = [0, 0, 0]; // Índices correspondentes a Ago, Set, Out na nossa lógica simplificada
-        
-        dadosFiltrados.forEach(item => {
-            // Mapeando mesIndex 7, 8, 9 para array 0, 1, 2
-            if (item.mesIndex >= 7 && item.mesIndex <= 9) {
-                vistoriasPorMes[item.mesIndex - 7] += 1;
-            }
-        });
-
-        return {
-            labels: ["Ago", "Set", "Out"],
-            datasets: [{ data: vistoriasPorMes }]
-        };
-    }, [dadosFiltrados]);
-
-    const chartConfig = {
-        backgroundGradientFrom: cores.branco,
-        backgroundGradientTo: cores.branco,
-        color: (opacity = 1) => `rgba(52, 152, 219, ${opacity})`, // Azul
-        strokeWidth: 2,
-        barPercentage: 0.5,
-        decimalPlaces: 0,
-        labelColor: (opacity = 1) => cores.texto,
-    };
-
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Cadastrar' }} />
-            <Subtexto style={styles.subtexto}>Dashboard de Vistorias</Subtexto>
-
-            {/* --- Filtros --- */}
-            <View style={styles.filtroContainer}>
-                 <View style={styles.linhaFiltro}>
-                    <Selector 
-                        label="Ano" 
-                        options={anoOptions} 
-                        onSelect={setAno} 
-                        placeholder="Todos os Anos" 
-                        style={styles.filtroPequeno} 
-                    />
-                    <Selector 
-                        label="Status" 
-                        options={statusOptions} 
-                        onSelect={setStatusFiltro} 
-                        placeholder="Todos os Status" 
-                        style={styles.filtroPequeno} 
-                    />
-                </View>
-            </View>
-
-            {/* --- KPIs e Gráficos --- */}
-            <GraficoCard
-                subtexto={`Análise de ${ano === '' ? 'Todos os Anos' : ano}`}
-                kpis={kpisCalculados}
-                showSideBar={true}
-            >
-                {/* Gráfico de Pizza */}
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Diagnóstico das Colmeias</Text>
-                    {dataPizza.length > 0 ? (
-                        <PieChart
-                            data={dataPizza}
-                            width={screenWidth - 20}
-                            height={220}
-                            chartConfig={chartConfig}
-                            accessor={"population"}
-                            backgroundColor={"transparent"}
-                            paddingLeft={"15"}
-                            center={[10, 0]}
-                            absolute
-                        />
-                    ) : (
-                        <Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>Sem dados para este filtro.</Text>
-                    )}
-                </View>
-
-                {/* Gráfico de Linha */}
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Evolução das Vistorias (Ago-Out)</Text>
-                    <LineChart
-                        data={dataLinha}
-                        width={screenWidth - 60}
-                        height={220}
-                        chartConfig={chartConfig}
-                        bezier
-                        style={styles.chartStyle}
-                    />
-                </View>
-            </GraficoCard>
-        </ScrollView>
-    );
+      {/* Botão */}
+      <Botao
+        title="Salvar"
+        onPress={handleSalvar}
+        cor="primaria"
+        style={styles.button}
+      />
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, overflow: 'visible' },
-    subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto },
-    filtroContainer: { marginBottom: layout.espacamento.amigavel, zIndex: 100, elevation: 10 },
-    linhaFiltro: { flexDirection: 'row', justifyContent: 'space-between', gap: layout.espacamento.texto, zIndex: 200, elevation: 20 },
-    filtroPequeno: { flex: 1, backgroundColor: cores.branco },
-    chartContainer: { marginTop: layout.espacamento.amigavel, alignItems: 'center', zIndex: -1 },
-    chartTitle: { fontSize: 16, fontWeight: 'bold', color: cores.texto, marginBottom: 10 },
-    chartStyle: { borderRadius: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: cores.fundo,
+  },
+  contentContainer: {
+    padding: layout.espacamento.amigavel,
+    gap: layout.espacamento.colega,
+  },
+  button: {
+    marginTop: layout.espacamento.social,
+  },
+  textArea: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+    paddingTop: layout.espacamento.amigavel,
+    padding: layout.espacamento.amigavel,
+  },
+  // --- Estilos dos Checkboxes ---
+  checkboxSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: layout.espacamento.amigavel,
+    marginTop: layout.espacamento.texto,
+    backgroundColor: cores.branco,
+    padding: layout.espacamento.colega,
+    borderRadius: layout.borderRadius.r25,
+    borderWidth: 1,
+    borderColor: cores.cores.base[20], 
+  },
+  checkboxColumn: {
+    flex: 1,
+    gap: layout.espacamento.colega,
+  },
+  checkboxTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: cores.preto,
+    marginBottom: layout.espacamento.amigavel,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: layout.espacamento.amigavel,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: layout.borderRadius.r25,
+  },
+  checkboxLabel: {
+    fontSize: 15,
+    color: cores.preto,
+  },
 });
