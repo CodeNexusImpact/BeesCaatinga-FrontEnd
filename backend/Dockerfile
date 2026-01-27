@@ -13,7 +13,7 @@ COPY src ./src
 RUN mvn -B  -DskipTests=${SKIP_TESTS} clean package
 
 # Runtime stage: usa OpenJDK 21
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copia o artefato construído do estágio de build
