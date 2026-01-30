@@ -46,11 +46,14 @@ public class RelatorioController {
         return ResponseEntity.ok(dto);
     }
 
+    /*
     @PostMapping("/insumos")
     public ResponseEntity<RelatorioInsumosDTO> gerarRelatorioInsumos(
             @RequestBody FiltroBuscaDTO filtro
     ) {
         return ResponseEntity.ok(relatorioService.gerarRelatorioInsumos(filtro));
     }
+
+     */
 
 }

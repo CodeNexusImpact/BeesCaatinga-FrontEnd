@@ -39,10 +39,7 @@ class ProdutorServiceTest {
     @BeforeEach
     void setUp() {
 
-        produtorService = new ProdutorService(repository, mapper, apiarioRepository, apiarioMapper,
-                colmeiaRepository, colmeiaMapper, vistoriaRepository, vistoriaMapper,
-                insumoRepository, insumoMapper, producaoRepository, producaoMapper,
-                loteRepository, loteMapper);
+        produtorService = new ProdutorService(repository, mapper);
 
     }
 
