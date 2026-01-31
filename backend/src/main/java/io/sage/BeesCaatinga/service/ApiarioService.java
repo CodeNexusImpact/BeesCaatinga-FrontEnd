@@ -73,7 +73,7 @@ public class ApiarioService {
         return apiarioMapper.toRetornoDTO(apiario);
     }
 
-    public void deletarApiarioDoProdutor(Long produtorId, Long apiarioId){
+    public void deletar(Long produtorId, Long apiarioId){
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 

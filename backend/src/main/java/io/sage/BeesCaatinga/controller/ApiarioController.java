@@ -1,5 +1,6 @@
 package io.sage.BeesCaatinga.controller;
 
+import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.apiario.ApiarioRetornoDTO;
 import io.sage.BeesCaatinga.service.ApiarioService;
@@ -34,6 +35,18 @@ public class ApiarioController {
         return ResponseEntity.ok(apiarios);
     }
 
-    //
+    @PutMapping("/{apiarioId}/produtor/{produtorId}")
+    @Transactional
+    public ResponseEntity<ApiarioRetornoDTO> atualizar(@RequestBody @Valid ApiarioAtualizadoDTO dto, @PathVariable Long apiarioId, @PathVariable Long produtorId){
+        var apiario = service.atualizar(produtorId, apiarioId, dto);
+        return ResponseEntity.ok(apiario);
+    }
+
+    @DeleteMapping("/{apiarioId}/produtor/{produtorId}")
+    @Transactional
+    public ResponseEntity<Void> deletar(@PathVariable Long apiarioId, @PathVariable Long produtorId){
+        service.deletar(produtorId, apiarioId);
+        return ResponseEntity.noContent().build();
+    }
 
 }
