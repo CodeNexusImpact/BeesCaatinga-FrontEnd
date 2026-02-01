@@ -24,7 +24,7 @@ public class LoteService {
     private final LoteRepository loteRepository;
     private final LoteMapper loteMapper;
 
-    public LoteRetornoCodigoDTO salvarLote(Long produtorId, LoteCriadoDTO dto) {
+    public LoteRetornoCodigoDTO salvar(Long produtorId, LoteCriadoDTO dto) {
         // Busca o apiário por nome e valida se pertence ao produtor
         var apiario = apiarioRepository.findByNome(dto.nomeApiario())
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com nome: " + dto.nomeApiario()));
@@ -42,7 +42,7 @@ public class LoteService {
         return loteMapper.toRetornoCodigoDTO(lote);
     }
 
-    public List<LoteRetornoCodigoDTO> listarTodosLotesDoProdutor(Long produtorId) {
+    public List<LoteRetornoCodigoDTO> listarCodigos(Long produtorId) {
         // Verifica se o produtor existe
         if (!repository.existsById(produtorId)) {
             throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
@@ -56,7 +56,7 @@ public class LoteService {
                 .toList();
     }
 
-    public List<LoteRetornoListadoDTO> listarLotesDoProdutor(Long produtorId) {
+    public List<LoteRetornoListadoDTO> listarDetalhados(Long produtorId) {
         // Verifica se o produtor existe
         if (!repository.existsById(produtorId)) {
             throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
