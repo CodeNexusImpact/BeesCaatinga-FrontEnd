@@ -25,7 +25,7 @@ public class ColmeiaService {
     private final ColmeiaRepository colmeiaRepository;
     private final ColmeiaMapper colmeiaMapper;
 
-    public ColmeiaRetornoDTO salvarColmeia(Long produtorId, Long apiarioId, ColmeiaCriadaDTO dto){
+    public ColmeiaRetornoDTO salvar(Long produtorId, Long apiarioId, ColmeiaCriadaDTO dto){
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado!"));
 
@@ -40,7 +40,7 @@ public class ColmeiaService {
         return colmeiaMapper.toRetornoDTO(colmeia);
     }
 
-    public List<ColmeiaRetornoDTO> listarColmeiasDoApiario(Long produtorId, Long apiarioId) {
+    public List<ColmeiaRetornoDTO> listar(Long produtorId, Long apiarioId) {
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
@@ -55,7 +55,7 @@ public class ColmeiaService {
                 .toList();
     }
 
-    public List<ColmeiaRetornoDTO> listarColmeiasAtivasDoApiario(Long produtorId, Long apiarioId) {
+    public List<ColmeiaRetornoDTO> listarAtivas(Long produtorId, Long apiarioId) {
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
@@ -72,7 +72,7 @@ public class ColmeiaService {
                 .toList();
     }
 
-    public List<ColmeiaRetornoDTO> listarColmeiasInativasDoApiario(Long produtorId, Long apiarioId) {
+    public List<ColmeiaRetornoDTO> listarInativas(Long produtorId, Long apiarioId) {
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
@@ -89,7 +89,7 @@ public class ColmeiaService {
                 .toList();
     }
 
-    public ColmeiaRetornoDTO atualizarColmeiaDoProdutor(Long produtorId, Long apiarioId, Long colmeiaId, ColmeiaAtualizadaDTO dto){
+    public ColmeiaRetornoDTO atualizar(Long produtorId, Long apiarioId, Long colmeiaId, ColmeiaAtualizadaDTO dto){
         var colmeia = validarColmeiaDoProdutor(produtorId, apiarioId, colmeiaId);
 
         if (dto.identificador() != null) colmeia.setIdentificador(dto.identificador());
@@ -116,7 +116,7 @@ public class ColmeiaService {
         return colmeiaMapper.toRetornoDTO(colmeia);
     }
 
-    public void deletarColmeiaDoProdutor(Long produtorId, Long apiarioId, Long colmeiaId){
+    public void deletar(Long produtorId, Long apiarioId, Long colmeiaId){
         var colmeia = validarColmeiaDoProdutor(produtorId, apiarioId, colmeiaId);
 
         List<Vistoria> vistorias = vistoriaRepository.findByColmeiaId(colmeiaId);

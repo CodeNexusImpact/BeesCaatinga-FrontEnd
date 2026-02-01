@@ -22,8 +22,7 @@ public class InsumoService {
     private final InsumoRepository insumoRepository;
     private final InsumoMapper insumoMapper;
 
-    // OPERAÇÕES DE INSUMO
-    public InsumoRetornoDTO salvarInsumo(Long produtorId, InsumoCriadoDTO dto) {
+    public InsumoRetornoDTO salvar(Long produtorId, InsumoCriadoDTO dto) {
         var produtor = repository.findById(produtorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId));
 
@@ -38,7 +37,7 @@ public class InsumoService {
         return insumoMapper.toRetornoDTO(insumo);
     }
 
-    public List<InsumoRetornoDTO> listarInsumosDoProdutor(Long produtorId) {
+    public List<InsumoRetornoDTO> listar(Long produtorId) {
         if (!repository.existsById(produtorId)) {
             throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
         }
@@ -50,7 +49,7 @@ public class InsumoService {
                 .toList();
     }
 
-    public InsumoRetornoDTO atualizarInsumoDoProdutor(Long produtorId, Long insumoId, InsumoAtualizadoDTO dto) {
+    public InsumoRetornoDTO atualizar(Long produtorId, Long insumoId, InsumoAtualizadoDTO dto) {
         var insumo = validarInsumoDoProdutor(produtorId, insumoId);
 
         if (dto.dataEntrada() != null) insumo.setDataEntrada(dto.dataEntrada());
@@ -66,7 +65,7 @@ public class InsumoService {
         return insumoMapper.toRetornoDTO(insumo);
     }
 
-    public void deletarInsumoDoProdutor(Long produtorId, Long insumoId) {
+    public void deletar(Long produtorId, Long insumoId) {
         var insumo = validarInsumoDoProdutor(produtorId, insumoId);
         insumoRepository.delete(insumo);
     }

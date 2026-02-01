@@ -29,7 +29,7 @@ public class VistoriaService {
     private final VistoriaMapper vistoriaMapper;
 
     // OPERAÇÕES DE VISTORIA
-    public VistoriaRetornoDTO salvarVistoria(Long produtorId, Long apiarioId, Long colmeiaId, VistoriaCriadaDTO dto){
+    public VistoriaRetornoDTO salvar(Long produtorId, Long apiarioId, Long colmeiaId, VistoriaCriadaDTO dto){
         var colmeia = validarColmeiaDoProdutor(produtorId, apiarioId, colmeiaId);
 
         if (!dto.apiario_id().equals(apiarioId)) {
@@ -49,7 +49,7 @@ public class VistoriaService {
         return vistoriaMapper.toRetornoDTO(vistoria);
     }
 
-    public List<VistoriaRetornoDTO> listarVistoriasDoProdutor(Long produtorId){
+    public List<VistoriaRetornoDTO> listar(Long produtorId){
         if (!repository.existsById(produtorId)) {
             throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
         }
@@ -61,7 +61,7 @@ public class VistoriaService {
                 .toList();
     }
 
-    public VistoriaRetornoDTO atualizarVistoria(Long produtorId, Long vistoriaId, VistoriaAtualizadaDTO dto){
+    public VistoriaRetornoDTO atualizar(Long produtorId, Long vistoriaId, VistoriaAtualizadaDTO dto){
         var vistoria = validarVistoriaDoProdutor(produtorId, vistoriaId);
 
         if (dto.dataVistoria() != null) vistoria.setDataVistoria(dto.dataVistoria());
@@ -90,7 +90,7 @@ public class VistoriaService {
         return vistoriaMapper.toRetornoDTO(vistoria);
     }
 
-    public void deletarVistoria(Long produtorId, Long vistoriaId){
+    public void deletar(Long produtorId, Long vistoriaId){
         var vistoria = validarVistoriaDoProdutor(produtorId, vistoriaId);
         vistoriaRepository.delete(vistoria);
     }

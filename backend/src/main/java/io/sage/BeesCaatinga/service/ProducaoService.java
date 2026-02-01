@@ -27,7 +27,7 @@ public class ProducaoService {
     private final ProducaoRepository producaoRepository;
     private final ProducaoMapper producaoMapper;
 
-    public ProducaoRetornoDTO salvarProducao(Long produtorId, ProducaoCriadaDTO dto) {
+    public ProducaoRetornoDTO salvar(Long produtorId, ProducaoCriadaDTO dto) {
         // Valida se apiário e colmeia pertencem ao produtor
         validarProducaoDoProdutor(produtorId, dto.apiarioId(), dto.colmeiaId());
 
@@ -36,7 +36,7 @@ public class ProducaoService {
         return producaoMapper.toRetornoDTO(producao);
     }
 
-    public List<ProducaoRetornoDTO> listarProducoesDoProdutor(Long produtorId) {
+    public List<ProducaoRetornoDTO> listar(Long produtorId) {
         if (!repository.existsById(produtorId)) {
             throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
         }
@@ -48,7 +48,7 @@ public class ProducaoService {
                 .toList();
     }
 
-    public ProducaoRetornoDTO atualizarProducaoDoProdutor(Long produtorId, Long producaoId, ProducaoAtualizadaDTO dto) {
+    public ProducaoRetornoDTO atualizar(Long produtorId, Long producaoId, ProducaoAtualizadaDTO dto) {
         // Valida se a produção existe e pertence ao produtor
         var producao = validarProducaoDoProdutor(produtorId, producaoId);
 
@@ -83,7 +83,7 @@ public class ProducaoService {
         return producaoMapper.toRetornoDTO(producao);
     }
 
-    public void deletarProducaoDoProdutor(Long produtorId, Long producaoId) {
+    public void deletar(Long produtorId, Long producaoId) {
         // Valida se a produção existe e pertence ao produtor
         var producao = validarProducaoDoProdutor(produtorId, producaoId);
 

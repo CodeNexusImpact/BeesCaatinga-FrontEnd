@@ -34,7 +34,7 @@ public class ApiarioService {
         return apiarioMapper.toRetornoDTO(apiario);
     }
 
-    public List<ApiarioRetornoDTO> listarApiariosDoProdutor(Long produtorId){
+    public List<ApiarioRetornoDTO> listar(Long produtorId){
         var produtor = repository.findById(produtorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId));
 
@@ -45,7 +45,7 @@ public class ApiarioService {
                 .toList();
     }
 
-    public ApiarioRetornoDTO atualizarApiarioDoProdutor(Long produtorId, Long apiarioId, ApiarioAtualizadoDTO dto){
+    public ApiarioRetornoDTO atualizar(Long produtorId, Long apiarioId, ApiarioAtualizadoDTO dto){
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
@@ -73,7 +73,7 @@ public class ApiarioService {
         return apiarioMapper.toRetornoDTO(apiario);
     }
 
-    public void deletarApiarioDoProdutor(Long produtorId, Long apiarioId){
+    public void deletar(Long produtorId, Long apiarioId){
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
 
