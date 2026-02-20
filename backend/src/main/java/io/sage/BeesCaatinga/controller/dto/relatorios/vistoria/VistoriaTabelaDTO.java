@@ -1,5 +1,6 @@
 package io.sage.BeesCaatinga.controller.dto.relatorios.vistoria;
 
+import lombok.Data;
 import io.sage.BeesCaatinga.model.enums.StatusColmeia;
 import io.sage.BeesCaatinga.model.enums.TipoPerda;
 import io.sage.BeesCaatinga.model.enums.TipoPraga;
@@ -7,6 +8,7 @@ import io.sage.BeesCaatinga.model.enums.TipoPraga;
 import java.time.LocalDate;
 import java.util.List;
 
+@Data
 public class VistoriaTabelaDTO {
 
     private LocalDate dataVistoria;
