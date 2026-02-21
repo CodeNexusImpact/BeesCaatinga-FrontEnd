@@ -11,6 +11,10 @@ jobs:
     # O tipo de máquina virtual que o job irá rodar
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./backend
+
     steps:
     # 1. Faz o checkout do seu repositório para que o workflow possa acessá-lo
     - name: Checkout do repositório
