@@ -7,7 +7,7 @@ on:
     branches: [ "backend/erick" ]
 
 jobs:
-  build:
+  tests:
     # O tipo de máquina virtual que o job irá rodar
     runs-on: ubuntu-latest
 
