@@ -199,8 +199,8 @@ class RelatorioServiceTest {
         LocalDate fim = LocalDate.of(2023, 4, 30);
 
         when(vistoriaRepository.contarVistorias(inicio, fim, apiarioId, colmeiaId)).thenReturn(10L);
-        when(colmeiaRepository.countBySituacaoFiltrando(eq("SAUDAVEL"), eq(apiarioId), eq(colmeiaId))).thenReturn(5L);
-        when(colmeiaRepository.countBySituacaoFiltrando(eq("ATENCAO"), eq(apiarioId), eq(colmeiaId))).thenReturn(3L);
+        when(colmeiaRepository.countBySituacaoFiltrando(eq(StatusColmeia.SAUDAVEL), eq(apiarioId), eq(colmeiaId))).thenReturn(5L);
+        when(colmeiaRepository.countBySituacaoFiltrando(eq(StatusColmeia.MANUTENCAO_NECESSARIA), eq(apiarioId), eq(colmeiaId))).thenReturn(3L);
         when(colmeiaRepository.obterStatusColmeias(apiarioId, colmeiaId))
                 .thenReturn(Arrays.asList(
                         new Object[]{StatusColmeia.SAUDAVEL, 5L},
@@ -229,8 +229,8 @@ class RelatorioServiceTest {
         assertEquals(LocalDate.now(), result.tabela().get(0).getDataVistoria()); // Assert on dataVistoria
 
         verify(vistoriaRepository, times(1)).contarVistorias(inicio, fim, apiarioId, colmeiaId);
-        verify(colmeiaRepository, times(1)).countBySituacaoFiltrando(eq("SAUDAVEL"), eq(apiarioId), eq(colmeiaId));
-        verify(colmeiaRepository, times(1)).countBySituacaoFiltrando(eq("ATENCAO"), eq(apiarioId), eq(colmeiaId));
+        verify(colmeiaRepository, times(1)).countBySituacaoFiltrando(eq(StatusColmeia.SAUDAVEL), eq(apiarioId), eq(colmeiaId));
+        verify(colmeiaRepository, times(1)).countBySituacaoFiltrando(eq(StatusColmeia.MANUTENCAO_NECESSARIA), eq(apiarioId), eq(colmeiaId));
         verify(colmeiaRepository, times(1)).obterStatusColmeias(apiarioId, colmeiaId);
         verify(vistoriaRepository, times(1)).obterVistoriasMensais(inicio, fim, apiarioId, colmeiaId);
         verify(vistoriaRepository, times(1)).listarVistorias(inicio, fim, apiarioId, colmeiaId);

@@ -116,11 +116,11 @@ public class RelatorioService {
         );
 
         Long saudaveis = colmeiaRepository.countBySituacaoFiltrando(
-                "SAUDAVEL", filtro.apiarioId(), filtro.colmeiaId()
+                StatusColmeia.SAUDAVEL, filtro.apiarioId(), filtro.colmeiaId()
         );
 
         Long emAtencao = colmeiaRepository.countBySituacaoFiltrando(
-                "ATENCAO", filtro.apiarioId(), filtro.colmeiaId()
+                StatusColmeia.MANUTENCAO_NECESSARIA, filtro.apiarioId(), filtro.colmeiaId()
         );
 
         List<StatusColmeiasDTO> statusColmeias =
