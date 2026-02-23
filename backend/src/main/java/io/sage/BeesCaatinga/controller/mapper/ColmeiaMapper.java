@@ -22,7 +22,9 @@ public interface ColmeiaMapper {
     Colmeia toEntityFromAtualizada(ColmeiaAtualizadaDTO dto,
                      @Context ApiarioRepository apiarioRepository);
     @Mapping(target = "nomeApiario", source = "apiario.nome")
+    @Mapping(target = "statusColmeia", source = "situacao")
     ColmeiaRetornoDTO toRetornoDTO(Colmeia entidade);
+    @Mapping(target = "statusColmeia", source = "situacao")
     ColmeiaRetornoEmApiarioDTO toRetornoEmApiarioDTO(Colmeia entidade);
 
     default Apiario mapApiario(Long apiario_id, @Context ApiarioRepository apiarioRepository){

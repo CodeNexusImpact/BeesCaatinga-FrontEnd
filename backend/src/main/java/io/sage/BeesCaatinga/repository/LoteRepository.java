@@ -28,8 +28,8 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     @Query("""
     SELECT COUNT(l)
     FROM Lote l
-    WHERE (:inicio IS NULL OR l.dataProducao >= :inicio)
-      AND (:fim IS NULL OR l.dataProducao <= :fim)
+    WHERE l.dataProducao >= :inicio
+      AND l.dataProducao <= :fim
       AND (:apiarioId IS NULL OR l.apiario.id = :apiarioId)
       AND (:colmeiaId IS NULL OR l.id = :colmeiaId)
     """)
@@ -38,8 +38,8 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     @Query("""
     SELECT SUM(l.quantidadeProduzida)
     FROM Lote l
-    WHERE (:inicio IS NULL OR l.dataProducao >= :inicio)
-      AND (:fim IS NULL OR l.dataProducao <= :fim)
+    WHERE l.dataProducao >= :inicio
+      AND l.dataProducao <= :fim
       AND (:apiarioId IS NULL OR l.apiario.id = :apiarioId)
       AND (:colmeiaId IS NULL OR l.id = :colmeiaId)
     """)
@@ -48,8 +48,8 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     @Query("""
     SELECT COUNT(l)
     FROM Lote l
-    WHERE (:inicio IS NULL OR l.dataProducao >= :inicio)
-      AND (:fim IS NULL OR l.dataProducao <= :fim)
+    WHERE l.dataProducao >= :inicio
+      AND l.dataProducao <= :fim
       AND l.vendido = true
       AND (:apiarioId IS NULL OR l.apiario.id = :apiarioId)
       AND (:colmeiaId IS NULL OR l.id = :colmeiaId)
@@ -59,8 +59,8 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     @Query("""
     SELECT l.tipoAbelha, COUNT(l)
     FROM Lote l
-    WHERE (:inicio IS NULL OR l.dataProducao >= :inicio)
-      AND (:fim IS NULL OR l.dataProducao <= :fim)
+    WHERE l.dataProducao >= :inicio
+      AND l.dataProducao <= :fim
       AND (:apiarioId IS NULL OR l.apiario.id = :apiarioId)
       AND (:colmeiaId IS NULL OR l.id = :colmeiaId)
     GROUP BY l.tipoAbelha
@@ -70,8 +70,8 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     @Query("""
     SELECT l.tipoFlorada, COUNT(l)
     FROM Lote l
-    WHERE (:inicio IS NULL OR l.dataProducao >= :inicio)
-      AND (:fim IS NULL OR l.dataProducao <= :fim)
+    WHERE l.dataProducao >= :inicio
+      AND l.dataProducao <= :fim
       AND (:apiarioId IS NULL OR l.apiario.id = :apiarioId)
       AND (:colmeiaId IS NULL OR l.id = :colmeiaId)
     GROUP BY l.tipoFlorada
@@ -88,8 +88,8 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         l.tipoAbelha
     )
     FROM Lote l
-    WHERE (:inicio IS NULL OR l.dataProducao >= :inicio)
-      AND (:fim IS NULL OR l.dataProducao <= :fim)
+    WHERE l.dataProducao >= :inicio
+      AND l.dataProducao <= :fim
       AND (:apiarioId IS NULL OR l.apiario.id = :apiarioId)
       AND (:colmeiaId IS NULL OR l.id = :colmeiaId)
     ORDER BY l.dataProducao DESC

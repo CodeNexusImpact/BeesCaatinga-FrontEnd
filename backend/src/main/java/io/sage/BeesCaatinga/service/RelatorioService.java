@@ -2,9 +2,6 @@ package io.sage.BeesCaatinga.service;
 
 import io.sage.BeesCaatinga.controller.dto.FiltroBuscaDTO;
 import io.sage.BeesCaatinga.controller.dto.IntervaloDatas;
-import io.sage.BeesCaatinga.controller.dto.relatorios.insumos.InsumoTabelaDTO;
-import io.sage.BeesCaatinga.controller.dto.relatorios.insumos.RelatorioInsumosDTO;
-import io.sage.BeesCaatinga.controller.dto.relatorios.insumos.TipoInsumoQuantidadeDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.LoteMelDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.ProducaoMensalDTO;
 import io.sage.BeesCaatinga.controller.dto.relatorios.producao.RelatorioProducaoDTO;
@@ -119,11 +116,11 @@ public class RelatorioService {
         );
 
         Long saudaveis = colmeiaRepository.countBySituacaoFiltrando(
-                "SAUDAVEL", filtro.apiarioId(), filtro.colmeiaId()
+                StatusColmeia.SAUDAVEL, filtro.apiarioId(), filtro.colmeiaId()
         );
 
         Long emAtencao = colmeiaRepository.countBySituacaoFiltrando(
-                "ATENCAO", filtro.apiarioId(), filtro.colmeiaId()
+                StatusColmeia.MANUTENCAO_NECESSARIA, filtro.apiarioId(), filtro.colmeiaId()
         );
 
         List<StatusColmeiasDTO> statusColmeias =
@@ -239,7 +236,8 @@ public class RelatorioService {
         );
     }
 
-//     public RelatorioInsumosDTO gerarRelatorioInsumos(FiltroBuscaDTO filtro) {
+    /*
+    public RelatorioInsumosDTO gerarRelatorioInsumos(FiltroBuscaDTO filtro) {
 
 //         Long produtorId = produtorService.getProdutorIdLogado();
 
@@ -301,6 +299,8 @@ public class RelatorioService {
 //                 tabela
 //         );
 //     }
+
+     */
 
     private double calcularConsumoEstimado(List<Insumo> insumos, IntervaloDatas intervalo) {
         double totalQtd = insumos.stream()

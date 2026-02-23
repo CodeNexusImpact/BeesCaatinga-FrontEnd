@@ -11,9 +11,10 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ColmeiaMapper.class})
 public interface ApiarioMapper {
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "NRegistro", source = "nRegistro")
     @Mapping(target = "colmeias", ignore = true)
     @Mapping(target = "produtor", expression = "java(mapProdutor(dto.produtor_id(), produtorRepository))")
     Apiario toEntityFromCriado(ApiarioCriadoDTO dto,
