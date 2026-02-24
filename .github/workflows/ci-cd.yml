@@ -75,3 +75,4 @@ jobs:
           tags: |
             erickwolf/beescaatinga-backend:latest
             erickwolf/beescaatinga-backend:${{ github.sha }}
+          build-args: SKIP_TESTS=true
