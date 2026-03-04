@@ -36,7 +36,7 @@ public class LoteController {
         return ResponseEntity.ok(lotes);
     }
 
-    @GetMapping("/{produtorId}")
+    @GetMapping("/{produtorId}/detalhado")
     public ResponseEntity<List<LoteRetornoListadoDTO>> listarDetalhado(@PathVariable Long produtorId){
         var lotes = service.listarDetalhados(produtorId);
         return ResponseEntity.ok(lotes);

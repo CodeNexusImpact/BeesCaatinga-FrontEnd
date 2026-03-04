@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/beescaatinga-db
     username: postgres
-    password: '0000'
+    password: '1234'
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 10
