@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Input from '@/components/input';
-import { EnderecoProps } from '@/types/Endereco';
+import { EnderecoProps } from '@/types/common/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
 import { maskCEP } from '@/utils/masks';
 

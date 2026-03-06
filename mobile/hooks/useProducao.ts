@@ -93,20 +93,24 @@ export const useProducao = (filtros: any = {}): UseProducaoResult => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Aplica filtros (simulação simples)
-      let filteredData = [...mockData];
+      // Integração com o backend real
+      const produtorId = 1; // ID do produtor mockado para integração
+      const response = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
+      let fetchedData = response.data;
+
+      // Aplica filtros
       if (filtros.ano) {
-        filteredData = filteredData.filter(item => item.dataColeta.includes(filtros.ano));
+        fetchedData = fetchedData.filter(item => item.dataColeta.includes(filtros.ano));
       }
       if (filtros.mes) {
         const mesPreenchido = filtros.mes.padStart(2, '0');
-        filteredData = filteredData.filter(item => item.dataColeta.includes(`-${mesPreenchido}-`));
+        fetchedData = fetchedData.filter(item => item.dataColeta.includes(`-${mesPreenchido}-`));
       }
       if (filtros.apiario) {
-        filteredData = filteredData.filter(item => item.nomeApiario === filtros.apiario);
+        fetchedData = fetchedData.filter(item => item.nomeApiario === filtros.apiario);
       }
 
-      setData(filteredData);
+      setData(fetchedData);
       setKpis(mockKpis);
       setGraficos(mockGraficos);
     } catch (err) {

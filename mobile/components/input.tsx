@@ -97,6 +97,8 @@ const Input = React.forwardRef<InputRef, InputProps>(({
     );
 });
 
+Input.displayName = 'Input';
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
