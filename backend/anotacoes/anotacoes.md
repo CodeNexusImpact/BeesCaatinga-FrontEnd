@@ -12,3 +12,31 @@
 
 ## Apiário x Produtor
 ![img.png](imagens/img3.png)
+
+---
+
+# Ajustes Realizados (15/04/2026)
+
+## 1. DTOs e Entidades
+- **ApiarioRetornoDTO**: Adicionado campo `Long id`.
+- **ColmeiaRetornoDTO**: Adicionado campo `Long id`.
+- **InsumoRetornoDTO**: Adicionado campo `Long id`.
+- **VistoriaRetornoDTO**: Adicionado campo `Long id`.
+- **VistoriaAtualizadaDTO**: Removidos campos redundantes `apiario_id` e `colmeia_id`.
+- **ColmeiaAtualizadaDTO**: Removido campo redundante `apiario_id`.
+
+## 2. Autenticação e Login
+- **ProdutorRepository**: Adicionados métodos `findByEmail` e `findByEmailAndSenha`.
+- **LoginDTO**: Criado DTO para a requisição de login (email e senha).
+- **AutenticacaoController**: Criado endpoint `POST /login` que retorna o `ProdutorRetornoDTO` em caso de sucesso.
+
+## 3. Serviços e Mapeamento
+- **ColmeiaService / VistoriaService**: Ajustados para não utilizar os IDs redundantes nos métodos de atualização.
+- **ColmeiaMapper / VistoriaMapper**: Atualizados para refletir as mudanças nos DTOs de atualização.
+
+## 4. Docker e Orquestração
+- **Frontend (mobile)**: Criado `Dockerfile` para build da versão web do Expo e serviço via Nginx.
+- **Root Docker Compose**: Criado `docker-compose.yml` na raiz do projeto para orquestrar:
+  - `db`: PostgreSQL 18.
+  - `backend`: Aplicação Spring Boot (porta 8080).
+  - `frontend`: Aplicação Mobile/Web (porta 80).

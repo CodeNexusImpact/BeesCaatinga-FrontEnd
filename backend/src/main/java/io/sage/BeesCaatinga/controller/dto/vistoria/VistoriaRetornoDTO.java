@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record VistoriaRetornoDTO(
+        Long id,
         LocalDate dataVistoria,
         CondicaoVistoria condicao,
         String nomeColmeia,

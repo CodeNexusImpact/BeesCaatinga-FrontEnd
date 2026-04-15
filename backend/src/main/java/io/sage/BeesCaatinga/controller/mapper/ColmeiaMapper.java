@@ -18,9 +18,7 @@ public interface ColmeiaMapper {
     @Mapping(target = "apiario", expression = "java(mapApiario(dto.apiario_id(), apiarioRepository))")
     Colmeia toEntityFromCriada(ColmeiaCriadaDTO dto,
                      @Context ApiarioRepository apiarioRepository);
-    @Mapping(target = "apiario", expression = "java(mapApiario(dto.apiario_id(), apiarioRepository))")
-    Colmeia toEntityFromAtualizada(ColmeiaAtualizadaDTO dto,
-                     @Context ApiarioRepository apiarioRepository);
+    Colmeia toEntityFromAtualizada(ColmeiaAtualizadaDTO dto);
     @Mapping(target = "nomeApiario", source = "apiario.nome")
     @Mapping(target = "statusColmeia", source = "situacao")
     ColmeiaRetornoDTO toRetornoDTO(Colmeia entidade);

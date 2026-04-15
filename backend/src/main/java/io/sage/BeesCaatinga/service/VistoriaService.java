@@ -70,22 +70,6 @@ public class VistoriaService {
         if (dto.perdasIdentificadas() != null) vistoria.setPerdasIdentificadas(dto.perdasIdentificadas());
         if (dto.observacoes() != null) vistoria.setObservacoes(dto.observacoes());
 
-        if (dto.apiario_id() != null && !dto.apiario_id().equals(vistoria.getApiario().getId())) {
-            var novoApiario = validarApiarioDoProdutor(produtorId, dto.apiario_id());
-            vistoria.setApiario(novoApiario);
-        }
-
-        if (dto.colmeia_id() != null && !dto.colmeia_id().equals(vistoria.getColmeia().getId())) {
-            var novaColmeia = colmeiaRepository.findById(dto.colmeia_id())
-                    .orElseThrow(() -> new ResourceNotFoundException("Colmeia não encontrada"));
-
-            if (!novaColmeia.getApiario().getProdutor().getId().equals(produtorId)) {
-                throw new ResourceNotFoundException("Nova colmeia não pertence ao produtor");
-            }
-
-            vistoria.setColmeia(novaColmeia);
-        }
-
         vistoriaRepository.save(vistoria);
         return vistoriaMapper.toRetornoDTO(vistoria);
     }

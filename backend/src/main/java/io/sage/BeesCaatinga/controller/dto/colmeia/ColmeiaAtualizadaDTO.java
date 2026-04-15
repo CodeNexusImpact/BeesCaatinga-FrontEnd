@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 
 public record ColmeiaAtualizadaDTO(
         String identificador,
-        Long apiario_id,
         TipoColmeia tipo,
         Boolean ativa,
         String observacoes,

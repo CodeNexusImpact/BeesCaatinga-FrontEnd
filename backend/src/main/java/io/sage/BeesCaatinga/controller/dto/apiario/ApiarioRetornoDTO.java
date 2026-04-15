@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ApiarioRetornoDTO(
+        Long id,
         String nome,
         String caminhoDaFoto,
         String nRegistro,
