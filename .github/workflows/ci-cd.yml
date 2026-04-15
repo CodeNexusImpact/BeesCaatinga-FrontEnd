@@ -24,6 +24,14 @@ jobs:
       - name: Iniciar banco de dados para testes
         run: docker compose up -d db
 
+      - name: Aguardar o PostgreSQL
+        run: |
+          echo "Aguardando o PostgreSQL..."
+          until docker exec postgres_db pg_isready -U erick -d teste_db; do
+            sleep 2
+          done
+          echo "PostgreSQL está pronto!"
+
       - name: Rodar os testes com Maven
         working-directory: ./backend
         run: ./mvnw test
@@ -34,8 +42,7 @@ jobs:
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
-          #- name: Validar sintaxe do Docker Compose
-          #run: docker compose config
+      
       - name: Validar sintaxe do Docker Compose
         run: docker compose -f docker-compose.yml config
 
