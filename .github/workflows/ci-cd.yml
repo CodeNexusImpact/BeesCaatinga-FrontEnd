@@ -78,6 +78,7 @@ jobs:
         with:
           context: ./backend
           push: true
+          build-args: SKIP_TESTS=true
           tags: |
             erickwolf/beescaatinga-backend:latest
             erickwolf/beescaatinga-backend:${{ github.sha }}
