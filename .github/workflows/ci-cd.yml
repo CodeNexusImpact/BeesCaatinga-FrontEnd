@@ -34,9 +34,10 @@ jobs:
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
-      
+          #- name: Validar sintaxe do Docker Compose
+          #run: docker compose config
       - name: Validar sintaxe do Docker Compose
-        run: docker compose config
+        run: docker compose -f docker-compose.yml config
 
   build-and-push-images:
     name: Buildar e Enviar Imagens Docker
