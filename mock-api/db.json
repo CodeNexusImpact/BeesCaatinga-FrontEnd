@@ -1,0 +1,146 @@
+{
+  "produtores": [
+    {
+      "id": 1,
+      "caminhoDaFoto": "https://randomuser.me/api/portraits/men/1.jpg",
+      "nomeCompleto": "João Abelha",
+      "genero": "MASCULINO",
+      "email": "joao@example.com",
+      "senha": "123",
+      "nomeDaEmpresa": "Mel do Sertão",
+      "telefone": "(87) 98888-8888",
+      "endereco": "Sertão Central, PE"
+    },
+    {
+      "nomeCompleto": "gesus",
+      "telefone": "(12) 34567-8989",
+      "email": "gab@email.com",
+      "dataDeNascimento": "10/02/1998",
+      "genero": "MASCULINO",
+      "senha": "Ab.123456",
+      "id": 2
+    }
+  ],
+  "apiarios": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "nome": "Apiário Morada Nova",
+      "caminhoDaFoto": "https://images.unsplash.com/photo-1587334274328-64186a80aeee",
+      "nRegistro": "REG-12345",
+      "dataDeCriacao": "2023-01-15",
+      "observacoes": "Localizado perto do riacho.",
+      "cep": "56000-000",
+      "nomeDaPropriedade": "Fazenda Esperança",
+      "estado": "Pernambuco",
+      "cidade": "Salgueiro",
+      "bairro": "Rural",
+      "rua": "Estrada de Acesso 1",
+      "numero": "S/N",
+      "complemento": "KM 12",
+      "colmeias": [
+        {
+          "identificador": "C01",
+          "statusColmeia": "SAUDAVEL"
+        },
+        {
+          "identificador": "C02",
+          "statusColmeia": "MANUTENCAO_NECESSARIA"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "produtorId": 1,
+      "nome": "Apiário Vale Verde",
+      "caminhoDaFoto": "https://images.unsplash.com/photo-1590633802953-ce2099309253",
+      "nRegistro": "REG-67890",
+      "dataDeCriacao": "2023-06-20",
+      "observacoes": "Muitas flores de Jazeiro.",
+      "cep": "56000-000",
+      "nomeDaPropriedade": "Sítio Bonito",
+      "estado": "Pernambuco",
+      "cidade": "Salgueiro",
+      "bairro": "Rural",
+      "rua": "Estrada de Acesso 2",
+      "numero": "S/N",
+      "complemento": "",
+      "colmeias": []
+    }
+  ],
+  "colmeias": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "identificador": "C01",
+      "tipo": "LANGSTROTH",
+      "ativa": true,
+      "statusColmeia": "SAUDAVEL",
+      "observacoes": "Produção forte.",
+      "detalhesDaLocalizacao": "Lado norte do apiário",
+      "caminhoDaFoto": null,
+      "latitude": -8.0743,
+      "longitude": -39.1189
+    },
+    {
+      "id": 2,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "identificador": "C02",
+      "tipo": "LANGSTROTH",
+      "ativa": true,
+      "statusColmeia": "MANUTENCAO_NECESSARIA",
+      "observacoes": "Precisa trocar tampa.",
+      "detalhesDaLocalizacao": "Lado sul",
+      "caminhoDaFoto": null,
+      "latitude": -8.0744,
+      "longitude": -39.119
+    },
+    {
+      "id": 3,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "identificador": "C03",
+      "tipo": "LANGSTROTH",
+      "ativa": false,
+      "statusColmeia": "INATIVO",
+      "observacoes": "Enxame abandonou.",
+      "detalhesDaLocalizacao": "Centro",
+      "caminhoDaFoto": null,
+      "latitude": -8.0745,
+      "longitude": -39.1191
+    }
+  ],
+  "insumos": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "nome": "Cera Alveolada",
+      "quantidade": 50,
+      "unidadeMedida": "KG",
+      "statusInsumo": "DISPONIVEL"
+    }
+  ],
+  "producoes": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "loteId": 1,
+      "data": "2024-05-10",
+      "quantidade": 100,
+      "unidadeMedida": "KG",
+      "tipoFlorada": "SILVESTRE"
+    }
+  ],
+  "vistorias": [
+    {
+      "id": 1,
+      "colmeiaId": 1,
+      "data": "2024-05-01",
+      "condicaoVistoria": "EXCELENTE",
+      "observacoes": "Tudo ok."
+    }
+  ]
+}
