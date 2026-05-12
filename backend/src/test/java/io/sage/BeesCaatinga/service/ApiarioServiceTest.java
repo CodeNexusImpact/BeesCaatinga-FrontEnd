@@ -117,6 +117,7 @@ class ApiarioServiceTest {
         );
 
         apiarioRetornoDTO = new ApiarioRetornoDTO(
+                apiario.getId(),
                 apiario.getNome(),
                 apiario.getCaminhoDaFoto(),
                 apiario.getNRegistro(),

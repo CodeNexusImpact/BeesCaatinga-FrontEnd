@@ -65,6 +65,7 @@ class InsumoServiceTest {
         insumo.setUnidadeMedida(UnidadeMedida.UNIDADE);
 
         insumoRetornoDTO = new InsumoRetornoDTO(
+                insumo.getId(),
                 LocalDate.now(), "Cera de Abelha", "Material", 10.0,
                 UnidadeMedida.UNIDADE, StatusInsumo.DISPONIVEL, "Não informado"
         );

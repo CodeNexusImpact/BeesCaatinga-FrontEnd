@@ -23,12 +23,7 @@ public interface VistoriaMapper {
                                 @Context ApiarioRepository apiarioRepository,
                                 @Context ColmeiaRepository colmeiaRepository);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "apiario", expression = "java(mapApiario(dto.apiario_id(), apiarioRepository))")
-    @Mapping(target = "colmeia", expression = "java(mapColmeia(dto.colmeia_id(), colmeiaRepository))")
-    Vistoria toEntityFromAtualizada(VistoriaAtualizadaDTO dto,
-                                    @Context ApiarioRepository apiarioRepository,
-                                    @Context ColmeiaRepository colmeiaRepository);
+    Vistoria toEntityFromAtualizada(VistoriaAtualizadaDTO dto);
 
     @Mapping(target = "nomeColmeia", source = "colmeia.identificador")
     @Mapping(target = "nomeApiario", source = "apiario.nome")
