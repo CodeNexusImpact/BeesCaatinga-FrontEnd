@@ -1,62 +1,92 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/selector';
 import Botao from '@/components/botao';
 import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
+import { getProducao } from '@/services/producaoService';
+import { useAuth } from '@/hooks/useAuth';
+import type { ProducaoRetornoDTO } from '@/types/producao';
 
-// --- Interfaces e Dados ---
+// --- Interfaces ---
 interface DadosProducao {
     id: string;        
     loteId: string;
-    ano: string;      
     dataExtracao: string;
     pesoLitro: string;
-    qualidade: string; // Nova coluna
+    qualidade: string;
     status: string;
 }
-
-// --- DADOS DINÂMICOS (Base local) ---
-const MASTER_TABLE_DATA: DadosProducao[] = [
-    { id: '1', loteId: 'LT-25-01', ano: '2025', dataExtracao: '15/01/2025', pesoLitro: '22,0 Kg', qualidade: 'Premium', status: 'Aprovado' },
-    { id: '2', loteId: 'LT-25-02', ano: '2025', dataExtracao: '20/02/2025', pesoLitro: '18,5 Kg', qualidade: 'Standard', status: 'Em Análise' },
-    { id: '3', loteId: 'LT-25-03', ano: '2025', dataExtracao: '10/03/2025', pesoLitro: '25,0 Kg', qualidade: 'Premium', status: 'Aprovado' },
-    { id: '4', loteId: 'LT-24-01', ano: '2024', dataExtracao: '05/11/2024', pesoLitro: '15,0 Kg', qualidade: 'Baixa', status: 'Reprovado' },
-    { id: '5', loteId: 'LT-24-02', ano: '2024', dataExtracao: '12/12/2024', pesoLitro: '12,8 Kg', qualidade: 'Standard', status: 'Aprovado' },
-    { id: '6', loteId: 'LT-24-03', ano: '2024', dataExtracao: '20/12/2024', pesoLitro: '30,0 Kg', qualidade: 'Premium', status: 'Aprovado' },
-];
 
 const colunasDoRelatorio: TabelaColuna<DadosProducao>[] = [
     { label: 'Lote', dataKey: 'loteId', sortable: true, flex: 2 },
     { label: 'Data', dataKey: 'dataExtracao', sortable: true, flex: 3 },
-    { label: 'Peso', dataKey: 'pesoLitro', sortable: true, flex: 2 },
-    { label: 'Qualidade', dataKey: 'qualidade', sortable: true, flex: 2 }, // Coluna extra pra testar o scroll
+    { label: 'Peso/Qtd', dataKey: 'pesoLitro', sortable: true, flex: 2 },
+    { label: 'Qualidade', dataKey: 'qualidade', sortable: true, flex: 2 },
     { label: 'Status', dataKey: 'status', sortable: true, flex: 2 },
 ];
 
-// --- Opções de Filtro ---
 const anoOptions = [
     { label: 'Todos os Anos', value: '' }, 
     { label: '2025', value: '2025' }, 
     { label: '2024', value: '2024' },
 ];
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '—';
+  const [ano, mes, dia] = dateStr.split('-');
+  return `${dia}/${mes}/${ano}`;
+};
+
+const formatStatus = (status: string) => {
+  return status === 'EM_ESTOQUE' ? 'Em Estoque' : 'Vendido';
+};
+
+const formatQualidade = (qualidade: string) => {
+  return qualidade === 'APROVADO' ? 'Aprovado' : 'Não Avaliado';
+};
+
 export default function RelatorioProducaoTabela() {
+    const { session } = useAuth();
     const [ano, setAno] = useState('');
+    const [producoes, setProducoes] = useState<DadosProducao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const carregarDados = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const produtorId = session || '1';
+            const data = await getProducao({ userId: produtorId, ano: ano || undefined });
+            
+            const formatados: DadosProducao[] = data.map(p => ({
+                id: String(p.id),
+                loteId: p.id ? `LT-${p.id}` : '—', // Usando ID como fallback para Lote
+                dataExtracao: formatDate(p.dataColeta),
+                pesoLitro: `${p.quantidade}`,
+                qualidade: formatQualidade(p.statusQualidade),
+                status: formatStatus(p.statusProduto)
+            }));
+
+            setProducoes(formatados);
+        } catch (error) {
+            console.error('Erro ao carregar dados da tabela:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [session, ano]);
+
+    useFocusEffect(
+        useCallback(() => {
+            carregarDados();
+        }, [carregarDados])
+    );
 
     const handleExportar = () => {
-        alert(`Exportando ${dadosFiltrados.length} registros...`);
+        alert(`Exportando ${producoes.length} registros...`);
     };
-
-    // --- LÓGICA: Filtra os dados quando o state 'ano' muda ---
-    const dadosFiltrados = useMemo(() => {
-        return MASTER_TABLE_DATA.filter(item => {
-            return ano === '' ? true : item.ano === ano;
-        });
-    }, [ano]);
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -74,28 +104,31 @@ export default function RelatorioProducaoTabela() {
                 />
             </View>
 
-            <Text style={{textAlign:'center', fontSize: 12, color: '#888', marginBottom: 5}}>
-                {dadosFiltrados.length} registros encontrados
-            </Text>
+            {isLoading ? (
+                <ActivityIndicator size="large" color={cores.primaria} />
+            ) : (
+                <>
+                    <Text style={{textAlign:'center', fontSize: 12, color: '#888', marginBottom: 5}}>
+                        {producoes.length} registros encontrados
+                    </Text>
 
-            {/* --- TABELA COM SCROLL HORIZONTAL --- */}
-            <View style={styles.tabelaContainer}>
-                <ScrollView 
-                    horizontal={true} 
-                    showsHorizontalScrollIndicator={false} // Esconde a barra cinza
-                    contentContainerStyle={styles.scrollContentTabela}
-                >
-                    {/* minWidth: Força a View interna a ser larga. 
-                        Se a tela for menor que 900px, o scroll ativa. */}
-                    <View style={{ minWidth: 900 }}>
-                        <TabelaGenerica
-                            colunas={colunasDoRelatorio}
-                            data={dadosFiltrados}
-                        />
+                    <View style={styles.tabelaContainer}>
+                        <ScrollView 
+                            horizontal={true} 
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.scrollContentTabela}
+                        >
+                            <View style={{ minWidth: 900 }}>
+                                <TabelaGenerica
+                                    colunas={colunasDoRelatorio}
+                                    data={producoes}
+                                />
+                            </View>
+                        </ScrollView>
                     </View>
-                </ScrollView>
-            </View>
-            <Text style={styles.dicaScroll}>Deslize para o lado para ver mais detalhes</Text>
+                    <Text style={styles.dicaScroll}>Deslize para o lado para ver mais detalhes</Text>
+                </>
+            )}
 
             <Botao
                 title="Exportar Relatório"
@@ -119,11 +152,11 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#e0e0e0',
-        overflow: 'hidden' // Garante que bordas arredondadas funcionem
+        overflow: 'hidden' 
     },
     
     scrollContentTabela: {
-        paddingRight: 20 // Espaço para não cortar o último item
+        paddingRight: 20 
     },
 
     dicaScroll: {

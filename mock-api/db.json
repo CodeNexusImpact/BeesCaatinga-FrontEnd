@@ -124,14 +124,60 @@
   ],
   "producoes": [
     {
-      "id": 1,
-      "produtorId": 1,
-      "apiarioId": 1,
-      "loteId": 1,
-      "data": "2024-05-10",
-      "quantidade": 100,
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 5,
       "unidadeMedida": "KG",
-      "tipoFlorada": "SILVESTRE"
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-05-12",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "id": 2
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 10,
+      "unidadeMedida": "KILOGRAMA",
+      "apiarioId": 1,
+      "colmeiaId": 2,
+      "dataColeta": "2026-06-12",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 2",
+      "id": 3
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 7,
+      "unidadeMedida": "LITRO",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-08-02",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "id": 4
+    },
+    {
+      "tipoProducao": "Mel de Marmeleiro",
+      "quantidade": 3,
+      "unidadeMedida": "LITRO",
+      "apiarioId": 2,
+      "colmeiaId": 2,
+      "dataColeta": "2026-08-02",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Vale das Abelhas",
+      "nomeColmeia": "Colmeia 2",
+      "id": 5
     }
   ],
   "vistorias": [
