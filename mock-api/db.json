@@ -40,10 +40,12 @@
       "complemento": "KM 12",
       "colmeias": [
         {
+          "id": 1,
           "identificador": "C01",
           "statusColmeia": "SAUDAVEL"
         },
         {
+          "id": 2,
           "identificador": "C02",
           "statusColmeia": "MANUTENCAO_NECESSARIA"
         }

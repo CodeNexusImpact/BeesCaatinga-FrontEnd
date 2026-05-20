@@ -1,57 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import {cores, temaCores} from '@/constants/cores';
+import { cores, temaCores } from '@/constants/cores';
 import { ColmeiaRetornoEmApiarioDTO, StatusColmeia } from '@/types/apiario/colmeia';
-
-function openColmeiaDetails(identificador: number) {
-    console.log("Abrir detalhes da colmeia:", identificador);
-}
 
 const ColmeiaItem: React.FC<ColmeiaRetornoEmApiarioDTO> = ({ id, identificador, statusColmeia }) => {
     const [cor, setCorStatus] = useState(temaCores.sucesso);
     const [statusTexto, setStatusTexto] = useState('');
+    
 
     useEffect(() => {
         // Mapeamento visual para o Enum
         switch (statusColmeia) {
             case 'SAUDAVEL':
-                setCorStatus(temaCores.sucesso); 
+                setCorStatus(temaCores.sucesso);
                 setStatusTexto('Saudável');
                 break;
-            
+
             case 'TRATAMENTO_NECESSARIO': // Antigo "Tratamento Necessário"
                 setCorStatus(temaCores.alerta);
                 setStatusTexto('Tratamento');
                 break;
-            
+
             case 'MANUTENCAO_NECESSARIA':
-                setCorStatus(temaCores.alerta); 
+                setCorStatus(temaCores.alerta);
                 setStatusTexto('Manutenção');
                 break;
 
             case 'PERIGO_CLIMATICO':
-                setCorStatus(temaCores.perigo); 
+                setCorStatus(temaCores.perigo);
                 setStatusTexto('Perigo Climático');
                 break;
-                
+
             case 'INATIVO':
-                setCorStatus(cores.base[60]); 
+                setCorStatus(cores.base[60]);
                 setStatusTexto('Inativa');
                 break;
 
             default:
-                setCorStatus('gray'); 
+                setCorStatus('gray');
                 setStatusTexto(statusColmeia);
         }
     }, [statusColmeia]);
 
+    function openColmeiaDetails() {
+        console.log("Abrir detalhes da colmeia:", id);
+    }
+
     return (
-        <TouchableOpacity style={styles.subItem} onPress={() => openColmeiaDetails(id)}>
+        <TouchableOpacity style={styles.subItem} onPress={() => openColmeiaDetails()}>
             <Text style={styles.subItemText}>{identificador}</Text>
             <Text style={styles.subItemDescription}>{statusTexto}</Text>
             <View style={[styles.circle, { backgroundColor: cor }]} />
         </TouchableOpacity>
-    );
+    );    
 }
 
 const styles = StyleSheet.create({
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 8,
         overflow: 'hidden',
-    },    
+    },
     subItem: {
         flexDirection: 'row',
         alignItems: 'center',
