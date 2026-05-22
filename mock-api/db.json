@@ -256,6 +256,28 @@
       "observacoes": "",
       "produtorId": 1,
       "id": 2
+    },
+    {
+      "data": "22/05/2025",
+      "apiarioId": "2",
+      "colmeiaId": "2",
+      "condicaoVistoria": "risco",
+      "observacoes": "",
+      "pragas": [
+        "Varroa",
+        "Formiga",
+        "Traca",
+        "Lagartixa",
+        "Outro"
+      ],
+      "perdas": [
+        "Alimentacao",
+        "Veneno",
+        "Clima",
+        "Outro"
+      ],
+      "produtorId": 1,
+      "id": 3
     }
   ]
 }

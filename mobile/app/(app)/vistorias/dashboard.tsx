@@ -8,6 +8,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useFocusEffect } from 'expo-router';
 import { getKpisVistorias, getGraficosVistorias } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -28,6 +29,9 @@ const statusOptions = [
 ];
 
 export default function DashboardVistoria() {
+    const { session } = useAuth();
+    const produtorId = session || 1;
+
     const [anoSelecionado, setAnoSelecionado] = useState('');
     const [statusSelecionado, setStatusSelecionado] = useState('');
     const [loading, setLoading] = useState(true);
@@ -38,7 +42,6 @@ export default function DashboardVistoria() {
     const carregarDados = useCallback(async () => {
         try {
             setLoading(true);
-            const produtorId = 1; 
             
             const [novosKpis, novosGraficos] = await Promise.all([
                 getKpisVistorias(produtorId, anoSelecionado, statusSelecionado),
@@ -53,7 +56,7 @@ export default function DashboardVistoria() {
         } finally {
             setLoading(false);
         }
-    }, [anoSelecionado, statusSelecionado]);
+    }, [produtorId, anoSelecionado, statusSelecionado]);
 
     useFocusEffect(
         useCallback(() => {

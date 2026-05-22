@@ -1,1 +1,4 @@
 mock-api/node_modules/
+
+# JVM crash logs
+hs_err_pid*.log

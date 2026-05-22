@@ -81,6 +81,16 @@ export default function DetalhesVistoria() {
             {vistoria.condicaoVistoria?.toUpperCase()}
         </Text>
 
+        <Text style={styles.label}>Pragas Identificadas:</Text>
+        <Text style={styles.value}>
+            {vistoria.pragas && vistoria.pragas.length > 0 ? vistoria.pragas.join(', ') : 'Nenhuma'}
+        </Text>
+
+        <Text style={styles.label}>Perdas Registradas:</Text>
+        <Text style={styles.value}>
+            {vistoria.perdas && vistoria.perdas.length > 0 ? vistoria.perdas.join(', ') : 'Nenhuma'}
+        </Text>
+
         <Text style={styles.label}>Apiário ID:</Text>
         <Text style={styles.value}>{vistoria.apiarioId}</Text>
 
@@ -120,6 +130,6 @@ const styles = StyleSheet.create({
     borderColor: cores.cores.base[20],
   },
   label: { fontSize: 14, color: cores.placeholder, marginBottom: 4 },
-  value: { fontSize: 18, color: cores.texto, marginBottom: 16, fontWeight: '500' },
+  value: { fontSize: 16, color: cores.texto, marginBottom: 16, fontWeight: '500' },
   acoes: { gap: layout.espacamento.amigavel, marginTop: 20 }
 });

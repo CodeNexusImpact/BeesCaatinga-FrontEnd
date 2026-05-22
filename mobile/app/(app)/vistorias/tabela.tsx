@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
 import Selector from '@/components/selector';
 import Botao from '@/components/botao';
 import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
@@ -8,12 +8,15 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useFocusEffect } from 'expo-router';
 import { getVistorias, Vistoria } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
 
-const colunasDoRelatorio: TabelaColuna<Vistoria>[] = [
+const colunasDoRelatorio: TabelaColuna<any>[] = [
     { label: 'Data', dataKey: 'data', sortable: true, flex: 2 },
     { label: 'Apiário', dataKey: 'apiarioId', sortable: true, flex: 2 },
     { label: 'Colmeia', dataKey: 'colmeiaId', sortable: true, flex: 2 },
     { label: 'Condição', dataKey: 'condicaoVistoria', sortable: true, flex: 3 },
+    { label: 'Pragas', dataKey: 'pragasTexto', sortable: true, flex: 3 },
+    { label: 'Perdas', dataKey: 'perdasTexto', sortable: true, flex: 3 },
     { label: 'Obs.', dataKey: 'observacoes', sortable: false, flex: 4 },
 ];
 
@@ -34,6 +37,9 @@ const statusOptions = [
 ];
 
 export default function RelatorioVistoriaTabela() {
+    const { session } = useAuth();
+    const produtorId = session || 1;
+
     const [vistorias, setVistorias] = useState<Vistoria[]>([]);
     const [loading, setLoading] = useState(true);
     const [anoSelecionado, setAnoSelecionado] = useState('');
@@ -42,7 +48,6 @@ export default function RelatorioVistoriaTabela() {
     const carregarVistorias = useCallback(async () => {
         try {
             setLoading(true);
-            const produtorId = 1; 
             const dados = await getVistorias(produtorId);
             setVistorias(dados);
         } catch (error) {
@@ -50,7 +55,7 @@ export default function RelatorioVistoriaTabela() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [produtorId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -58,17 +63,42 @@ export default function RelatorioVistoriaTabela() {
         }, [carregarVistorias])
     );
 
-    const handleExportar = () => {
-        alert(`Exportando ${dadosFiltrados.length} vistorias...`);
-    };
-
     const dadosFiltrados = useMemo(() => {
         return vistorias.filter(item => {
             const filtroAno = anoSelecionado === '' ? true : item.data.includes(anoSelecionado);
             const filtroStatus = statusSelecionado === '' ? true : item.condicaoVistoria?.toLowerCase() === statusSelecionado.toLowerCase();
             return filtroAno && filtroStatus;
-        });
+        }).map(item => ({
+            ...item,
+            pragasTexto: item.pragas?.length ? item.pragas.join(', ') : 'Nenhuma',
+            perdasTexto: item.perdas?.length ? item.perdas.join(', ') : 'Nenhuma',
+        }));
     }, [vistorias, anoSelecionado, statusSelecionado]);
+
+    const handleExportar = () => {
+        if (dadosFiltrados.length === 0) {
+            Alert.alert('Aviso', 'Não há dados para exportar.');
+            return;
+        }
+
+        // Geração do CSV
+        const cabecalho = 'Data,Apiario,Colmeia,Condicao,Pragas,Perdas,Observacoes\n';
+        const linhas = dadosFiltrados.map(v => 
+            `${v.data},${v.apiarioId},${v.colmeiaId},${v.condicaoVistoria},"${v.pragasTexto}","${v.perdasTexto}","${v.observacoes.replace(/"/g, '""')}"`
+        ).join('\n');
+        
+        const csvContent = cabecalho + linhas;
+
+        console.log('--- CSV GERADO ---');
+        console.log(csvContent);
+        console.log('------------------');
+
+        Alert.alert(
+            'Relatório Gerado',
+            `O CSV com ${dadosFiltrados.length} registros foi gerado no console do desenvolvedor.`,
+            [{ text: 'OK' }]
+        );
+    };
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -110,7 +140,7 @@ export default function RelatorioVistoriaTabela() {
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={styles.scrollContentTabela}
                         >
-                            <View style={{ minWidth: 900 }}>
+                            <View style={{ minWidth: 1200 }}>
                                 <TabelaGenerica
                                     colunas={colunasDoRelatorio}
                                     data={dadosFiltrados}
@@ -121,7 +151,7 @@ export default function RelatorioVistoriaTabela() {
                     <Text style={styles.dicaScroll}>Deslize para ver as observações completas</Text>
 
                     <Botao
-                        title="Exportar Relatório"
+                        title="Exportar Relatório (CSV)"
                         cor="primaria"
                         onPress={handleExportar}
                         style={styles.botaoExportar}

@@ -9,7 +9,9 @@ export interface Vistoria {
   apiarioId: number | string;
   condicaoVistoria: string;
   observacoes: string;
-  produtorId?: number;
+  produtorId?: number | string;
+  pragas?: string[];
+  perdas?: string[];
 }
 
 /**
@@ -48,7 +50,7 @@ export const cadastrarVistoria = async (produtorId: string | number, dados: any)
     const { id, ...payload } = dados;
     const response = await api.post<Vistoria>(VISTORIAS_ENDPOINT, {
       ...payload,
-      produtorId: Number(produtorId)
+      produtorId: isNaN(Number(produtorId)) ? produtorId : Number(produtorId)
     });
     return response.data;
   } catch (error) {
@@ -89,7 +91,6 @@ export const getKpisVistorias = async (produtorId: string | number, ano?: string
   try {
     let vistorias = await getVistorias(produtorId);
     
-    // Aplicar Filtros Analíticos
     if (ano) {
       vistorias = vistorias.filter(v => v.data.includes(ano));
     }
@@ -130,7 +131,6 @@ export const getGraficosVistorias = async (produtorId: string | number, ano?: st
   try {
     let vistorias = await getVistorias(produtorId);
 
-    // Aplicar Filtros Analíticos
     if (ano) {
       vistorias = vistorias.filter(v => v.data.includes(ano));
     }
@@ -145,7 +145,6 @@ export const getGraficosVistorias = async (produtorId: string | number, ano?: st
       };
     }
 
-    // Agrupamento por condição para o gráfico de pizza
     const statusCount: { [key: string]: number } = {};
     vistorias.forEach(v => {
       const condicao = v.condicaoVistoria?.toLowerCase() || 'outros';
@@ -176,7 +175,6 @@ export const getGraficosVistorias = async (produtorId: string | number, ano?: st
       legendFontSize: 12
     }));
 
-    // Dados para o gráfico de linha (evolução mensal)
     const lineDataMap: { [key: string]: number } = {};
     vistorias.forEach(v => {
       try {
