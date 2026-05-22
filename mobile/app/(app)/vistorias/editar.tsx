@@ -12,39 +12,9 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from 'react-native';
-
-// --- MOCK DATA (Simula os dados que viriam da API) ---
-// Em um app real, você buscaria isso de um banco de dados
-const mockApiData: { [key: string]: any } = {
-  '1': {
-    dataVistoria: '18/09/2025',
-    apiario: 'rosa',
-    colmeia: '1',
-    condicao: 'saudavel',
-    pragas: { varroa: false, formiga: false, traca: false, lagartixa: false, outro: false },
-    perdas: { alimentacao: true, veneno: false, clima: false, outro: false },
-    observacoes: 'Apesar das perdas por alimentação, a colmeia está saudável.',
-  },
-  '2': {
-    dataVistoria: '10/09/2025',
-    apiario: 'rosa',
-    colmeia: '2',
-    condicao: 'manutencao',
-    pragas: { varroa: false, formiga: true, traca: false, lagartixa: false, outro: false },
-    perdas: { alimentacao: false, veneno: false, clima: false, outro: false },
-    observacoes: '',
-  },
-  '3': {
-    dataVistoria: '03/09/2025',
-    apiario: 'serra',
-    colmeia: '3',
-    condicao: 'colheita', // Vamos supor que o valor seja 'colheita'
-    pragas: { varroa: false, formiga: false, traca: false, lagartixa: false, outro: false },
-    perdas: { alimentacao: false, veneno: false, clima: false, outro: false },
-    observacoes: 'Pronta para colher.',
-  },
-};
+import { getVistoriaById, atualizarVistoria } from '@/services/vistoriaService';
 
 export default function EditarVistoria() {
   const router = useRouter();
@@ -52,6 +22,7 @@ export default function EditarVistoria() {
 
   // Estado de carregamento
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // --- Estados do Formulário (começam vazios) ---
   const [dataVistoria, setDataVistoria] = useState('');
@@ -68,50 +39,49 @@ export default function EditarVistoria() {
 
   // --- Opções
   const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: 'rosa' },
-    { label: 'Vale das Abelhas', value: 'vale' },
-    { label: 'Serra do Mel', value: 'serra' },
+    { label: 'Rosa do Sertão', value: '1' },
+    { label: 'Vale das Abelhas', value: '2' },
   ];
   const colmeiaOptions = [
     { label: 'Colmeia 1', value: '1' },
     { label: 'Colmeia 2', value: '2' },
-    { label: 'Colmeia 3', value: '3' },
   ];
   const condicaoOptions = [
-    { label: 'Manutenção Necessária', value: 'manutencao' },
     { label: 'Saudável', value: 'saudavel' },
-    { label: 'Agendar Colheita', value: 'colheita' }, 
+    { label: 'Manutenção Necessária', value: 'manutencao' },
     { label: 'Em Risco', value: 'risco' },
     { label: 'Perdida', value: 'perdida' },
   ];
 
   // Roda quando o componente é montado ou o 'id' muda
   useEffect(() => {
-    if (id) {
-      console.log('Carregando dados para Vistoria ID:', id);
-      setIsLoading(true);
-      // --- Simulação de busca na API ---
-      // TODO: Substituir isso por uma busca real no seu banco de dados
-      setTimeout(() => {
-        const vistoriaId = Array.isArray(id) ? id[0] : id; // Garante que id é string
-        const dados = mockApiData[vistoriaId];
-        
-        if (dados) {
-          setDataVistoria(dados.dataVistoria);
-          setApiario(dados.apiario);
-          setColmeia(dados.colmeia);
-          setCondicao(dados.condicao);
-          setPragas(dados.pragas);
-          setPerdas(dados.perdas);
-          setObservacoes(dados.observacoes);
-        } else {
-          console.error('Vistoria não encontrada!');
-          // Talvez redirecionar de volta
+    const carregarVistoria = async () => {
+      if (id) {
+        try {
+          setIsLoading(true);
+          const vistoriaId = Array.isArray(id) ? id[0] : id;
+          const dados = await getVistoriaById(vistoriaId);
+          
+          if (dados) {
+            setDataVistoria(dados.data);
+            setApiario(dados.apiarioId?.toString() || '');
+            setColmeia(dados.colmeiaId?.toString() || '');
+            setCondicao(dados.condicaoVistoria);
+            setPragas(dados.pragas);
+            setPerdas(dados.perdas);
+            setObservacoes(dados.observacoes);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar vistoria:', error);
+          Alert.alert('Erro', 'Vistoria não encontrada!');
           router.back();
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      }, 500); // Meio segundo de delay para simular a rede
-    }
+      }
+    };
+
+    carregarVistoria();
   }, [id]);
 
   // --- Funções Auxiliares
@@ -123,22 +93,27 @@ export default function EditarVistoria() {
   };
 
   // --- Ação de Salvar
-  const handleSalvar = () => {
-    console.log(`--- ATUALIZANDO Vistoria ID: ${id} ---`);
-    console.log({
-      dataVistoria,
-      apiario,
-      colmeia,
-      condicao,
-      pragas,
-      perdas,
-      observacoes,
-    });
-    // TODO: Enviar dados atualizados para a API
-    
-    // Navega de volta para a lista
-    if (router.canGoBack()) {
-      router.back();
+  const handleSalvar = async () => {
+    if (!id) return;
+
+    setIsSaving(true);
+    try {
+      const vistoriaId = Array.isArray(id) ? id[0] : id;
+      await atualizarVistoria(vistoriaId, {
+        data: dataVistoria,
+        apiarioId: apiario,
+        colmeiaId: colmeia,
+        condicaoVistoria: condicao,
+        observacoes,
+      });
+
+      Alert.alert('Sucesso', 'Vistoria atualizada com sucesso!');
+      router.push('/vistorias/listar');
+    } catch (error) {
+      console.error('Erro ao atualizar vistoria:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar a vistoria.');
+    } finally {
+      setIsSaving(false);
     }
   };
 

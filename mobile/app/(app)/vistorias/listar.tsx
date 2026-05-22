@@ -3,15 +3,18 @@ import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
+import { getVistorias, deletarVistoria, Vistoria } from '@/services/vistoriaService';
 
 // --- Importar os Modais ---
 import ModalConfirmacao from '@/components/modalConfirmacao';
@@ -20,58 +23,14 @@ import ModalSucesso from '@/components/modalSucesso';
 // ---  Importar o GenericCard ---
 import GenericCard, { CardField } from '@/components/genericCard';
 
-// --- Dados Mock (Substituir por dados reais) ---
-const vistoriasMock = [
-  {
-    id: 1, 
-    data: '18/09/2025',
-    status: 'Saudável',
-    colmeiaNome: 'Colmeia 1',
-    apiarioNome: 'Apiario Rosa do Sertão',
-    pragas: '--------',
-    perdas: 'Alimentação',
-    observacoes:
-      'Apesar das perdas por alimentação, a colmeia está saudável.',
-    corStatus: cores.sucesso,
-  },
-  {
-    id: 2,
-    data: '10/09/2025',
-    status: 'Necessita Manuntenção',
-    colmeiaNome: 'Colmeia 2',
-    apiarioNome: 'Apiario Rosa do Sertão',
-    pragas: 'Formigas',
-    perdas: '--------',
-    observacoes: null,
-    corStatus: cores.alerta,
-  },
-  {
-    id: 3,
-    data: '03/09/2025',
-    status: 'Agendar Colheita',
-    colmeiaNome: 'Colmeia 3',
-    apiarioNome: 'Apiario Rosa do Sertão',
-    pragas: '--------',
-    perdas: '--------',
-    observacoes: null,
-    corStatus: cores.secundaria,
-  },
-];
-
-// (Mock de options... sem mudança)
-const apiarioOptions = [
-  { label: 'Rosa do Sertão', value: 'rosa' },
-  { label: 'Vale das Abelhas', value: 'vale' },
-];
-const colmeiaOptions = [
-  { label: 'Colmeia 1', value: '1' },
-  { label: 'Colmeia 2', value: '2' },
-];
-
 export default function ListarVistorias() {
   const router = useRouter();
 
-  // (Estados de Filtro.
+  // Estados de Dados ---
+  const [vistorias, setVistorias] = useState<Vistoria[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Estados de Filtro ---
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
   const [filtroTempo, setFiltroTempo] = useState('mes');
@@ -79,7 +38,37 @@ export default function ListarVistorias() {
   //  Estados dos Modais --- 
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
-  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null); // <-- number
+  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
+
+  // --- Opções (Idealmente viriam da API também)
+  const apiarioOptions = [
+    { label: 'Rosa do Sertão', value: '1' },
+    { label: 'Vale das Abelhas', value: '2' },
+  ];
+  const colmeiaOptions = [
+    { label: 'Colmeia 1', value: '1' },
+    { label: 'Colmeia 2', value: '2' },
+  ];
+
+  const carregarVistorias = async () => {
+    try {
+      setLoading(true);
+      const produtorId = 1; // Padrão mock-api
+      const dados = await getVistorias(produtorId);
+      setVistorias(dados);
+    } catch (error) {
+      console.error('Erro ao carregar vistorias:', error);
+      Alert.alert('Erro', 'Não foi possível carregar as vistorias.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarVistorias();
+    }, [])
+  );
 
   // Funções de Navegação --- 
   const handleEdit = (id: number) => {
@@ -92,15 +81,19 @@ export default function ListarVistorias() {
     setModalConfirmacaoVisivel(true);
   };
 
-  const confirmarExclusao = () => {
+  const confirmarExclusao = async () => {
     if (idParaExcluir !== null) {
-      console.log('Vistoria excluída com ID:', idParaExcluir);
-      // TODO: Lógica de exclusão
+      try {
+        await deletarVistoria(idParaExcluir);
+        setModalConfirmacaoVisivel(false);
+        setModalSucessoVisivel(true);
+        carregarVistorias();
+      } catch (error) {
+        console.error('Erro ao excluir vistoria:', error);
+        Alert.alert('Erro', 'Não foi possível excluir a vistoria.');
+        setModalConfirmacaoVisivel(false);
+      }
     }
-    setModalConfirmacaoVisivel(false);
-    setTimeout(() => {
-      setModalSucessoVisivel(true);
-    }, 350);
   };
 
   const cancelarExclusao = () => {
@@ -112,13 +105,35 @@ export default function ListarVistorias() {
     console.log('Gerar Relatório...');
   };
 
+  const getCorStatus = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'saudavel':
+      case 'excelente': return cores.sucesso;
+      case 'manutencao': return cores.alerta;
+      case 'risco': return cores.perigo;
+      case 'perdida': return cores.preto;
+      default: return cores.secundaria;
+    }
+  };
+
+  const getLabelStatus = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'saudavel': return 'Saudável';
+      case 'excelente': return 'Excelente';
+      case 'manutencao': return 'Manutenção';
+      case 'risco': return 'Em Risco';
+      case 'perdida': return 'Perdida';
+      default: return status;
+    }
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: 'Listar' }} />
       <View style={styles.container}>
         
         <ScrollView contentContainerStyle={styles.contentContainer}>
-          {/* 👇 Área de Filtros — CORRIGIDA COM zIndex ALTO */}
+          {/* 👇 Área de Filtros */}
           <View style={styles.filtroWrapper}>
             <View style={styles.filtroContainer}>
               <Text style={styles.filtroTitulo}>Filtros</Text>
@@ -169,49 +184,51 @@ export default function ListarVistorias() {
 
           {/*Lista de Vistorias --- */}
           <View style={styles.listaContainer}>
-            {vistoriasMock.map((vistoria) => {
-              // Monta os campos para o card
-              const fields: CardField[] = [
-                {
-                  label: 'Status',
-                  value: vistoria.status,
-                  valueStyle: { color: vistoria.corStatus },
-                },
-                {
-                  label: 'Local',
-                  value: `${vistoria.colmeiaNome} - ${vistoria.apiarioNome}`,
-                },
-                { label: 'Data', value: vistoria.data },
-                { label: 'Pragas', value: vistoria.pragas },
-                { label: 'Perdas', value: vistoria.perdas },
-              ];
-              // Adiciona observações SÓ se existirem
-              if (vistoria.observacoes) {
-                fields.push({
-                  label: 'Obs',
-                  value: vistoria.observacoes,
-                });
-              }
+            {loading ? (
+              <ActivityIndicator size="large" color={cores.primaria} />
+            ) : vistorias.length === 0 ? (
+              <Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhuma vistoria encontrada.</Text>
+            ) : (
+              vistorias.map((vistoria) => {
+                const fields: CardField[] = [
+                  {
+                    label: 'Status',
+                    value: getLabelStatus(vistoria.condicaoVistoria),
+                    valueStyle: { color: getCorStatus(vistoria.condicaoVistoria) },
+                  },
+                  {
+                    label: 'Local',
+                    value: `Colmeia ${vistoria.colmeiaId} - Apiário ${vistoria.apiarioId}`,
+                  },
+                  { label: 'Data', value: vistoria.data },
+                ];
+                
+                if (vistoria.observacoes) {
+                  fields.push({
+                    label: 'Obs',
+                    value: vistoria.observacoes,
+                  });
+                }
 
-              //  Renderiza o GenericCard
-              return (
-                <GenericCard
-                  key={vistoria.id}
-                  id={vistoria.id}
-                  fields={fields}
-                  actions={[
-                    {
-                      iconName: 'delete',
-                      onPress: () => handleDelete(vistoria.id),
-                    },
-                    {
-                      iconName: 'edit',
-                      onPress: () => handleEdit(vistoria.id),
-                    },
-                  ]}
-                />
-              );
-            })}
+                return (
+                  <GenericCard
+                    key={vistoria.id}
+                    id={vistoria.id!}
+                    fields={fields}
+                    actions={[
+                      {
+                        iconName: 'delete',
+                        onPress: () => handleDelete(vistoria.id!),
+                      },
+                      {
+                        iconName: 'edit',
+                        onPress: () => handleEdit(vistoria.id!),
+                      },
+                    ]}
+                  />
+                );
+              })
+            )}
           </View>
 
           {/* --- Botão Gerar Relatório  --- */}
@@ -223,7 +240,6 @@ export default function ListarVistorias() {
           />
         </ScrollView>
 
-        {/* --- Modais --- */}
         <ModalSucesso
           visivel={modalSucessoVisivel}
           mensagem="Vistoria excluída com sucesso!"

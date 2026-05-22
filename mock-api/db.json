@@ -247,6 +247,15 @@
       "data": "2024-05-01",
       "condicaoVistoria": "EXCELENTE",
       "observacoes": "Tudo ok."
+    },
+    {
+      "data": "22/05/2026",
+      "apiarioId": "1",
+      "colmeiaId": "1",
+      "condicaoVistoria": "manutencao",
+      "observacoes": "",
+      "produtorId": 1,
+      "id": 2
     }
   ]
 }
