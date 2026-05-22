@@ -11,9 +11,9 @@ import { getKpisVistorias, getGraficosVistorias } from '@/services/vistoriaServi
 
 const screenWidth = Dimensions.get('window').width;
 
-// --- Opções de Filtro ---
 const anoOptions = [
     { label: 'Todos os Anos', value: '' },
+    { label: '2026', value: '2026' },
     { label: '2025', value: '2025' },
     { label: '2024', value: '2024' },
 ];
@@ -21,27 +21,28 @@ const anoOptions = [
 const statusOptions = [
     { label: 'Todos os Status', value: '' },
     { label: 'Saudável', value: 'saudavel' },
+    { label: 'Excelente', value: 'excelente' },
     { label: 'Manutenção', value: 'manutencao' },
     { label: 'Em Risco', value: 'risco' },
     { label: 'Perdida', value: 'perdida' },
 ];
 
 export default function DashboardVistoria() {
-    const [ano, setAno] = useState('');
-    const [statusFiltro, setStatusFiltro] = useState('');
+    const [anoSelecionado, setAnoSelecionado] = useState('');
+    const [statusSelecionado, setStatusSelecionado] = useState('');
     const [loading, setLoading] = useState(true);
     const [kpis, setKpis] = useState<KpiData[]>([]);
     const [pizzaData, setPizzaData] = useState<any[]>([]);
     const [lineData, setLineData] = useState<any>(null);
 
-    const carregarDados = async () => {
+    const carregarDados = useCallback(async () => {
         try {
             setLoading(true);
-            const produtorId = 1; // Padrão mock-api
+            const produtorId = 1; 
             
             const [novosKpis, novosGraficos] = await Promise.all([
-                getKpisVistorias(produtorId),
-                getGraficosVistorias(produtorId)
+                getKpisVistorias(produtorId, anoSelecionado, statusSelecionado),
+                getGraficosVistorias(produtorId, anoSelecionado, statusSelecionado)
             ]);
 
             setKpis(novosKpis);
@@ -52,18 +53,18 @@ export default function DashboardVistoria() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [anoSelecionado, statusSelecionado]);
 
     useFocusEffect(
         useCallback(() => {
             carregarDados();
-        }, [])
+        }, [carregarDados])
     );
 
     const chartConfig = {
         backgroundGradientFrom: cores.branco,
         backgroundGradientTo: cores.branco,
-        color: (opacity = 1) => `rgba(52, 152, 219, ${opacity})`, // Azul
+        color: (opacity = 1) => `rgba(52, 152, 219, ${opacity})`, 
         strokeWidth: 2,
         barPercentage: 0.5,
         decimalPlaces: 0,
@@ -75,22 +76,23 @@ export default function DashboardVistoria() {
             <Stack.Screen options={{ title: 'Dashboard' }} />
             <Subtexto style={styles.subtexto}>Dashboard de Vistorias</Subtexto>
 
-            {/* --- Filtros --- */}
             <View style={styles.filtroContainer}>
                  <View style={styles.linhaFiltro}>
                     <Selector 
                         label="Ano" 
                         options={anoOptions} 
-                        onSelect={setAno} 
-                        placeholder="Todos os Anos" 
+                        onSelect={setAnoSelecionado} 
+                        placeholder="Todos" 
                         style={styles.filtroPequeno} 
+                        value={anoSelecionado}
                     />
                     <Selector 
                         label="Status" 
                         options={statusOptions} 
-                        onSelect={setStatusFiltro} 
-                        placeholder="Todos os Status" 
+                        onSelect={setStatusSelecionado} 
+                        placeholder="Todos" 
                         style={styles.filtroPequeno} 
+                        value={statusSelecionado}
                     />
                 </View>
             </View>
@@ -99,11 +101,10 @@ export default function DashboardVistoria() {
                 <ActivityIndicator size="large" color={cores.primaria} />
             ) : (
                 <GraficoCard
-                    subtexto={`Análise de ${ano === '' ? 'Todos os Anos' : ano}`}
+                    subtexto={`Análise de ${anoSelecionado === '' ? 'Todos os Anos' : anoSelecionado}`}
                     kpis={kpis}
                     showSideBar={true}
                 >
-                    {/* Gráfico de Pizza */}
                     <View style={styles.chartContainer}>
                         <Text style={styles.chartTitle}>Diagnóstico das Colmeias</Text>
                         {pizzaData.length > 0 ? (
@@ -123,10 +124,9 @@ export default function DashboardVistoria() {
                         )}
                     </View>
 
-                    {/* Gráfico de Linha */}
                     <View style={styles.chartContainer}>
                         <Text style={styles.chartTitle}>Evolução das Vistorias</Text>
-                        {lineData ? (
+                        {lineData && lineData.datasets[0].data.length > 0 && lineData.labels[0] !== 'Sem dados' ? (
                             <LineChart
                                 data={lineData}
                                 width={screenWidth - 60}

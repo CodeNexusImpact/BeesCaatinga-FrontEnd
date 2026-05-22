@@ -41,7 +41,7 @@ export const getVistoriaById = async (id: string | number): Promise<Vistoria> =>
 };
 
 /**
- * 3. CADASTRO: Remove ID manual para o json-server gerar
+ * 3. CADASTRO
  */
 export const cadastrarVistoria = async (produtorId: string | number, dados: any): Promise<Vistoria> => {
   try {
@@ -58,7 +58,7 @@ export const cadastrarVistoria = async (produtorId: string | number, dados: any)
 };
 
 /**
- * 4. EDIÇÃO: Atualização via PUT
+ * 4. EDIÇÃO
  */
 export const atualizarVistoria = async (id: string | number, dados: any): Promise<Vistoria> => {
   try {
@@ -83,11 +83,19 @@ export const deletarVistoria = async (id: string | number): Promise<void> => {
 };
 
 /**
- * 6. KPIs: Estatísticas analíticas dinâmicas
+ * 6. KPIs: Estatísticas analíticas dinâmicas com filtros
  */
-export const getKpisVistorias = async (produtorId: string | number) => {
+export const getKpisVistorias = async (produtorId: string | number, ano?: string, status?: string) => {
   try {
-    const vistorias = await getVistorias(produtorId);
+    let vistorias = await getVistorias(produtorId);
+    
+    // Aplicar Filtros Analíticos
+    if (ano) {
+      vistorias = vistorias.filter(v => v.data.includes(ano));
+    }
+    if (status) {
+      vistorias = vistorias.filter(v => v.condicaoVistoria?.toLowerCase() === status.toLowerCase());
+    }
 
     if (!vistorias || vistorias.length === 0) {
       return [
@@ -116,11 +124,19 @@ export const getKpisVistorias = async (produtorId: string | number) => {
 };
 
 /**
- * 7. GRÁFICOS: Processamento analítico real para o Dashboard
+ * 7. GRÁFICOS: Processamento analítico real para o Dashboard com filtros
  */
-export const getGraficosVistorias = async (produtorId: string | number) => {
+export const getGraficosVistorias = async (produtorId: string | number, ano?: string, status?: string) => {
   try {
-    const vistorias = await getVistorias(produtorId);
+    let vistorias = await getVistorias(produtorId);
+
+    // Aplicar Filtros Analíticos
+    if (ano) {
+      vistorias = vistorias.filter(v => v.data.includes(ano));
+    }
+    if (status) {
+      vistorias = vistorias.filter(v => v.condicaoVistoria?.toLowerCase() === status.toLowerCase());
+    }
 
     if (!vistorias || vistorias.length === 0) {
       return {
@@ -152,10 +168,10 @@ export const getGraficosVistorias = async (produtorId: string | number) => {
       'perdida': 'Perdida',
     };
 
-    const pizzaData = Object.entries(statusCount).map(([status, population]) => ({
-      name: labelsCondicao[status] || status,
+    const pizzaData = Object.entries(statusCount).map(([st, population]) => ({
+      name: labelsCondicao[st] || st,
       population,
-      color: coresCondicao[status] || '#95a5a6',
+      color: coresCondicao[st] || '#95a5a6',
       legendFontColor: '#7F7F7F',
       legendFontSize: 12
     }));
@@ -165,7 +181,6 @@ export const getGraficosVistorias = async (produtorId: string | number) => {
     vistorias.forEach(v => {
       try {
         const dateParts = v.data.includes('/') ? v.data.split('/') : v.data.split('-');
-        // Formato esperado: DD/MM/YYYY ou YYYY-MM-DD
         const month = v.data.includes('/') ? dateParts[1] : dateParts[1];
         const year = v.data.includes('/') ? dateParts[2] : dateParts[0];
         if (month && year) {

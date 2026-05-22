@@ -17,7 +17,6 @@ const colunasDoRelatorio: TabelaColuna<Vistoria>[] = [
     { label: 'Obs.', dataKey: 'observacoes', sortable: false, flex: 4 },
 ];
 
-// --- Opções de Filtro ---
 const anoOptions = [
     { label: 'Todos os Anos', value: '' },
     { label: '2026', value: '2026' },
@@ -37,13 +36,13 @@ const statusOptions = [
 export default function RelatorioVistoriaTabela() {
     const [vistorias, setVistorias] = useState<Vistoria[]>([]);
     const [loading, setLoading] = useState(true);
-    const [ano, setAno] = useState('');
-    const [status, setStatus] = useState('');
+    const [anoSelecionado, setAnoSelecionado] = useState('');
+    const [statusSelecionado, setStatusSelecionado] = useState('');
 
-    const carregarVistorias = async () => {
+    const carregarVistorias = useCallback(async () => {
         try {
             setLoading(true);
-            const produtorId = 1; // Padrão mock-api
+            const produtorId = 1; 
             const dados = await getVistorias(produtorId);
             setVistorias(dados);
         } catch (error) {
@@ -51,26 +50,25 @@ export default function RelatorioVistoriaTabela() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
             carregarVistorias();
-        }, [])
+        }, [carregarVistorias])
     );
 
     const handleExportar = () => {
         alert(`Exportando ${dadosFiltrados.length} vistorias...`);
     };
 
-    // Filtragem por ano E status
     const dadosFiltrados = useMemo(() => {
         return vistorias.filter(item => {
-            const filtroAno = ano === '' ? true : item.data.includes(ano);
-            const filtroStatus = status === '' ? true : item.condicaoVistoria?.toLowerCase() === status.toLowerCase();
+            const filtroAno = anoSelecionado === '' ? true : item.data.includes(anoSelecionado);
+            const filtroStatus = statusSelecionado === '' ? true : item.condicaoVistoria?.toLowerCase() === statusSelecionado.toLowerCase();
             return filtroAno && filtroStatus;
         });
-    }, [vistorias, ano, status]);
+    }, [vistorias, anoSelecionado, statusSelecionado]);
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -82,16 +80,18 @@ export default function RelatorioVistoriaTabela() {
                     <Selector 
                         label="Ano"
                         options={anoOptions} 
-                        onSelect={setAno} 
+                        onSelect={setAnoSelecionado} 
                         placeholder="Todos"
                         style={styles.seletor}
+                        value={anoSelecionado}
                     />
                     <Selector 
                         label="Status"
                         options={statusOptions}
-                        onSelect={setStatus}
+                        onSelect={setStatusSelecionado}
                         placeholder="Todos"
                         style={styles.seletor}
+                        value={statusSelecionado}
                     />
                 </View>
             </View>
