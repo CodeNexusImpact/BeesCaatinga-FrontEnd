@@ -1,169 +1,133 @@
 import api from './api';
-import type { InsumoRetornoDTO, InsumoCriadoDTO, InsumoAtualizadoDTO } from '@/types/insumos';
+import type { InsumoRetornoDTO } from '@/types/insumos';
 
+/**
+ * Filtros para busca de insumos
+ */
 interface FiltrosInsumo {
   nome?: string;
-  tipo?: string;
+  tipoInsumo?: string;
   userId: string;
 }
 
 /**
- * Retorna a listagem de insumos com base no ID do produtor e filtros opcionais.
+ * 1. LISTAGEM: Retorna insumos via caminho relativo herdado do api.ts.
  */
-export const getInsumos = async (filtros: FiltrosInsumo): Promise<InsumoRetornoDTO[]> => {
-  try {
-    // Busca os insumos forçando a porta 8081 conforme solicitado
-    const response = await api.get<InsumoRetornoDTO[]>('http://localhost:8081/insumos', {
-      params: { produtorId: filtros.userId }
-    });
+export const getInsumos = async (filtros?: FiltrosInsumo): Promise<InsumoRetornoDTO[]> => {
+  const params = filtros?.userId ? { produtorId: filtros.userId } : {};
+  const response = await api.get<InsumoRetornoDTO[]>('/insumos', { params });
+  
+  let resultado = response.data || [];
 
-    let resultado = response.data;
-
-    if (filtros.nome) {
-      resultado = resultado.filter(item => 
-        item.nome.toLowerCase().includes(filtros.nome!.toLowerCase())
-      );
-    }
-    
-    if (filtros.tipo) {
-      resultado = resultado.filter(item => 
-        item.tipo?.toLowerCase() === filtros.tipo!.toLowerCase()
-      );
-    }
-
-    return resultado;
-  } catch (error) {
-    console.error('Erro ao buscar insumos:', error);
-    throw error;
+  if (filtros?.nome) {
+    resultado = resultado.filter(item => 
+      item.nome?.toLowerCase().includes(filtros.nome!.toLowerCase())
+    );
   }
+  
+  if (filtros?.tipoInsumo) {
+    resultado = resultado.filter(item => 
+      item.tipoInsumo?.toLowerCase() === filtros.tipoInsumo!.toLowerCase()
+    );
+  }
+
+  return resultado;
 };
 
 /**
- * Busca um insumo específico pelo seu ID.
+ * 2. BUSCA POR ID: Detalhes de um registro específico.
  */
-export const getInsumoPorId = async (id: string): Promise<InsumoRetornoDTO> => {
-  try {
-    const response = await api.get<InsumoRetornoDTO>(`http://localhost:8081/insumos/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao buscar insumo ${id}:`, error);
-    throw error;
-  }
+export const getInsumoById = async (id: string): Promise<InsumoRetornoDTO> => {
+  const response = await api.get<InsumoRetornoDTO>(`/insumos/${id}`);
+  return response.data;
 };
 
 /**
- * Cadastra um novo insumo.
+ * 3. CADASTRO: Persistência de novo registro (Remove ID manual).
  */
-export const cadastrarInsumo = async (produtorId: string, dto: InsumoCriadoDTO): Promise<InsumoRetornoDTO> => {
-  try {
-    const response = await api.post<InsumoRetornoDTO>('http://localhost:8081/insumos', {
-      ...dto,
-      produtorId: parseInt(produtorId),
-      statusInsumo: 'DISPONIVEL'
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao cadastrar insumo:', error);
-    throw error;
-  }
+export const cadastrarInsumo = async (produtorId: string, dados: any): Promise<InsumoRetornoDTO> => {
+  const { id, ...payload } = dados;
+  const response = await api.post<InsumoRetornoDTO>('/insumos', {
+    ...payload,
+    produtorId: parseInt(produtorId)
+  });
+  return response.data;
 };
 
 /**
- * Atualiza os dados de um insumo existente.
+ * 4. EDIÇÃO: Atualização de registro existente via PUT relativo.
  */
-export const atualizarInsumo = async (id: string, dto: InsumoAtualizadoDTO): Promise<InsumoRetornoDTO> => {
-  try {
-    const response = await api.put<InsumoRetornoDTO>(`http://localhost:8081/insumos/${id}`, dto);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao atualizar insumo ${id}:`, error);
-    throw error;
-  }
+export const atualizarInsumo = async (id: string, dados: any): Promise<InsumoRetornoDTO> => {
+  const response = await api.put<InsumoRetornoDTO>(`/insumos/${id}`, dados);
+  return response.data;
 };
 
 /**
- * Remove um insumo da base de dados.
+ * 5. EXCLUSÃO: Remoção física do registro via DELETE relativo.
  */
-export const deletarInsumo = async (id: number): Promise<void> => {
-  try {
-    await api.delete(`http://localhost:8081/insumos/${id}`);
-  } catch (error) {
-    console.error(`Erro ao deletar insumo ${id}:`, error);
-    throw error;
-  }
+export const deletarInsumo = async (id: string | number): Promise<void> => {
+  const response = await api.delete(`/insumos/${id}`);
+  return response.data;
 };
 
 /**
- * Retorna KPIs básicos de insumos para o produtor.
+ * 6. KPIs: Estatísticas analíticas dinâmicas usando chaves do db.json.
  */
-export const getKpisInsumos = async (userId: string): Promise<{ total: number; baixa: number }> => {
-  try {
-    const insumos = await getInsumos({ userId });
-    
-    const total = insumos.length;
-    const baixa = insumos.filter(i => i.statusInsumo === 'ESTOQUE_BAIXO').length;
-
-    return {
-      total,
-      baixa,
-    };
-  } catch (error) {
-    console.error('Erro ao buscar KPIs de insumos:', error);
-    throw error;
+export const getKpisInsumos = async (userId: string) => {
+  const insumos = await getInsumos({ userId });
+  
+  if (!insumos || insumos.length === 0) {
+    return { totalItens: 0, estoqueBaixo: 0, emUso: 0 };
   }
+
+  const totalItens = insumos.length;
+  const estoqueBaixo = insumos.filter(i => i.statusInsumo === 'ESTOQUE_BAIXO').length;
+  const emUso = insumos.filter(i => i.statusInsumo === 'EM_USO').length;
+
+  return { totalItens, estoqueBaixo, emUso };
 };
 
 /**
- * Processa dados para exibição de gráficos de insumos.
+ * 7. GRÁFICOS: Processamento analítico real para o Dashboard.
  */
-export const getGraficosInsumos = async (userId: string): Promise<any[]> => {
-  try {
-    const insumos = await getInsumos({ userId });
+export const getGraficosInsumos = async (userId: string) => {
+  const insumos = await getInsumos({ userId });
 
-    // Agrupamento por Tipo
-    const tipoCount: { [key: string]: number } = {};
-    insumos.forEach(i => {
-      const tipo = i.tipo || 'Outros';
-      tipoCount[tipo] = (tipoCount[tipo] || 0) + 1;
-    });
-
-    const dadosBarra = Object.entries(tipoCount).map(([tipo, quantidade]) => ({
-      tipo,
-      quantidade
-    }));
-
-    // Agrupamento por Status
-    const statusCount: { [key: string]: number } = {};
-    insumos.forEach(i => {
-      statusCount[i.statusInsumo] = (statusCount[i.statusInsumo] || 0) + 1;
-    });
-
-    const coresStatus: { [key: string]: string } = {
-      'DISPONIVEL': '#2ecc71',
-      'EM_USO': '#3498db',
-      'ESTOQUE_BAIXO': '#e74c3c',
-    };
-
-    const dadosPizza = Object.entries(statusCount).map(([status, quantidade]) => ({
-      status: status.replace('_', ' '),
-      quantidade,
-      cor: coresStatus[status] || '#95a5a6'
-    }));
-
-    return [
-      {
-        tipo: 'barra',
-        titulo: 'Insumos por Categoria',
-        dados: dadosBarra,
-      },
-      {
-        tipo: 'pizza',
-        titulo: 'Status de Estoque',
-        dados: dadosPizza,
-      },
-    ];
-  } catch (error) {
-    console.error('Erro ao buscar gráficos de insumos:', error);
-    throw error;
+  if (!insumos || insumos.length === 0) {
+    return { porTipo: [], porStatus: [], raw: [] };
   }
+
+  // Agrupamento por tipoInsumo
+  const tipoCount: { [key: string]: number } = {};
+  insumos.forEach(i => {
+    const tipo = i.tipoInsumo || 'Outros';
+    tipoCount[tipo] = (tipoCount[tipo] || 0) + 1;
+  });
+
+  const dadosPorTipo = Object.entries(tipoCount).map(([name, value]) => ({ name, value }));
+
+  // Agrupamento por statusInsumo
+  const statusCount: { [key: string]: number } = {};
+  insumos.forEach(i => {
+    const status = i.statusInsumo || 'DISPONIVEL';
+    statusCount[status] = (statusCount[status] || 0) + 1;
+  });
+
+  const coresStatus: { [key: string]: string } = {
+    'DISPONIVEL': '#4CAF50',
+    'EM_USO': '#2196F3',
+    'ESTOQUE_BAIXO': '#F44336',
+  };
+
+  const dadosPorStatus = Object.entries(statusCount).map(([status, value]) => ({
+    name: status.replace('_', ' '),
+    value,
+    color: coresStatus[status] || '#9E9E9E'
+  }));
+
+  return {
+    porTipo: dadosPorTipo,
+    porStatus: dadosPorStatus,
+    raw: insumos
+  };
 };
