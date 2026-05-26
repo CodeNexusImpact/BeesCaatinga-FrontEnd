@@ -54,15 +54,11 @@ export default function Index() {
       <Subtexto style={styles.subtexto}>{"Selecione uma opção para começar."}</Subtexto>
       
       {/* O container pai decide o alinhamento da sobra baseado no dispositivo */}
-      <View style={[styles.grid, isMobile ? styles.gridMobile : styles.gridWeb]}>
+      <View style={[styles.grid]}>
         {items.map((item, index) => (
           // O item adapta seu tamanho e alinhamento interno de acordo com a plataforma
           <View 
-            key={index} 
-            style={[
-              styles.itemBase, 
-              isMobile ? styles.itemMobile : styles.itemWeb
-            ]}
+            key={index}             
           >
             <ItemHome
               title={item.title}
@@ -82,6 +78,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: cores.fundo,
     paddingHorizontal: layout.espacamento.amigavel,
+    gap: layout.espacamento.social,
   },
   subtexto: {
     width: '100%',
@@ -92,34 +89,17 @@ const styles = StyleSheet.create({
   },
   // Estrutura principal do Grid
   grid: {
+    display: 'flex',
     paddingTop: 0,
     flexDirection: 'row',
     flexWrap: 'wrap',
     columnGap: layout.espacamento.amigavel,
     rowGap: layout.espacamento.amigavel,
-    width: '100%', // Ocupa tudo no mobile
-  },
-  // Mobile: Se sobrar item na última linha, 'center' joga ele pro meio
-  gridMobile: {
+    width: '100%', 
     justifyContent: 'center', 
-  },
-  // Web: Limita o tamanho máximo para os ícones não espalharem muito e centraliza o bloco todo na tela
-  gridWeb: {
-    justifyContent: 'center', // Itens internos centralizados
-    maxWidth: 1200,           // Impede que o grid estique demais em monitores ultra-wide
-    alignSelf: 'center',      // Centraliza o bloco do grid inteiro na página web
-  },
-  itemBase: {
-    flexGrow: 1, 
-  },
-  itemMobile: {
-    flexBasis: '28%', 
-    maxWidth: '31%', 
-  },
-  // Na Web, fixamos um tamanho confortável para os cards (ex: 160px a 180px) em vez de porcentagem líquida larga.
-  // Isso vai fazer com que eles formem linhas perfeitas e centralizadas.
-  itemWeb: {
-    flexBasis: 160, 
-    maxWidth: 180, 
-  }
+    maxWidth: 700,     
+    minWidth: 400,     
+    alignSelf: 'center',
+  },  
+  
 });
