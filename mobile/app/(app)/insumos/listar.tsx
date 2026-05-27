@@ -1,91 +1,120 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Text } from 'react-native';
+import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { getInsumos } from '@/services/insumoService';
+import { useAuth } from '@/hooks/useAuth';
+import { InsumoRetornoDTO } from '@/types/insumos';
+import Subtexto from '@/components/subTexto';
 
-const statusColmeias = [
-  { id: 1, nome: 'Colmeia 1', status: 'Saudável' },
-  { id: 2, nome: 'Colmeia 2', status: 'Perigo Climático' },
-  { id: 3, nome: 'Colmeia 3', status: 'Saudável' },
-  { id: 4, nome: 'Colmeia 4', status: 'Manutenção Necessária' },
-  { id: 5, nome: 'Colmeia 5', status: 'Saudável' },
-  { id: 6, nome: 'Colmeia 6', status: 'Tratamento Necessário' },
-  { id: 7, nome: 'Colmeia 7', status: 'Saudável' },
-  { id: 8, nome: 'Colmeia 8', status: 'Saudável' },
-  { id: 9, nome: 'Colmeia 9', status: 'Saudável' },
-  { id: 10, nome: 'Colmeia 10', status: 'Inativa' },
-];
-
-// Função de cor para os "pontos" (dots)
-const getStatusDotColor = (status: string) => {
-  if (status.includes('Saudável')) return cores.sucesso;
-  if (status.includes('Perigo')) return cores.perigo;
-  if (status.includes('Manutenção')) return cores.perigo;
-  if (status.includes('Tratamento')) return '#0800ffff';
-  if (status.includes('Inativa')) return cores.primaria;
-  return cores.texto;
-};
-
-
-export default function Listar() {
+export default function ListarInsumos() {
   const router = useRouter();
+  const { session } = useAuth();
 
-  // Estado para controlar o card sanfonado (collapsible)
-  const [isEstoqueVisivel, setIsEstoqueVisivel] = useState(true);
+  const [insumos, setInsumos] = useState<InsumoRetornoDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedIds, setExpandedIds] = useState<number[]>([]);
 
-  // Handler para navegar para detalhes da colmeia
-  const handleColmeiaPress = (nomeColmeia: string) => {
-    router.push(`/insumos/detalhe?nome=${nomeColmeia}`);
+  /**
+   * Ciclo de Vida: Recarrega sempre que focar na tela.
+   * Espelho: Produção/Visualizar
+   */
+  const carregarInsumos = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const produtorId = session || '1';
+      const data = await getInsumos({ userId: produtorId });
+      setInsumos(data);
+    } catch (error) {
+      console.error('❌ [LISTAR INSUMOS] Erro:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os insumos.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session]);
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarInsumos();
+    }, [carregarInsumos])
+  );
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
-  
-  return (
-    <ScrollView 
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-    >
-      {/* Card de Status das Colmeias */}
-      <View style={styles.statusContainer}>
-        {/* Header do Card (Clicável) */}
-        <TouchableOpacity 
-          style={styles.statusHeader}
-          onPress={() => setIsEstoqueVisivel(!isEstoqueVisivel)}
-        >
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerIndex}>1</Text>
-            <Text style={styles.headerTitle}>Ferramenta</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <Text style={styles.headerTitle}>Status</Text>
-            <Text style={{ color: cores.texto }}>
-              {isEstoqueVisivel ? '▲' : '▼'}
-            </Text>
-          </View>
-        </TouchableOpacity>
 
-        {/* Conteúdo do Card (Sanfonado) */}
-        {isEstoqueVisivel && (
-          <View style={styles.statusContent}>
+  const getStatusDotColor = (status?: string) => {
+    if (status === 'DISPONIVEL') return '#4CAF50';
+    if (status === 'ESTOQUE_BAIXO') return '#F44336';
+    if (status === 'EM_USO') return '#2196F3';
+    return cores.texto;
+  };
 
-
-            {/* O resto das colmeias */}
-            {statusColmeias.map((colmeia) => (
-              <TouchableOpacity
-                key={colmeia.nome}
-                style={styles.statusRow}
-                onPress={() => handleColmeiaPress(colmeia.nome)}
-              >
-                <Text style={[styles.rowText, styles.colmeiaClicavel]}>
-                  {colmeia.nome}
-                </Text>
-                <Text style={styles.rowStatusText}>{colmeia.status}</Text>
-                <View style={[styles.statusDot, { backgroundColor: getStatusDotColor(colmeia.status) }]} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={cores.primaria[100]} />
       </View>
-    </ScrollView>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Stack.Screen options={{ title: 'Listagem de Insumos' }} />
+      <Subtexto style={styles.subtexto}>Gerenciamento de Estoque</Subtexto>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {insumos.length === 0 ? (
+          <Subtexto style={styles.semDados}>Nenhum insumo encontrado no banco.</Subtexto>
+        ) : (
+          insumos.map((insumo) => (
+            <View key={insumo.id} style={styles.statusContainer}>
+              <TouchableOpacity 
+                style={styles.statusHeader}
+                onPress={() => toggleExpand(insumo.id)}
+              >
+                <View style={styles.headerLeft}>
+                  <Text style={styles.headerIndex}>{insumo.id}</Text>
+                  <Text style={styles.headerTitle}>{insumo.nome}</Text>
+                </View>
+                <View style={styles.headerRight}>
+                  <Text style={styles.headerTitle}>Status</Text>
+                  <Text style={{ color: cores.texto }}>
+                    {expandedIds.includes(insumo.id) ? '▲' : '▼'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {expandedIds.includes(insumo.id) && (
+                <View style={styles.statusContent}>
+                  <View style={styles.statusRow}>
+                    <View style={styles.infoCol}>
+                      <Text style={styles.label}>Tipo:</Text>
+                      <Text style={styles.value}>{insumo.tipoInsumo}</Text>
+                    </View>
+                    <View style={styles.infoCol}>
+                      <Text style={styles.label}>Quantidade:</Text>
+                      <Text style={styles.value}>{insumo.quantidade} {insumo.unidadeMedida}</Text>
+                    </View>
+                    <View style={[styles.statusDot, { backgroundColor: getStatusDotColor(insumo.statusInsumo) }]} />
+                  </View>
+                  
+                  <TouchableOpacity 
+                    style={styles.btnDetalhes}
+                    onPress={() => router.push(`/insumos/${insumo.id}`)}
+                  >
+                    <Text style={styles.btnDetalhesText}>Ver Detalhes Completos</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -93,22 +122,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: cores.fundo,
+    padding: layout.espacamento.amigavel,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContent: {
-    padding: layout.espacamento.amigavel,
     paddingBottom: layout.espacamento.social,
   },
-  subtituloLista: {
+  subtexto: {
     width: '100%',
     textAlign: 'center',
     fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: layout.espacamento.amigavel,
     marginBottom: layout.espacamento.amigavel,
     color: cores.texto,
   },
-
-  // Estilos para o Card de Status
   statusContainer: {
     backgroundColor: cores.branco,
     borderRadius: 8,
@@ -140,12 +170,12 @@ const styles = StyleSheet.create({
     backgroundColor: cores.primaria[100],
     color: cores.branco,
     borderRadius: 10,
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
     textAlign: 'center',
     fontWeight: 'bold',
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 22,
   },
   headerTitle: {
     fontSize: 14,
@@ -160,34 +190,42 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: layout.espacamento.amigavel,
-    borderBottomWidth: 1,
-    borderBottomColor: cores.borda,
   },
-  firstRow: {
-    borderBottomWidth: 0, 
-  },
-  rowText: {
-    fontSize: 14,
-    color: cores.texto,
+  infoCol: {
     flex: 1,
   },
-  colmeiaClicavel: {
-    color: cores.primaria[100],
-    fontWeight: '500',
+  label: {
+    fontSize: 12,
+    color: '#666',
   },
-  rowStatusText: {
+  value: {
     fontSize: 14,
     color: cores.texto,
-    flex: 2,
-    textAlign: 'left',
-    paddingHorizontal: 8,
+    fontWeight: '500',
   },
   statusDot: {
     width: 16,
     height: 16,
     borderRadius: 8,
+    marginLeft: 10,
   },
-  insumoCard: {
-    marginBottom: layout.espacamento.amigavel,
+  btnDetalhes: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: cores.fundo,
+    borderRadius: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: cores.borda,
+  },
+  btnDetalhesText: {
+    color: cores.primaria[100],
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  semDados: {
+    textAlign: 'center',
+    marginTop: 20,
+    opacity: 0.6,
   },
 });

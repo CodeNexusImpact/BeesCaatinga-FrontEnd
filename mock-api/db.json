@@ -116,12 +116,28 @@
   ],
   "insumos": [
     {
-      "id": 1,
+      "dataInsumo": "18/05/2026",
+      "nome": "oooo",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 10,
+      "unidadeMedida": "G",
+      "dataValidade": "18/05/2027",
+      "observacoes": "",
+      "statusInsumo": "DISPONIVEL",
       "produtorId": 1,
-      "nome": "Cera Alveolada",
-      "quantidade": 50,
-      "unidadeMedida": "KG",
-      "statusInsumo": "DISPONIVEL"
+      "id": 1
+    },
+    {
+      "dataInsumo": "18/05/2026",
+      "nome": "aaaaaa",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 10,
+      "unidadeMedida": "UN",
+      "dataValidade": "18/05/2027",
+      "observacoes": "",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 2
     }
   ],
   "producoes": [
@@ -180,6 +196,48 @@
       "nomeApiario": "Vale das Abelhas",
       "nomeColmeia": "Colmeia 2",
       "id": 5
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 55,
+      "unidadeMedida": "KILOGRAMA",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2024-12-07",
+      "produtorId": 1,
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "id": 6
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 55,
+      "unidadeMedida": "KILOGRAMA",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2025-05-01",
+      "produtorId": 1,
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "id": 7
+    },
+    {
+      "tipoProducao": "Mel de Marmeleiro",
+      "quantidade": 100,
+      "unidadeMedida": "LITRO",
+      "apiarioId": 2,
+      "colmeiaId": 2,
+      "dataColeta": "2026-02-05",
+      "produtorId": 1,
+      "nomeApiario": "Vale das Abelhas",
+      "nomeColmeia": "Colmeia 2",
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "id": 8
     }
   ],
   "vistorias": [
@@ -189,6 +247,37 @@
       "data": "2024-05-01",
       "condicaoVistoria": "EXCELENTE",
       "observacoes": "Tudo ok."
+    },
+    {
+      "data": "22/05/2026",
+      "apiarioId": "1",
+      "colmeiaId": "1",
+      "condicaoVistoria": "manutencao",
+      "observacoes": "",
+      "produtorId": 1,
+      "id": 2
+    },
+    {
+      "data": "22/05/2025",
+      "apiarioId": "2",
+      "colmeiaId": "2",
+      "condicaoVistoria": "risco",
+      "observacoes": "",
+      "pragas": [
+        "Varroa",
+        "Formiga",
+        "Traca",
+        "Lagartixa",
+        "Outro"
+      ],
+      "perdas": [
+        "Alimentacao",
+        "Veneno",
+        "Clima",
+        "Outro"
+      ],
+      "produtorId": 1,
+      "id": 3
     }
   ]
 }

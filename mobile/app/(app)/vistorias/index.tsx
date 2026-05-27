@@ -40,7 +40,7 @@ export default function Index() {
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Tabela da Produção"
+            title="Tabela de Vistorias"
             cor="secundaria"
             iconName="fileDocument"
             onPress={() => router.push('/vistorias/tabela')}
@@ -51,7 +51,7 @@ export default function Index() {
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Dashboard da Produção"
+            title="Dashboard de Vistorias"
             cor="secundaria"
             iconName="fileDocument"
             onPress={() => router.push('/vistorias/dashboard')}
