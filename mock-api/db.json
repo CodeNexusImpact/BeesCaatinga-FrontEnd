@@ -210,18 +210,6 @@
     },
     {
       "dataInsumo": "28/05/2026",
-      "nome": "aaaaaaaaaaaaa",
-      "tipoInsumo": "Medicamento",
-      "quantidade": 2,
-      "unidadeMedida": "L",
-      "dataValidade": "N/A",
-      "observacoes": "",
-      "statusInsumo": "DISPONIVEL",
-      "produtorId": 3,
-      "id": 3
-    },
-    {
-      "dataInsumo": "28/05/2026",
       "nome": "Insumo Teste QA",
       "tipoInsumo": "Alimentação",
       "quantidade": 50,
@@ -499,6 +487,20 @@
       "observacoes": "Vistoria Teste QA",
       "produtorId": 1,
       "id": 7
+    }
+  ],
+  "lotes": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "dataProducao": "28/05/2026",
+      "quantidadeProduzida": 150.5,
+      "tipoFlorada": "Silvestre",
+      "tipoAbelha": "Italiana",
+      "vendido": false,
+      "latitude": -8.0743,
+      "longitude": -39.1189
     }
   ]
 }

@@ -57,6 +57,23 @@ const modules = [
       quantidade: 15,
       statusQualidade: "BOM"
     }
+  },
+  {
+    name: 'Rastreabilidade (Lotes)',
+    endpoint: '/lotes',
+    payload: {
+      dataProducao: "28/05/2026",
+      apiarioId: 1,
+      quantidadeProduzida: 200,
+      tipoFlorada: "Marmeleiro",
+      tipoAbelha: "Jandaíra",
+      vendido: false,
+      produtorId: 1
+    },
+    updatePayload: {
+      quantidadeProduzida: 250,
+      vendido: true
+    }
   }
 ];
 

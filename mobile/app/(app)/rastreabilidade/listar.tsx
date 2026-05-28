@@ -4,14 +4,14 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { getRastreamentos, Rastreamento } from '@/services/rastreabilidadeService';
+import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
 
 export default function ListarLotesMel() {
   const router = useRouter();
   const { user } = useAuth();
 
   // Estados para dados reais
-  const [lotes, setLotes] = useState<Rastreamento[]>([]);
+  const [lotes, setLotes] = useState<RastreabilidadeDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isListaVisivel, setIsListaVisivel] = useState(true);
   const [filtroApiario, setFiltroApiario] = useState('');
@@ -20,13 +20,14 @@ export default function ListarLotesMel() {
   const carregarLotes = useCallback(async () => {
     if (!user?.id) return;
     
-    setIsLoading(true);
     try {
-      const data = await getRastreamentos(user.id);
+      setIsLoading(true);
+      const data = await getRastreabilidade(user.id);
       setLotes(data);
     } catch (error) {
-      console.error('Erro ao carregar lotes:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os lotes.');
+      console.error('❌ [LISTAR LOTES] Erro ao carregar:', error);
+      Alert.alert('Erro', 'Não foi possível carregar a lista de lotes.');
+      setLotes([]); // Garante lista vazia em caso de falha
     } finally {
       setIsLoading(false);
     }

@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 public record ColmeiaCriadaDTO(
         @NotBlank(message = "Campo Identificador é obrigatório!")
         String identificador,
-        @NotBlank(message = "Campo apiario_id é obrigatório!")
+        @NotNull(message = "Campo apiario_id é obrigatório!")
         Long apiario_id,
         @NotNull(message = "Campo Tipo é obrigatório!")
         TipoColmeia tipo,

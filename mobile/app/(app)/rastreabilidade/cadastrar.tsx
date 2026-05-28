@@ -10,7 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
-import { cadastrarRastreamento } from '@/services/rastreabilidadeService';
+import { cadastrarRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
 
 export default function CadastrarLoteMel() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function CadastrarLoteMel() {
             const data = await listarApiariosPorProdutor(user.id);
             setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
         } catch (e) {
-            console.error('Erro ao buscar apiários:', e);
+            console.error('❌ [CADASTRAR LOTE] Erro ao buscar apiários:', e);
         }
     };
     fetchApiarios();
@@ -43,29 +43,28 @@ export default function CadastrarLoteMel() {
 
   const handleSubmit = async () => {
     if (!dataProducao || !quantidadeProduzida || !apiario || !user?.id) {
-        Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios.');
+        Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios (*).');
         return;
     }
 
     setLoading(true);
     try {
-        const payload = {
+        const payload: RastreabilidadeDTO = {
             dataProducao,
             quantidadeProduzida: parseFloat(quantidadeProduzida.replace(',', '.')),
             apiarioId: parseInt(apiario),
             tipoFlorada: nomeFlorada,
             tipoAbelha: tipoAbelhas,
-            localidadeProducao,
-            lacrado: true,
+            produtorId: user.id, // Injetado via service, mas mantido aqui para clareza
             vendido: false,
         };
 
-        await cadastrarRastreamento(user.id, payload);
+        await cadastrarRastreabilidade(user.id, payload);
         Alert.alert('Sucesso', 'Lote cadastrado com sucesso!');
         router.push('/rastreabilidade/listar');
     } catch (error) {
-        console.error('Erro ao cadastrar lote:', error);
-        Alert.alert('Erro', 'Não foi possível cadastrar o lote.');
+        console.error('❌ [CADASTRAR LOTE] Erro ao salvar:', error);
+        Alert.alert('Erro', 'Ocorreu um erro ao salvar o lote no servidor.');
     } finally {
         setLoading(false);
     }

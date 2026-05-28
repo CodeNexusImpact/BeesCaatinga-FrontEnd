@@ -8,5 +8,6 @@
   "/produtores/:id": "/produtores/:id",
   "/insumos/p/:produtorId": "/insumos?produtorId=:produtorId",
   "/producoes/p/:produtorId": "/producoes?produtorId=:produtorId",
+  "/lotes/p/:produtorId": "/lotes?produtorId=:produtorId",
   "/vistorias/c/:colmeiaId": "/vistorias?colmeiaId=:colmeiaId"
 }
