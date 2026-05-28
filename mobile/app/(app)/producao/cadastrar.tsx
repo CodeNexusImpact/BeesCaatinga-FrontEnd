@@ -6,41 +6,88 @@ import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Alert } from 'react-native';
+import { cadastrarProducao } from '@/services/producaoService';
+import { useAuth } from '@/hooks/useAuth';
+import type { ProducaoCriadaDTO } from '@/types/producao';
+import { UnidadeMedida } from '@/types/insumos/Enums';
 
 export default function CadastrarProducao() {
   const router = useRouter();
+  const { session } = useAuth();
 
   // Estados
   const [tipoProduto, setTipoProduto] = useState('');
   const [quantidade, setQuantidade] = useState('');
-  const [medida, setMedida] = useState('');
+  const [medida, setMedida] = useState<UnidadeMedida | ''>('');
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
   const [dataColeta, setDataColeta] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    router.push('/producao/listar'); // Redirecionado para 'listar'
+  const handleSubmit = async () => {
+    // Validação de campos vazios
+    if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    // Validação básica de formato de data (DD/MM/YYYY)
+    if (dataColeta.length < 10) {
+      Alert.alert('Erro', 'Por favor, insira uma data válida (dd/mm/aaaa).');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Formata a data de DD/MM/YYYY para YYYY-MM-DD
+      const partes = dataColeta.split('/');
+      if (partes.length !== 3) throw new Error('Formato de data inválido');
+      const [dia, mes, ano] = partes;
+      const dataFormatada = `${ano}-${mes}-${dia}`;
+
+      const produtorId = session || '1'; 
+
+      const dto: ProducaoCriadaDTO = {
+        tipoProducao: tipoProduto,
+        quantidade: parseFloat(quantidade.replace(',', '.')),
+        unidadeMedida: medida as UnidadeMedida,
+        apiarioId: parseInt(apiario),
+        colmeiaId: parseInt(colmeia),
+        dataColeta: dataFormatada,
+      };
+
+      await cadastrarProducao(produtorId, dto);
+      
+      Alert.alert('Sucesso', 'Produção cadastrada com sucesso!', [
+        { text: 'OK', onPress: () => router.push('/producao/listar') }
+      ]);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível cadastrar a produção.');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDateChange = (text: string) => {
     setDataColeta(maskDate(text));
   };
 
-  // Opções fixas (substitua por dados dinâmicos depois, se necessário)
+  // Opções fixas
   const tipoProdutoOptions = [
-    { label: 'Mel de Jandaíra', value: 'jandaira' },
-    { label: 'Mel de Marmeleiro', value: 'marmeleiro' },
+    { label: 'Mel de Jandaíra', value: 'Mel de Jandaíra' },
+    { label: 'Mel de Marmeleiro', value: 'Mel de Marmeleiro' },
   ];
 
   const medidaOptions = [
-    { label: 'Kg', value: 'kg' },
-    { label: 'L', value: 'l' },
+    { label: 'Kg', value: 'KILOGRAMA' },
+    { label: 'L', value: 'LITRO' },
   ];
 
   const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: 'rosa' },
-    { label: 'Vale das Abelhas', value: 'vale' },
+    { label: 'Rosa do Sertão', value: '1' },
+    { label: 'Vale das Abelhas', value: '2' },
   ];
 
   const colmeiaOptions = [
@@ -64,7 +111,7 @@ export default function CadastrarProducao() {
         editable={false}
         style={styles.conversaoInput}
         placeholder="Cálculo automático"
-        onChangeText={() => {}} // Pode ser uma função vazia
+        onChangeText={() => {}} 
       />
 
       {/* Quantidade + Medida */}
@@ -83,9 +130,10 @@ export default function CadastrarProducao() {
         <Selector
           label="Medida"
           options={medidaOptions}
-          onSelect={setMedida}
-          placeholder="Selecione o tipo de Medida"
+          onSelect={(val) => setMedida(val as UnidadeMedida)}
+          placeholder="Selecione"
           style={styles.inputMetade}
+          value={medida}
         />
       </View>
 
@@ -96,6 +144,7 @@ export default function CadastrarProducao() {
         onSelect={setTipoProduto}
         placeholder="Selecione o tipo de Mel"
         iconName="honeycomb"
+        value={tipoProduto}
       />
 
       {/* Apiário */}
@@ -105,6 +154,7 @@ export default function CadastrarProducao() {
         onSelect={setApiario}
         placeholder="Selecione o Apiário"
         iconName="home"
+        value={apiario}
       />
 
       {/* Colmeia */}
@@ -114,6 +164,7 @@ export default function CadastrarProducao() {
         onSelect={setColmeia}
         placeholder="Selecione a Colmeia"
         iconName="beehiveOutline"
+        value={colmeia}
       />
 
       {/* Data Coleta */}
@@ -128,10 +179,10 @@ export default function CadastrarProducao() {
 
       {/* Botão */}
       <Botao
-        title="Cadastrar"
+        title={isSubmitting ? "Enviando..." : "Cadastrar"}
         onPress={handleSubmit}
         cor="primaria"
-        style={styles.button}
+        style={[styles.button, isSubmitting && { opacity: 0.7 }]}
       />
     </ScrollView>
   );

@@ -30,7 +30,7 @@ services:
       - postgres_data:/var/lib/postgresql
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U erick" ]
+      test: [ "CMD-SHELL", "pg_isready -U erick -d teste_db" ]
       interval: 10s
       timeout: 5s
       retries: 5

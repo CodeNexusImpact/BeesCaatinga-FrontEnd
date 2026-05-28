@@ -1,0 +1,283 @@
+{
+  "produtores": [
+    {
+      "id": 1,
+      "caminhoDaFoto": "https://randomuser.me/api/portraits/men/1.jpg",
+      "nomeCompleto": "João Abelha",
+      "genero": "MASCULINO",
+      "email": "joao@example.com",
+      "senha": "123",
+      "nomeDaEmpresa": "Mel do Sertão",
+      "telefone": "(87) 98888-8888",
+      "endereco": "Sertão Central, PE"
+    },
+    {
+      "nomeCompleto": "gesus",
+      "telefone": "(12) 34567-8989",
+      "email": "gab@email.com",
+      "dataDeNascimento": "10/02/1998",
+      "genero": "MASCULINO",
+      "senha": "Ab.123456",
+      "id": 2
+    }
+  ],
+  "apiarios": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "nome": "Apiário Morada Nova",
+      "caminhoDaFoto": "https://images.unsplash.com/photo-1587334274328-64186a80aeee",
+      "nRegistro": "REG-12345",
+      "dataDeCriacao": "2023-01-15",
+      "observacoes": "Localizado perto do riacho.",
+      "cep": "56000-000",
+      "nomeDaPropriedade": "Fazenda Esperança",
+      "estado": "Pernambuco",
+      "cidade": "Salgueiro",
+      "bairro": "Rural",
+      "rua": "Estrada de Acesso 1",
+      "numero": "S/N",
+      "complemento": "KM 12",
+      "colmeias": [
+        {
+          "id": 1,
+          "identificador": "C01",
+          "statusColmeia": "SAUDAVEL"
+        },
+        {
+          "id": 2,
+          "identificador": "C02",
+          "statusColmeia": "MANUTENCAO_NECESSARIA"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "produtorId": 1,
+      "nome": "Apiário Vale Verde",
+      "caminhoDaFoto": "https://images.unsplash.com/photo-1590633802953-ce2099309253",
+      "nRegistro": "REG-67890",
+      "dataDeCriacao": "2023-06-20",
+      "observacoes": "Muitas flores de Jazeiro.",
+      "cep": "56000-000",
+      "nomeDaPropriedade": "Sítio Bonito",
+      "estado": "Pernambuco",
+      "cidade": "Salgueiro",
+      "bairro": "Rural",
+      "rua": "Estrada de Acesso 2",
+      "numero": "S/N",
+      "complemento": "",
+      "colmeias": []
+    }
+  ],
+  "colmeias": [
+    {
+      "id": 1,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "identificador": "C01",
+      "tipo": "LANGSTROTH",
+      "ativa": true,
+      "statusColmeia": "SAUDAVEL",
+      "observacoes": "Produção forte.",
+      "detalhesDaLocalizacao": "Lado norte do apiário",
+      "caminhoDaFoto": null,
+      "latitude": -8.0743,
+      "longitude": -39.1189
+    },
+    {
+      "id": 2,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "identificador": "C02",
+      "tipo": "LANGSTROTH",
+      "ativa": true,
+      "statusColmeia": "MANUTENCAO_NECESSARIA",
+      "observacoes": "Precisa trocar tampa.",
+      "detalhesDaLocalizacao": "Lado sul",
+      "caminhoDaFoto": null,
+      "latitude": -8.0744,
+      "longitude": -39.119
+    },
+    {
+      "id": 3,
+      "produtorId": 1,
+      "apiarioId": 1,
+      "identificador": "C03",
+      "tipo": "LANGSTROTH",
+      "ativa": false,
+      "statusColmeia": "INATIVO",
+      "observacoes": "Enxame abandonou.",
+      "detalhesDaLocalizacao": "Centro",
+      "caminhoDaFoto": null,
+      "latitude": -8.0745,
+      "longitude": -39.1191
+    }
+  ],
+  "insumos": [
+    {
+      "dataInsumo": "18/05/2026",
+      "nome": "oooo",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 10,
+      "unidadeMedida": "G",
+      "dataValidade": "18/05/2027",
+      "observacoes": "",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 1
+    },
+    {
+      "dataInsumo": "18/05/2026",
+      "nome": "aaaaaa",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 10,
+      "unidadeMedida": "UN",
+      "dataValidade": "18/05/2027",
+      "observacoes": "",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 2
+    }
+  ],
+  "producoes": [
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 5,
+      "unidadeMedida": "KG",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-05-12",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "id": 2
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 10,
+      "unidadeMedida": "KILOGRAMA",
+      "apiarioId": 1,
+      "colmeiaId": 2,
+      "dataColeta": "2026-06-12",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 2",
+      "id": 3
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 7,
+      "unidadeMedida": "LITRO",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-08-02",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "id": 4
+    },
+    {
+      "tipoProducao": "Mel de Marmeleiro",
+      "quantidade": 3,
+      "unidadeMedida": "LITRO",
+      "apiarioId": 2,
+      "colmeiaId": 2,
+      "dataColeta": "2026-08-02",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Vale das Abelhas",
+      "nomeColmeia": "Colmeia 2",
+      "id": 5
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 55,
+      "unidadeMedida": "KILOGRAMA",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2024-12-07",
+      "produtorId": 1,
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "id": 6
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 55,
+      "unidadeMedida": "KILOGRAMA",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2025-05-01",
+      "produtorId": 1,
+      "nomeApiario": "Rosa do Sertão",
+      "nomeColmeia": "Colmeia 1",
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "id": 7
+    },
+    {
+      "tipoProducao": "Mel de Marmeleiro",
+      "quantidade": 100,
+      "unidadeMedida": "LITRO",
+      "apiarioId": 2,
+      "colmeiaId": 2,
+      "dataColeta": "2026-02-05",
+      "produtorId": 1,
+      "nomeApiario": "Vale das Abelhas",
+      "nomeColmeia": "Colmeia 2",
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "id": 8
+    }
+  ],
+  "vistorias": [
+    {
+      "id": 1,
+      "colmeiaId": 1,
+      "data": "2024-05-01",
+      "condicaoVistoria": "EXCELENTE",
+      "observacoes": "Tudo ok."
+    },
+    {
+      "data": "22/05/2026",
+      "apiarioId": "1",
+      "colmeiaId": "1",
+      "condicaoVistoria": "manutencao",
+      "observacoes": "",
+      "produtorId": 1,
+      "id": 2
+    },
+    {
+      "data": "22/05/2025",
+      "apiarioId": "2",
+      "colmeiaId": "2",
+      "condicaoVistoria": "risco",
+      "observacoes": "",
+      "pragas": [
+        "Varroa",
+        "Formiga",
+        "Traca",
+        "Lagartixa",
+        "Outro"
+      ],
+      "perdas": [
+        "Alimentacao",
+        "Veneno",
+        "Clima",
+        "Outro"
+      ],
+      "produtorId": 1,
+      "id": 3
+    }
+  ]
+}

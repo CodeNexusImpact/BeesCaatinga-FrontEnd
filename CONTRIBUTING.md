@@ -56,6 +56,7 @@ Para deixar o histórico mais visual, encorajamos o uso de emojis no início da 
 * `🎉` `:tada:` - **Commit inicial**
 * `✨` `:sparkles:` - **Novo recurso** (`feat`)
 * `🐛` `:bug:` - **Bugfix** (`fix`)
+* `🎨` `:art:`  - **Mudanças na estrutura de estilo, design ou CSS** (`style`)
 * `📚` `:books:` - **Documentação** (`docs`)
 * `🧪` `:test_tube:` - **Testes** (`test`)
 * `♻️` `:recycle:` - **Refatoração** (`refactor`)

@@ -1,51 +1,64 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import GenericCard, { CardField } from '@/components/genericCard';
 import ModalConfirmacao from '@/components/modalConfirmacao';
 import ModalSucesso from '@/components/modalSucesso';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack, useRouter } from 'expo-router';
-
-const producoes = [
-  {
-    id: 26,
-    tipoProduto: 'Mel de Jandaíra',
-    quantidade: '20 L',
-    status: 'Em estoque',
-    dataExtracao: '01/05/2025',
-    dataVenda: 'xx/xx/xxxx',
-    nomeApiario: 'BeesCaatinga',
-    nomeColmeia: 'Colmeia A1',
-    statusQualidade: 'Não avaliado',
-  },
-  {
-    id: 27,
-    tipoProduto: 'Mel de Umbu',
-    quantidade: '15 kg',
-    status: 'Vendido',
-    dataExtracao: '10/04/2025',
-    dataVenda: '15/04/2025',
-    nomeApiario: 'Rosa do Sertão',
-    nomeColmeia: 'Colmeia B3',
-    statusQualidade: 'Aprovado',
-  },
-];
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import { getProducao, deletarProducao } from '@/services/producaoService';
+import { useAuth } from '@/hooks/useAuth';
+import type { ProducaoRetornoDTO } from '@/types/producao';
 
 const getStatusColor = (status: string) => {
-  if (status.toLowerCase().includes('em estoque')) return cores.sucesso;
-  if (status.toLowerCase().includes('vendido')) return cores.alerta;
-  if (status.toLowerCase().includes('fora de estoque')) return cores.perigo;
+  if (status === 'EM_ESTOQUE') return cores.sucesso;
+  if (status === 'VENDIDO') return cores.alerta;
   return cores.texto;
+};
+
+const formatStatus = (status: string) => {
+  return status === 'EM_ESTOQUE' ? 'Em Estoque' : 'Vendido';
+};
+
+const formatQualidade = (qualidade: string) => {
+  return qualidade === 'APROVADO' ? 'Aprovado' : 'Não Avaliado';
+};
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr || dateStr.includes('x')) return '—';
+  const [ano, mes, dia] = dateStr.split('-');
+  return `${dia}/${mes}/${ano}`;
 };
 
 export default function Visualizar() {
   const router = useRouter();
+  const { session } = useAuth();
 
+  const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
   const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
+
+  const carregarProducoes = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const produtorId = session || '1';
+      const data = await getProducao({ userId: produtorId });
+      setProducoes(data);
+    } catch (error) {
+      console.error('Erro ao carregar produções:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session]);
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarProducoes();
+    }, [carregarProducoes])
+  );
 
   const handleEdit = (id: number) => {
     router.push(`/producao/editar?id=${id}`);
@@ -56,15 +69,22 @@ export default function Visualizar() {
     setModalConfirmacaoVisivel(true);
   };
 
-  const confirmarExclusao = () => {
+  const confirmarExclusao = async () => {
     if (idParaExcluir !== null) {
-      console.log('Produção excluída com ID:', idParaExcluir);
-    }
-    setModalConfirmacaoVisivel(false);
+      try {
+        await deletarProducao(idParaExcluir);
+        setProducoes(prev => prev.filter(p => p.id !== idParaExcluir));
+        setModalConfirmacaoVisivel(false);
 
-    setTimeout(() => {
-      setModalSucessoVisivel(true);
-    }, 350);
+        setTimeout(() => {
+          setModalSucessoVisivel(true);
+        }, 350);
+      } catch (error) {
+        Alert.alert('Erro', 'Não foi possível excluir a produção.');
+        console.error(error);
+        setModalConfirmacaoVisivel(false);
+      }
+    }
   };
 
   const cancelarExclusao = () => {
@@ -74,43 +94,51 @@ export default function Visualizar() {
 
   return (
     <>
-    <Stack.Screen options={{ title: 'Listar' }} />
+      <Stack.Screen options={{ title: 'Listar' }} />
       <View style={styles.container}>
-        {/* Conteúdo Principal */}
         <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {producoes.map((p) => {
-            const fields: CardField[] = [
-              { label: 'Tipo', value: p.tipoProduto },
-              { label: 'Quantidade', value: p.quantidade },
-              {
-                label: 'Status',
-                value: p.status,
-                valueStyle: { color: getStatusColor(p.status) },
-              },
-              { label: 'Extração', value: p.dataExtracao },
-              { label: 'Venda', value: p.dataVenda || '—' },
-              { label: 'Apiário', value: p.nomeApiario },
-              { label: 'Colmeia', value: p.nomeColmeia },
-              { label: 'Qualidade', value: p.statusQualidade },
-            ];
+        {isLoading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={cores.primaria} />
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {producoes.length === 0 ? (
+              <Subtexto style={styles.semDados}>Nenhuma produção encontrada.</Subtexto>
+            ) : (
+              producoes.map((p) => {
+                const fields: CardField[] = [
+                  { label: 'Tipo', value: p.tipoProducao },
+                  { label: 'Quantidade', value: `${p.quantidade}` }, // DTO não tem unidadeMedida
+                  {
+                    label: 'Status',
+                    value: formatStatus(p.statusProduto),
+                    valueStyle: { color: getStatusColor(p.statusProduto) },
+                  },
+                  { label: 'Extração', value: formatDate(p.dataColeta) },
+                  { label: 'Venda', value: formatDate(p.dataVenda || '') },
+                  { label: 'Apiário', value: p.nomeApiario },
+                  { label: 'Colmeia', value: p.nomeColmeia },
+                  { label: 'Qualidade', value: formatQualidade(p.statusQualidade) },
+                ];
 
-            return (
-              <GenericCard
-                key={p.id}
-                id={p.id}
-                fields={fields}
-                actions={[
-                  { iconName: 'delete', onPress: () => handleDelete(p.id) },
-                  { iconName: 'edit', onPress: () => handleEdit(p.id) },
-                ]}
-              />
-            );
-          })}
-        </ScrollView>
+                return (
+                  <GenericCard
+                    key={p.id}
+                    id={p.id}
+                    fields={fields}
+                    actions={[
+                      { iconName: 'delete', onPress: () => handleDelete(p.id) },
+                      { iconName: 'edit', onPress: () => handleEdit(p.id) },
+                    ]}
+                  />
+                );
+              })
+            )}
+          </ScrollView>
+        )}
 
-        {/* 2. O ModalSucesso (toast) fica DENTRO do container */}
         <ModalSucesso
           visivel={modalSucessoVisivel}
           mensagem="Produção excluída com sucesso!"
@@ -118,7 +146,6 @@ export default function Visualizar() {
         />
       </View>
 
-      {/* 3. O ModalConfirmacao (Modal real) fica FORA do container */}
       <ModalConfirmacao
         visivel={modalConfirmacaoVisivel}
         titulo="Deseja mesmo apagar esta produção?"
@@ -127,7 +154,6 @@ export default function Visualizar() {
         aoCancelar={cancelarExclusao}
         aoFechar={cancelarExclusao}
       />
-
     </>
   );
 }
@@ -137,7 +163,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: cores.fundo,
     padding: layout.espacamento.amigavel,
-
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   subtexto: {
     width: '100%',
@@ -147,5 +177,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: layout.espacamento.social,
+  },
+  semDados: {
+    textAlign: 'center',
+    marginTop: 20,
+    opacity: 0.6,
   },
 });

@@ -15,11 +15,15 @@ const ApiarioList: React.FC<{ apiario: ApiarioRetornoDTO }> = ({ apiario }) => {
     const colmeiasTotal = colmeias.length;
     const colmeiasAtivas = colmeias.filter(c => c.statusColmeia !== 'INATIVO').length;
 
+    function openApiarioDetails() {
+        console.log('Apiário Selecionado', `Você selecionou o apiário: ${id}`);
+    }
+
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity style={styles.header} onPress={() => (Alert.alert('Apiário Selecionado', `Você selecionou o apiário: ${nome}`))}>
+                <TouchableOpacity style={styles.header} onPress={openApiarioDetails}>
                     <Text style={styles.number}>{id}</Text>
                     <Text style={styles.text}>{nome}</Text>
                 </TouchableOpacity>
@@ -37,7 +41,7 @@ const ApiarioList: React.FC<{ apiario: ApiarioRetornoDTO }> = ({ apiario }) => {
                     <LinhaDivisoria />
                     <FlatList
                         data={colmeias}
-                        keyExtractor={(item) => item.id.toString()}
+                        keyExtractor={(item, index) => item?.id ? String(item.id) : String(index)}
                         style={{ backgroundColor: cores.cores.base[10] }}
                         renderItem={({ item }) => (
                             <ColmeiaItem id={item.id} identificador={item.identificador} statusColmeia={item.statusColmeia} />
