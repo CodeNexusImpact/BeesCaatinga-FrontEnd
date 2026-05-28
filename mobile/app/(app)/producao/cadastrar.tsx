@@ -5,16 +5,18 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import { cadastrarProducao } from '@/services/producaoService';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoCriadaDTO } from '@/types/producao';
 import { UnidadeMedida } from '@/types/insumos/Enums';
 
 export default function CadastrarProducao() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { user } = useAuth();
 
   // Estados
   const [tipoProduto, setTipoProduto] = useState('');
@@ -22,12 +24,49 @@ export default function CadastrarProducao() {
   const [medida, setMedida] = useState<UnidadeMedida | ''>('');
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
-  const [dataColeta, setDataColeta] = useState('');
+  const [dataColeta, setDataColeta] = useState(new Date().toLocaleDateString('pt-BR'));
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Opções dinâmicas
+  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+  const [colmeiaOptions, setColmeiaOptions] = useState<{label: string, value: string}[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
+  useEffect(() => {
+    const fetchApiarios = async () => {
+        if (!user?.id) return;
+        try {
+            setLoadingOptions(true);
+            const data = await listarApiariosPorProdutor(user.id);
+            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar apiários:', e);
+        } finally {
+            setLoadingOptions(false);
+        }
+    };
+    fetchApiarios();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchColmeias = async () => {
+        if (!apiario) {
+            setColmeiaOptions([]);
+            return;
+        };
+        try {
+            const data = await listarColmeiasPorApiario(apiario);
+            setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar colmeias:', e);
+        }
+    };
+    fetchColmeias();
+  }, [apiario]);
 
   const handleSubmit = async () => {
     // Validação de campos vazios
-    if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta) {
+    if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta || !user?.id) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
@@ -46,8 +85,6 @@ export default function CadastrarProducao() {
       const [dia, mes, ano] = partes;
       const dataFormatada = `${ano}-${mes}-${dia}`;
 
-      const produtorId = session || '1'; 
-
       const dto: ProducaoCriadaDTO = {
         tipoProducao: tipoProduto,
         quantidade: parseFloat(quantidade.replace(',', '.')),
@@ -57,7 +94,7 @@ export default function CadastrarProducao() {
         dataColeta: dataFormatada,
       };
 
-      await cadastrarProducao(produtorId, dto);
+      await cadastrarProducao(user.id, dto);
       
       Alert.alert('Sucesso', 'Produção cadastrada com sucesso!', [
         { text: 'OK', onPress: () => router.push('/producao/listar') }
@@ -83,16 +120,6 @@ export default function CadastrarProducao() {
   const medidaOptions = [
     { label: 'Kg', value: 'KILOGRAMA' },
     { label: 'L', value: 'LITRO' },
-  ];
-
-  const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: '1' },
-    { label: 'Vale das Abelhas', value: '2' },
-  ];
-
-  const colmeiaOptions = [
-    { label: 'Colmeia 1', value: '1' },
-    { label: 'Colmeia 2', value: '2' },
   ];
 
   // Conversão fixa só para exibição (pode ser calculada depois)

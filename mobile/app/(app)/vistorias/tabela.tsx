@@ -89,13 +89,13 @@ export default function RelatorioVistoriaTabela() {
         
         const csvContent = cabecalho + linhas;
 
-        console.log('--- CSV GERADO ---');
+        console.log('--- EXPORTAÇÃO CSV (VISTORIAS) ---');
         console.log(csvContent);
-        console.log('------------------');
+        console.log('----------------------------------');
 
         Alert.alert(
-            'Relatório Gerado',
-            `O CSV com ${dadosFiltrados.length} registros foi gerado no console do desenvolvedor.`,
+            'Sucesso',
+            `O relatório com ${dadosFiltrados.length} registros foi gerado no console com sucesso!`,
             [{ text: 'OK' }]
         );
     };

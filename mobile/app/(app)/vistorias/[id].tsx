@@ -16,9 +16,15 @@ export default function DetalhesVistoria() {
 
   const carregarVistoria = useCallback(async () => {
     if (id) {
+      const vistoriaId = Array.isArray(id) ? id[0] : id;
+
+      // Trava de segurança imediata: Impede que rotas reservadas sejam tratadas como ID
+      if (!vistoriaId || ['dashboard', 'cadastrar', 'listar', 'tabela'].includes(vistoriaId)) {
+        return;
+      }
+
       try {
         setLoading(true);
-        const vistoriaId = Array.isArray(id) ? id[0] : id;
         const dados = await getVistoriaById(vistoriaId);
         setVistoria(dados);
       } catch (error) {

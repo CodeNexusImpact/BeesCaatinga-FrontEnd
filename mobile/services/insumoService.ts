@@ -1,80 +1,66 @@
 import api from './api';
 import type { InsumoRetornoDTO } from '@/types/insumos';
 
-/**
- * Filtros para busca de insumos
- */
-interface FiltrosInsumo {
-  nome?: string;
-  tipoInsumo?: string;
-  userId: string;
-}
-
-/**
- * 1. LISTAGEM: Retorna insumos via caminho relativo herdado do api.ts.
- */
-export const getInsumos = async (filtros?: FiltrosInsumo): Promise<InsumoRetornoDTO[]> => {
-  const params = filtros?.userId ? { produtorId: filtros.userId } : {};
-  const response = await api.get<InsumoRetornoDTO[]>('/insumos', { params });
-  
-  let resultado = response.data || [];
-
-  if (filtros?.nome) {
-    resultado = resultado.filter(item => 
-      item.nome?.toLowerCase().includes(filtros.nome!.toLowerCase())
-    );
+export const getInsumos = async (produtorId: number | string): Promise<InsumoRetornoDTO[]> => {
+  try {
+    const response = await api.get<InsumoRetornoDTO[]>('/insumos', {
+      params: { produtorId: Number(produtorId) }
+    });
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Erro ao listar insumos:', error);
+    return [];
   }
-  
-  if (filtros?.tipoInsumo) {
-    resultado = resultado.filter(item => 
-      item.tipoInsumo?.toLowerCase() === filtros.tipoInsumo!.toLowerCase()
-    );
+};
+
+export const getInsumoById = async (insumoId: number | string): Promise<any | null> => {
+  try {
+    const response = await api.get<any>(`/insumos/${insumoId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Erro ao buscar insumo ${insumoId}:`, error);
+    throw error;
   }
+};
 
-  return resultado;
+export const cadastrarInsumo = async (produtorId: number | string, dados: any): Promise<any> => {
+  try {
+    const { id, ...payloadLimpo } = dados;
+    payloadLimpo.produtorId = Number(produtorId);
+    
+    const response = await api.post<any>('/insumos', payloadLimpo);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao cadastrar insumo:', error);
+    throw error;
+  }
+};
+
+export const atualizarInsumo = async (insumoId: number | string, dados: any): Promise<any> => {
+  try {
+    const { id, ...payloadLimpo } = dados;
+    const response = await api.put<any>(`/insumos/${insumoId}`, payloadLimpo);
+    return response.data;
+  } catch (error) {
+    console.error(`Erro ao atualizar insumo ${insumoId}:`, error);
+    throw error;
+  }
+};
+
+export const deletarInsumo = async (insumoId: number | string): Promise<void> => {
+  try {
+    await api.delete(`/insumos/${insumoId}`);
+  } catch (error) {
+    console.error(`Erro ao deletar insumo ${insumoId}:`, error);
+    throw error;
+  }
 };
 
 /**
- * 2. BUSCA POR ID: Detalhes de um registro específico.
+ * 6. KPIs: Estatísticas analíticas dinâmicas
  */
-export const getInsumoById = async (id: string): Promise<InsumoRetornoDTO> => {
-  const response = await api.get<InsumoRetornoDTO>(`/insumos/${id}`);
-  return response.data;
-};
-
-/**
- * 3. CADASTRO: Persistência de novo registro (Remove ID manual).
- */
-export const cadastrarInsumo = async (produtorId: string, dados: any): Promise<InsumoRetornoDTO> => {
-  const { id, ...payload } = dados;
-  const response = await api.post<InsumoRetornoDTO>('/insumos', {
-    ...payload,
-    produtorId: parseInt(produtorId)
-  });
-  return response.data;
-};
-
-/**
- * 4. EDIÇÃO: Atualização de registro existente via PUT relativo.
- */
-export const atualizarInsumo = async (id: string, dados: any): Promise<InsumoRetornoDTO> => {
-  const response = await api.put<InsumoRetornoDTO>(`/insumos/${id}`, dados);
-  return response.data;
-};
-
-/**
- * 5. EXCLUSÃO: Remoção física do registro via DELETE relativo.
- */
-export const deletarInsumo = async (id: string | number): Promise<void> => {
-  const response = await api.delete(`/insumos/${id}`);
-  return response.data;
-};
-
-/**
- * 6. KPIs: Estatísticas analíticas dinâmicas usando chaves do db.json.
- */
-export const getKpisInsumos = async (userId: string) => {
-  const insumos = await getInsumos({ userId });
+export const getKpisInsumos = async (produtorId: string | number) => {
+  const insumos = await getInsumos(produtorId);
   
   if (!insumos || insumos.length === 0) {
     return { totalItens: 0, estoqueBaixo: 0, emUso: 0 };
@@ -88,10 +74,10 @@ export const getKpisInsumos = async (userId: string) => {
 };
 
 /**
- * 7. GRÁFICOS: Processamento analítico real para o Dashboard.
+ * 7. GRÁFICOS: Processamento analítico real para o Dashboard
  */
-export const getGraficosInsumos = async (userId: string) => {
-  const insumos = await getInsumos({ userId });
+export const getGraficosInsumos = async (produtorId: string | number) => {
+  const insumos = await getInsumos(produtorId);
 
   if (!insumos || insumos.length === 0) {
     return { porTipo: [], porStatus: [], raw: [] };
@@ -100,7 +86,7 @@ export const getGraficosInsumos = async (userId: string) => {
   // Agrupamento por tipoInsumo
   const tipoCount: { [key: string]: number } = {};
   insumos.forEach(i => {
-    const tipo = i.tipoInsumo || 'Outros';
+    const tipo = i.tipo || 'Outros';
     tipoCount[tipo] = (tipoCount[tipo] || 0) + 1;
   });
 

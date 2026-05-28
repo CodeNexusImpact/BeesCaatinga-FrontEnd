@@ -86,9 +86,9 @@ export default function InsumoDetalhe() {
    * dataInsumo, nome, tipoInsumo, quantidade, unidadeMedida, dataValidade, observacoes
    */
   const fields: CardField[] = [
-    { label: 'Data de Entrada', value: insumo.dataEntrada || '—' },
+    { label: 'Data de Entrada', value: insumo.dataInsumo || '—' },
     { label: 'Nome do Insumo', value: insumo.nome || '—' },
-    { label: 'Tipo do Insumo', value: insumo.tipo || '—' },
+    { label: 'Tipo do Insumo', value: insumo.tipoInsumo || '—' },
     {
       label: 'Quantidade em Estoque',
       value: `${insumo.quantidade ?? 0} ${insumo.unidadeMedida ?? ''}`.trim() || '0'

@@ -6,36 +6,74 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { cadastrarRastreamento } from '@/services/rastreabilidadeService';
 
 export default function CadastrarLoteMel() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Estados
-  const [dataProducao, setDataProducao] = useState('');
+  const [dataProducao, setDataProducao] = useState(new Date().toLocaleDateString('pt-BR'));
   const [quantidadeProduzida, setQuantidadeProduzida] = useState('');
   const [apiario, setApiario] = useState('');
   const [nomeFlorada, setNomeFlorada] = useState('');
   const [localidadeProducao, setLocalidadeProducao] = useState('');
   const [tipoAbelhas, setTipoAbelhas] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    // Redireciona para a listagem após cadastro
-    router.push('/producao/listar');
+  // Opções dinâmicas
+  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+
+  useEffect(() => {
+    const fetchApiarios = async () => {
+        if (!user?.id) return;
+        try {
+            const data = await listarApiariosPorProdutor(user.id);
+            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar apiários:', e);
+        }
+    };
+    fetchApiarios();
+  }, [user?.id]);
+
+  const handleSubmit = async () => {
+    if (!dataProducao || !quantidadeProduzida || !apiario || !user?.id) {
+        Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios.');
+        return;
+    }
+
+    setLoading(true);
+    try {
+        const payload = {
+            dataProducao,
+            quantidadeProduzida: parseFloat(quantidadeProduzida.replace(',', '.')),
+            apiarioId: parseInt(apiario),
+            tipoFlorada: nomeFlorada,
+            tipoAbelha: tipoAbelhas,
+            localidadeProducao,
+            lacrado: true,
+            vendido: false,
+        };
+
+        await cadastrarRastreamento(user.id, payload);
+        Alert.alert('Sucesso', 'Lote cadastrado com sucesso!');
+        router.push('/rastreabilidade/listar');
+    } catch (error) {
+        console.error('Erro ao cadastrar lote:', error);
+        Alert.alert('Erro', 'Não foi possível cadastrar o lote.');
+    } finally {
+        setLoading(false);
+    }
   };
 
   const handleDateChange = (text: string) => {
     setDataProducao(maskDate(text));
   };
-
-  // Opções
-  const apiarioOptions = [
-    { label: 'Apiário Norte', value: 'norte' },
-    { label: 'Apiário Sul', value: 'sul' },
-    { label: 'Apiário Leste', value: 'leste' },
-    { label: 'Apiário Oeste', value: 'oeste' },
-  ];
 
   const tipoAbelhasOptions = [
     { label: 'Apis mellifera', value: 'apis_mellifera' },

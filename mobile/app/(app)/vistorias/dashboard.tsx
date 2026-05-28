@@ -29,8 +29,7 @@ const statusOptions = [
 ];
 
 export default function DashboardVistoria() {
-    const { session } = useAuth();
-    const produtorId = session || 1;
+    const { user } = useAuth();
 
     const [anoSelecionado, setAnoSelecionado] = useState('');
     const [statusSelecionado, setStatusSelecionado] = useState('');
@@ -40,23 +39,54 @@ export default function DashboardVistoria() {
     const [lineData, setLineData] = useState<any>(null);
 
     const carregarDados = useCallback(async () => {
+        if (!user?.id) return;
+        
         try {
             setLoading(true);
             
-            const [novosKpis, novosGraficos] = await Promise.all([
-                getKpisVistorias(produtorId, anoSelecionado, statusSelecionado),
-                getGraficosVistorias(produtorId, anoSelecionado, statusSelecionado)
+            const [novosKpis, vistoriasRaw] = await Promise.all([
+                getKpisVistorias(user.id),
+                getGraficosVistorias(user.id)
             ]);
 
             setKpis(novosKpis);
-            setPizzaData(novosGraficos.pizzaData);
-            setLineData(novosGraficos.lineData);
+
+            // Processamento Local dos Gráficos para evitar dependência de chaves inexistentes no service
+            const vistoriasArray = Array.isArray(vistoriasRaw) ? vistoriasRaw : [];
+            
+            // Exemplo de agregação para Pizza (Status)
+            const statusCount: {[key: string]: number} = {};
+            vistoriasArray.forEach(v => {
+                const s = v.condicaoVistoria || 'saudavel';
+                statusCount[s] = (statusCount[s] || 0) + 1;
+            });
+
+            const coresMap: {[key: string]: string} = {
+                saudavel: '#4CAF50', excelente: '#8BC34A', manutencao: '#FFC107', risco: '#FF9800', perdida: '#F44336'
+            };
+
+            const pizza = Object.entries(statusCount).map(([name, count]) => ({
+                name: name.toUpperCase(),
+                population: count,
+                color: coresMap[name.toLowerCase()] || '#9E9E9E',
+                legendFontColor: "#7F7F7F",
+                legendFontSize: 12
+            }));
+
+            setPizzaData(pizza);
+
+            // Placeholder para Line Data
+            setLineData({
+                labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+                datasets: [{ data: [0, 0, 0, 0, vistoriasArray.length, 0] }]
+            });
+
         } catch (error) {
             console.error('Erro ao carregar dashboard:', error);
         } finally {
             setLoading(false);
         }
-    }, [produtorId, anoSelecionado, statusSelecionado]);
+    }, [user?.id, anoSelecionado, statusSelecionado]);
 
     useFocusEffect(
         useCallback(() => {

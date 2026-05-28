@@ -5,38 +5,31 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import Icon from '@/components/icon';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Index() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  // Estados
-  const [nome, setNome] = useState('xxxxx xxxxxx');
-  const [genero, setGenero] = useState('');
-  const [email, setEmail] = useState('exemplo@email.com');
-  const [empresa, setEmpresa] = useState('');
-  const [celular, setCelular] = useState('(xx) x xxxx-xxxx');
-  const [endereco, setEndereco] = useState('Rua xxxx, xxxx, xx, xxxxxx');
+  // Estados baseados nos dados reais do usuário logado
+  const [nome, setNome] = useState(user?.nomeCompleto || '');
+  const [genero, setGenero] = useState(user?.genero || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [empresa, setEmpresa] = useState(user?.nomeDaEmpresa || '');
+  const [telefone, setTelefone] = useState(user?.telefone || '');
+  const [endereco, setEndereco] = useState(user?.endereco || '');
 
-  // Opções para gênero
+  // Opções para gênero alinhadas ao backend
   const generoOptions = [
-    { label: 'Masculino', value: 'masculino' },
-    { label: 'Feminino', value: 'feminino' },
-    { label: 'Outro', value: 'outro' },
-    { label: 'Prefiro não informar', value: 'nao_informar' },
+    { label: 'Masculino', value: 'MASCULINO' },
+    { label: 'Feminino', value: 'FEMININO' },
+    { label: 'Outro', value: 'OUTRO' },
   ];
 
   const handleSalvar = () => {
-    console.log({
-      nome,
-      genero,
-      email,
-      empresa,
-      celular,
-      endereco,
-    });
-    // Lógica para salvar as alterações do perfil
+    Alert.alert('Info', 'Funcionalidade de salvamento em manutenção.');
     router.back();
   };
 
@@ -51,13 +44,13 @@ export default function Index() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Atualize seu perfil</Text>
+        <Text style={styles.title}>Meu Perfil</Text>
         
         {/* Foto do Perfil */}
         <TouchableOpacity style={styles.fotoContainer}>
           <View style={styles.fotoPlaceholder}>
             <Icon name="camera" size={40} color={cores.preto} />
-            <Text style={styles.fotoTexto}>Foto: Perfil</Text>
+            <Text style={styles.fotoTexto}>Foto do Perfil</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -68,7 +61,6 @@ export default function Index() {
         value={nome}
         onChangeText={setNome}
         placeholder="Digite seu nome completo"
-  
       />
 
       <Selector
@@ -76,7 +68,7 @@ export default function Index() {
         options={generoOptions}
         onSelect={setGenero}
         placeholder="Selecione seu gênero"
-
+        value={genero}
       />
 
       <Input
@@ -85,7 +77,7 @@ export default function Index() {
         onChangeText={setEmail}
         placeholder="seu@email.com"
         keyboardType="email-address"
-     
+        editable={false} // Email geralmente é login, travado por segurança
       />
 
       <Input
@@ -93,16 +85,14 @@ export default function Index() {
         value={empresa}
         onChangeText={setEmpresa}
         placeholder="(Opcional)"
-    
       />
 
       <Input
         label="Celular"
-        value={celular}
-        onChangeText={setCelular}
+        value={telefone}
+        onChangeText={setTelefone}
         placeholder="(00) 0 0000-0000"
         keyboardType="phone-pad"
-  
       />
 
       <Input
@@ -110,7 +100,6 @@ export default function Index() {
         value={endereco}
         onChangeText={setEndereco}
         placeholder="Rua, número, bairro, cidade"
-    
       />
 
       {/* Botões */}
@@ -120,7 +109,6 @@ export default function Index() {
           onPress={handleSalvar}
           cor="primaria"
           tamanho="grande"
-          style={styles.botaoSalvar}
         />
         
         <Botao
@@ -136,7 +124,6 @@ export default function Index() {
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -164,14 +151,13 @@ const styles = StyleSheet.create({
   fotoPlaceholder: {
     width: 80,
     height: 80,
-    borderRadius: 60,
+    borderRadius: 40,
     backgroundColor: cores.branco,
     borderWidth: 2,
     borderColor: cores.preto,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: layout.espacamento.amigavel,
   },
   fotoTexto: {
     fontSize: 10,
@@ -179,12 +165,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 2,
   },
- 
   botoesContainer: {
     gap: layout.espacamento.texto,
     marginTop: layout.espacamento.social,
-  },
-  botaoSalvar: {
   },
   botaoCancelar: {
     borderWidth: 1,

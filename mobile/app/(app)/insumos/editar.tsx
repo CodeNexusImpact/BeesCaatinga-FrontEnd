@@ -61,10 +61,10 @@ export default function EditarInsumo() {
             setIsLoading(true);
             const data = await getInsumoById(id!);
 
-            // MAPEMAENTO DE CHAVES REAIS
-            setDataInsumo(data.dataEntrada || '');
+            // MAPEMAENTO DE CHAVES REAIS (db.json)
+            setDataInsumo(data.dataInsumo || '');
             setNome(data.nome || '');
-            setTipoInsumo(data.tipo || '');
+            setTipoInsumo(data.tipoInsumo || '');
             setQuantidade(data.quantidade?.toString() || '');
             setUnidadeMedida(data.unidadeMedida || '');
             setDataValidade(data.dataValidade === 'N/A' ? '' : (data.dataValidade || ''));
@@ -88,8 +88,8 @@ export default function EditarInsumo() {
             return;
         }
 
+        // Payload sem o campo ID (id vai apenas na URL do PUT)
         const payload = {
-            id: parseInt(id!),
             dataInsumo,
             nome,
             tipoInsumo,

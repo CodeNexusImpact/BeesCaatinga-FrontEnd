@@ -7,7 +7,7 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useFocusEffect } from 'expo-router';
-import { getProducao } from '@/services/producaoService';
+import { getProducoes } from '@/services/producaoService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
 
@@ -59,7 +59,7 @@ export default function RelatorioProducaoTabela() {
         setIsLoading(true);
         try {
             const produtorId = session || '1';
-            const data = await getProducao({ userId: produtorId, ano: ano || undefined });
+            const data = await getProducoes(produtorId);
             
             const formatados: DadosProducao[] = data.map(p => ({
                 id: String(p.id),
@@ -85,7 +85,24 @@ export default function RelatorioProducaoTabela() {
     );
 
     const handleExportar = () => {
-        alert(`Exportando ${producoes.length} registros...`);
+        if (!producoes || producoes.length === 0) {
+            Alert.alert('Aviso', 'Não há dados para exportar.');
+            return;
+        }
+
+        // Geração do CSV real
+        const cabecalho = 'Lote,Data,Quantidade,Qualidade,Status\n';
+        const linhas = producoes.map(p => 
+            `${p.loteId},${p.dataExtracao},${p.pesoLitro},${p.qualidade},${p.status}`
+        ).join('\n');
+
+        const csvString = cabecalho + linhas;
+
+        console.log('--- EXPORTAÇÃO CSV (PRODUÇÃO) ---');
+        console.log(csvString);
+        console.log('--------------------------------');
+
+        Alert.alert('Sucesso', `Relatório com ${producoes.length} registros gerado no console com sucesso!`);
     };
 
     return (

@@ -1,39 +1,49 @@
-import { Stack } from "expo-router";
-import { AuthProvider } from '@/context/AuthContext'; // Importe SÓ o Provedor do Contexto
+import { Stack, useRouter, useSegments } from "expo-router";
+import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Text, ActivityIndicator, View } from 'react-native';
-import cores from "@/constants/cores";
+import temaCores from "@/constants/cores";
+import { useEffect } from "react";
 
-
-export function RootLayout() {
+function RootLayout() {
   const { session, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!session && !inAuthGroup) {
+      // Se não estiver logado e não estiver nas telas de login, vai para o login
+      router.replace('/(auth)/login');
+    } else if (session && inAuthGroup) {
+      // Se estiver logado e tentar acessar o login, vai para a home
+      router.replace('/(app)');
+    }
+  }, [session, isLoading, segments]);
+
   if (isLoading) {
     return (
-      <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator />
-        <Text>{"Carregando sessão..."}</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: temaCores.branco }}>
+        <ActivityIndicator size="large" color={temaCores.primaria} />
+        <Text style={{ marginTop: 10, color: temaCores.texto }}>{"Carregando sessão..."}</Text>
       </View>
     );
   }
-  return <View style={{ flex: 1 }} id='rootView'>
+
+  return (
     <Stack screenOptions={{
       headerShown: false,
-      contentStyle: { backgroundColor: cores.branco, justifyContent: 'center' }
-    }} >
-      <Stack.Protected guard={!session}>
-        <Stack.Screen name="(app)" />
-      </Stack.Protected>
-      <Stack.Protected guard={!session}>
-        <Stack.Screen name="(auth)/login" />
-        <Stack.Screen name="(auth)/cadastro" />
-        <Stack.Screen name="(auth)/redefinirSenha" />
-      </Stack.Protected>
-
+      contentStyle: { backgroundColor: temaCores.branco }
+    }}>
+      <Stack.Screen name="(app)" />
+      <Stack.Screen name="(auth)" />
     </Stack>
-  </View>
+  );
 }
 
-// O Layout que engloba o Provedor de Autenticação
 export default function LayoutWrapper() {
   return (
     <AuthProvider>

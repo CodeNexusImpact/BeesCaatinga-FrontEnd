@@ -19,6 +19,24 @@
       "genero": "MASCULINO",
       "senha": "Ab.123456",
       "id": 2
+    },
+    {
+      "nomeCompleto": "cinthia",
+      "telefone": "(83) 98175-8363",
+      "email": "cinthia20lindolfo@gmail.com",
+      "dataDeNascimento": "03/07/1995",
+      "genero": "FEMININO",
+      "senha": "12345678Cl.",
+      "id": 3
+    },
+    {
+      "nomeCompleto": "Cinthia",
+      "telefone": "(83) 98175-8363",
+      "email": "cinthia20lindolfo@gmail.com",
+      "dataDeNascimento": "03/07/1995",
+      "genero": "FEMININO",
+      "senha": "12345678Cl.",
+      "id": 4
     }
   ],
   "apiarios": [
@@ -68,6 +86,57 @@
       "numero": "S/N",
       "complemento": "",
       "colmeias": []
+    },
+    {
+      "nome": "1",
+      "nRegistro": "sisbi 1234",
+      "dataDeCriacao": "02/05/2026",
+      "cep": "58052-510",
+      "nomeDaPropriedade": "cinthia",
+      "estado": "Paraíba",
+      "cidade": "João Pessoa",
+      "bairro": "Jardim Cidade Universitária",
+      "rua": "aaa",
+      "numero": "75",
+      "complemento": "APTO 401",
+      "latitude": 0,
+      "longitude": 0,
+      "produtor_id": 3,
+      "id": 3
+    },
+    {
+      "nome": "2",
+      "nRegistro": "sisbi 1235",
+      "dataDeCriacao": "20/04/2026",
+      "cep": "58052-510",
+      "nomeDaPropriedade": "Maria",
+      "estado": "Paraíba",
+      "cidade": "João Pessoa",
+      "bairro": "Jardim Cidade Universitária",
+      "rua": "nnn",
+      "numero": "02",
+      "complemento": "APTO 401",
+      "latitude": 0,
+      "longitude": 0,
+      "produtor_id": 3,
+      "id": 4
+    },
+    {
+      "nome": "3",
+      "nRegistro": "sisbi 1236",
+      "dataDeCriacao": "01/05/2026",
+      "cep": "58052-510",
+      "nomeDaPropriedade": "bbbb",
+      "estado": "Paraíba",
+      "cidade": "João Pessoa",
+      "bairro": "Jardim Cidade Universitária",
+      "rua": "bbb",
+      "numero": "15",
+      "complemento": "APTO 401",
+      "latitude": 0,
+      "longitude": 0,
+      "produtor_id": 3,
+      "id": 5
     }
   ],
   "colmeias": [
@@ -138,6 +207,66 @@
       "statusInsumo": "DISPONIVEL",
       "produtorId": 1,
       "id": 2
+    },
+    {
+      "dataInsumo": "28/05/2026",
+      "nome": "aaaaaaaaaaaaa",
+      "tipoInsumo": "Medicamento",
+      "quantidade": 2,
+      "unidadeMedida": "L",
+      "dataValidade": "N/A",
+      "observacoes": "",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 3,
+      "id": 3
+    },
+    {
+      "dataInsumo": "28/05/2026",
+      "nome": "Insumo Teste QA",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 50,
+      "unidadeMedida": "KG",
+      "dataValidade": "28/05/2027",
+      "observacoes": "Teste automatizado",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 4
+    },
+    {
+      "dataInsumo": "28/05/2026",
+      "nome": "Insumo Teste QA",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 50,
+      "unidadeMedida": "KG",
+      "dataValidade": "28/05/2027",
+      "observacoes": "Teste automatizado",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 5
+    },
+    {
+      "dataInsumo": "28/05/2026",
+      "nome": "Insumo Teste QA",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 50,
+      "unidadeMedida": "KG",
+      "dataValidade": "28/05/2027",
+      "observacoes": "Teste automatizado",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 6
+    },
+    {
+      "dataInsumo": "28/05/2026",
+      "nome": "Insumo Teste QA",
+      "tipoInsumo": "Alimentação",
+      "quantidade": 50,
+      "unidadeMedida": "KG",
+      "dataValidade": "28/05/2027",
+      "observacoes": "Teste automatizado",
+      "statusInsumo": "DISPONIVEL",
+      "produtorId": 1,
+      "id": 7
     }
   ],
   "producoes": [
@@ -238,6 +367,62 @@
       "statusProduto": "EM_ESTOQUE",
       "statusQualidade": "NAO_AVALIADO",
       "id": 8
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 10,
+      "unidadeMedida": "KG",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-05-28",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Apiário Teste",
+      "nomeColmeia": "Colmeia Teste",
+      "id": 9
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 10,
+      "unidadeMedida": "KG",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-05-28",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Apiário Teste",
+      "nomeColmeia": "Colmeia Teste",
+      "id": 10
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 10,
+      "unidadeMedida": "KG",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-05-28",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Apiário Teste",
+      "nomeColmeia": "Colmeia Teste",
+      "id": 11
+    },
+    {
+      "tipoProducao": "Mel de Jandaíra",
+      "quantidade": 10,
+      "unidadeMedida": "KG",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "dataColeta": "2026-05-28",
+      "produtorId": 1,
+      "statusProduto": "EM_ESTOQUE",
+      "statusQualidade": "NAO_AVALIADO",
+      "nomeApiario": "Apiário Teste",
+      "nomeColmeia": "Colmeia Teste",
+      "id": 12
     }
   ],
   "vistorias": [
@@ -278,6 +463,42 @@
       ],
       "produtorId": 1,
       "id": 3
+    },
+    {
+      "data": "28/05/2026",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "condicaoVistoria": "EXCELENTE",
+      "observacoes": "Vistoria Teste QA",
+      "produtorId": 1,
+      "id": 4
+    },
+    {
+      "data": "28/05/2026",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "condicaoVistoria": "EXCELENTE",
+      "observacoes": "Vistoria Teste QA",
+      "produtorId": 1,
+      "id": 5
+    },
+    {
+      "data": "28/05/2026",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "condicaoVistoria": "EXCELENTE",
+      "observacoes": "Vistoria Teste QA",
+      "produtorId": 1,
+      "id": 6
+    },
+    {
+      "data": "28/05/2026",
+      "apiarioId": 1,
+      "colmeiaId": 1,
+      "condicaoVistoria": "EXCELENTE",
+      "observacoes": "Vistoria Teste QA",
+      "produtorId": 1,
+      "id": 7
     }
   ]
 }

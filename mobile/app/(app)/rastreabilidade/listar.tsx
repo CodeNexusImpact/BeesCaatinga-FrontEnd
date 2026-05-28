@@ -1,34 +1,50 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal, ActivityIndicator, Alert } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack, useRouter } from 'expo-router';
-
-// Dados mockados dos lotes de mel
-const lotesMel = [
-  { id: 'A001', dataProducao: '20/08/2025', quantidade: 20, apiario: 'Apiário A' },
-  { id: 'A002', dataProducao: '21/08/2025', quantidade: 25, apiario: 'Apiário B' },
-  { id: 'A003', dataProducao: '22/08/2025', quantidade: 18, apiario: 'Apiário A' },
-  { id: 'B001', dataProducao: '19/08/2025', quantidade: 30, apiario: 'Apiário C' },
-  { id: 'B002', dataProducao: '23/08/2025', quantidade: 22, apiario: 'Apiário B' },
-  { id: 'C001', dataProducao: '24/08/2025', quantidade: 28, apiario: 'Apiário C' },
-];
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import { useAuth } from '@/hooks/useAuth';
+import { getRastreamentos, Rastreamento } from '@/services/rastreabilidadeService';
 
 export default function ListarLotesMel() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  // Estados para controle
+  // Estados para dados reais
+  const [lotes, setLotes] = useState<Rastreamento[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isListaVisivel, setIsListaVisivel] = useState(true);
   const [filtroApiario, setFiltroApiario] = useState('');
   const [modalVisivel, setModalVisivel] = useState(false);
 
+  const carregarLotes = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    try {
+      const data = await getRastreamentos(user.id);
+      setLotes(data);
+    } catch (error) {
+      console.error('Erro ao carregar lotes:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os lotes.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarLotes();
+    }, [carregarLotes])
+  );
+
   // Filtrar lotes por apiário
   const lotesFiltrados = filtroApiario 
-    ? lotesMel.filter(lote => lote.apiario === filtroApiario)
-    : lotesMel;
+    ? lotes.filter(lote => (lote.nomeApiario || lote.apiarioId?.toString()) === filtroApiario)
+    : lotes;
 
   // Obter apiários únicos para o filtro
-  const apiariosUnicos = ['Todos', ...new Set(lotesMel.map(lote => lote.apiario))];
+  const apiariosUnicos = ['Todos', ...new Set(lotes.map(lote => (lote.nomeApiario || lote.apiarioId?.toString())))];
 
   // Handler para selecionar apiário
   const handleSelecionarApiario = (apiario: string) => {
@@ -41,19 +57,45 @@ export default function ListarLotesMel() {
   };
 
   // Handler para navegar para detalhes do lote
-  const handleLotePress = (idLote: string) => {
-    router.push(`/rastreabilidade/editar?id=${idLote}`);
+  const handleLotePress = (idLote: number) => {
+    router.push(`/rastreabilidade/${idLote}`);
+  };
+
+  const handleExportar = () => {
+    if (lotesFiltrados.length === 0) {
+      Alert.alert('Aviso', 'Não há dados para exportar.');
+      return;
+    }
+
+    const cabecalho = 'ID,Data,Quantidade,Apiario,Florada,Abelha\n';
+    const linhas = lotesFiltrados.map(l => 
+      `${l.id},${l.dataProducao},${l.quantidadeProduzida},${l.apiarioId},${l.tipoFlorada},${l.tipoAbelha}`
+    ).join('\n');
+
+    console.log('--- EXPORTAÇÃO CSV (RASTREABILIDADE) ---');
+    console.log(cabecalho + linhas);
+    console.log('----------------------------------------');
+
+    Alert.alert('Sucesso', 'Relatório de rastreabilidade gerado no console!');
   };
 
   // Texto exibido no seletor
   const textoSeletor = filtroApiario ? filtroApiario : 'Todos os Apiários';
+
+  if (isLoading) {
+    return (
+      <View style={styles.modalOverlay}>
+        <ActivityIndicator size="large" color={cores.primaria[100]} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView 
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
     >
-      <Stack.Screen options={{ title: 'Listar' }} />
+      <Stack.Screen options={{ title: 'Listar Lotes' }} />
 
       {/* Card de Lista de Lotes */}
       <View style={styles.listaContainer}>
@@ -138,7 +180,7 @@ export default function ListarLotesMel() {
             {/* Cabeçalho da Tabela */}
             <View style={styles.tabelaCabecalho}>
               <Text style={[styles.cabecalhoTexto, styles.colunaId]}>Lote de Mel</Text>
-              <Text style={[styles.cabecalhoTexto, styles.colunaData]}>Data de Produção</Text>
+              <Text style={[styles.cabecalhoTexto, styles.colunaData]}>Data</Text>
               <Text style={[styles.cabecalhoTexto, styles.colunaQuant]}>Quant</Text>
               <Text style={[styles.cabecalhoTexto, styles.colunaApiario]}>Apiário</Text>
             </View>
@@ -151,7 +193,7 @@ export default function ListarLotesMel() {
                   styles.loteRow,
                   index === 0 && styles.firstRow
                 ]}
-                onPress={() => handleLotePress(lote.id)}
+                onPress={() => handleLotePress(lote.id!)}
               >
                 <Text style={[styles.rowText, styles.colunaId, styles.loteClicavel]}>
                   {lote.id}
@@ -160,10 +202,10 @@ export default function ListarLotesMel() {
                   {lote.dataProducao}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaQuant]}>
-                  {lote.quantidade}
+                  {lote.quantidadeProduzida}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaApiario]}>
-                  {lote.apiario}
+                  {lote.nomeApiario || lote.apiarioId}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -172,14 +214,14 @@ export default function ListarLotesMel() {
             {lotesFiltrados.length === 0 && (
               <View style={styles.semDados}>
                 <Text style={styles.semDadosTexto}>
-                  Nenhum lote encontrado para o apiário selecionado.
+                  Nenhum lote encontrado.
                 </Text>
               </View>
             )}
 
             {/* Botão Exportar */}
-            <TouchableOpacity style={styles.exportarBotao}>
-              <Text style={styles.exportarTexto}>Exportar</Text>
+            <TouchableOpacity style={styles.exportarBotao} onPress={handleExportar}>
+              <Text style={styles.exportarTexto}>Exportar CSV</Text>
             </TouchableOpacity>
           </View>
         )}

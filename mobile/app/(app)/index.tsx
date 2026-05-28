@@ -5,6 +5,10 @@ import layout from '@/constants/layout';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { Platform, StyleSheet, View, Dimensions } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { getInsumos } from '@/services/insumoService';
+import { getProducoes } from '@/services/producaoService';
+import { getVistorias } from '@/services/vistoriaService';
 
 const prodMel = require('@/assets/images/prodMel.png');
 const apiarioColmeia = require('@/assets/images/apiario_colmeia.png');
@@ -12,9 +16,10 @@ const rastrear = require('@/assets/images/rastrear.png');
 
 export default function Index() {
   const router = useRouter();
+  const { user } = useAuth();
   
-  // Criamos um estado para monitorar a largura da tela em tempo real (essencial para Web se o usuário redimensionar o navegador)
   const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [totalVistorias, setTotalVistorias] = useState(0);
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -22,6 +27,26 @@ export default function Index() {
     });
     return () => subscription?.remove();
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user?.id) {
+        try {
+          // Passando o ID simples (number) para evitar Erro 500 de [object Object]
+          const [insumos, producoes, vistorias] = await Promise.all([
+            getInsumos(user.id),
+            getProducoes(user.id),
+            getVistorias(user.id)
+          ]);
+          
+          if (vistorias) setTotalVistorias(vistorias.length);
+        } catch (e) {
+          console.error('Erro ao buscar dados iniciais:', e);
+        }
+      }
+    };
+    fetchData();
+  }, [user?.id]);
 
   // Definimos se é mobile baseado no Platform E no tamanho da tela (telas menores que 768px agem como mobile)
   const isMobile = Platform.OS !== 'web' || screenWidth < 768;

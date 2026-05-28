@@ -7,7 +7,7 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { getProducao, deletarProducao } from '@/services/producaoService';
+import { getProducoes, deletarProducao } from '@/services/producaoService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
 
@@ -33,7 +33,7 @@ const formatDate = (dateStr: string) => {
 
 export default function Visualizar() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { user } = useAuth();
 
   const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,17 +42,18 @@ export default function Visualizar() {
   const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
 
   const carregarProducoes = useCallback(async () => {
+    if (!user?.id) return;
+    
     setIsLoading(true);
     try {
-      const produtorId = session || '1';
-      const data = await getProducao({ userId: produtorId });
+      const data = await getProducoes(user.id);
       setProducoes(data);
     } catch (error) {
       console.error('Erro ao carregar produções:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -70,9 +71,9 @@ export default function Visualizar() {
   };
 
   const confirmarExclusao = async () => {
-    if (idParaExcluir !== null) {
+    if (idParaExcluir !== null && user?.id) {
       try {
-        await deletarProducao(idParaExcluir);
+        await deletarProducao(idParaExcluir, user.id);
         setProducoes(prev => prev.filter(p => p.id !== idParaExcluir));
         setModalConfirmacaoVisivel(false);
 

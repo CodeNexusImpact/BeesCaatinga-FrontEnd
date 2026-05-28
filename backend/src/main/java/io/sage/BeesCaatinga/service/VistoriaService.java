@@ -61,6 +61,17 @@ public class VistoriaService {
                 .toList();
     }
 
+    public List<VistoriaRetornoDTO> listarPorColmeia(Long colmeiaId) {
+        if (!colmeiaRepository.existsById(colmeiaId)) {
+            throw new ResourceNotFoundException("Colmeia não encontrada com id: " + colmeiaId);
+        }
+        
+        List<Vistoria> vistorias = vistoriaRepository.findByColmeiaId(colmeiaId);
+        return vistorias.stream()
+                .map(vistoriaMapper::toRetornoDTO)
+                .toList();
+    }
+
     public VistoriaRetornoDTO atualizar(Long produtorId, Long vistoriaId, VistoriaAtualizadaDTO dto){
         var vistoria = validarVistoriaDoProdutor(produtorId, vistoriaId);
 

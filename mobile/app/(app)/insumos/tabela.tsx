@@ -24,10 +24,7 @@ export default function RelatorioInsumosTabela() {
         const produtorId = session || '1';
         try {
             setIsLoading(true);
-            const data = await getInsumos({
-                userId: produtorId,
-                tipoInsumo: statusFiltro
-            });
+            const data = await getInsumos(produtorId);
 
             // Processamento para padronização de exibição (Concatenar Quantidade + Unidade)
             const dadosFormatados = data.map(item => ({
@@ -52,7 +49,24 @@ export default function RelatorioInsumosTabela() {
     );
 
     const handleExportar = () => {
-        Alert.alert('Sucesso', `Exportando ${insumos.length} itens do inventário para PDF...`);
+        if (!insumos || insumos.length === 0) {
+            Alert.alert('Aviso', 'Não há dados para exportar.');
+            return;
+        }
+
+        // Geração do CSV real
+        const cabecalho = 'Data,Insumo,Tipo,Quantidade,Unidade,Status,Observacoes\n';
+        const linhas = insumos.map(i => 
+            `${i.dataInsumo},${i.nome},${i.tipoInsumo},${i.quantidade},${i.unidadeMedida},${i.statusFormatado},"${(i.observacoes || '').replace(/"/g, '""')}"`
+        ).join('\n');
+
+        const csvString = cabecalho + linhas;
+
+        console.log('--- EXPORTAÇÃO CSV (INSUMOS) ---');
+        console.log(csvString);
+        console.log('--------------------------------');
+
+        Alert.alert('Sucesso', `Relatório com ${insumos.length} registros gerado no console com sucesso!`);
     };
 
     // Colunas mapeadas com as chaves reais e formatadas

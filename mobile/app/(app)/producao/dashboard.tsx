@@ -7,7 +7,7 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useFocusEffect } from 'expo-router';
-import { getProducao } from '@/services/producaoService';
+import { getProducoes } from '@/services/producaoService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
 
@@ -41,24 +41,27 @@ const getEstacao = (dataStr: string) => {
 };
 
 export default function Dashboard() {
-    const { session } = useAuth();
+    const { user } = useAuth();
     const [ano, setAno] = useState(''); 
     const [estacao, setEstacao] = useState('');
     const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const carregarDados = useCallback(async () => {
+        if (!user?.id) return;
+        
         setIsLoading(true);
         try {
-            const produtorId = session || '1';
-            const data = await getProducao({ userId: produtorId, ano: ano || undefined });
-            setProducoes(data);
+            const data = await getProducoes(user.id);
+            // Filtro por ano aplicado localmente conforme o estado da tela
+            const dataFiltradaAno = ano ? data.filter(p => p.dataColeta.includes(ano)) : data;
+            setProducoes(dataFiltradaAno);
         } catch (error) {
             console.error('Erro ao carregar dashboard:', error);
         } finally {
             setIsLoading(false);
         }
-    }, [session, ano]);
+    }, [user?.id, ano]);
 
     useFocusEffect(
         useCallback(() => {

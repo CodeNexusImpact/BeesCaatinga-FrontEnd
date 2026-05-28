@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react';
 import { ApiarioRetornoDTO } from '@/types/apiario';
-import api from '../services/api';
+import { listarApiariosPorProdutor } from '../services/apiarioService';
 import { useAuth } from './useAuth';
 
 export function useApiarios() {
     const [apiarios, setApiarios] = useState<ApiarioRetornoDTO[]>([]);
     const [loading, setLoading] = useState(true);
-    const { session } = useAuth();
+    const { user, session } = useAuth();
 
     useEffect(() => {
         const fetchApiarios = async () => {
+            // Fallback seguro para evitar produtorId=NaN no terminal
+            const idDoProdutor = user?.id ? Number(user.id) : 1;
+            
+            if (isNaN(idDoProdutor)) return;
+
             try {
                 setLoading(true);
-                // Usando ID do produtor 1 como padrão para testes de integração
-                const produtorId = 1;
-                const response = await api.get<ApiarioRetornoDTO[]>(`/apiarios/${produtorId}`);
-                setApiarios(response.data);
+                const data = await listarApiariosPorProdutor(idDoProdutor);
+                setApiarios(data);
             } catch (error) {
                 console.error('Erro ao buscar apiários:', error);
             } finally {
@@ -23,8 +26,10 @@ export function useApiarios() {
             }
         };
 
-        fetchApiarios();
-    }, [session]);
+        if (session) {
+            fetchApiarios();
+        }
+    }, [session, user?.id]);
 
     return { apiarios, loading };
 }

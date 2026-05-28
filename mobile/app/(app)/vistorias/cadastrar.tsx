@@ -4,17 +4,18 @@ import Selector from '@/components/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Alert, View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert, View, Text, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { cadastrarVistoria } from '@/services/vistoriaService';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import ModalSucesso from '@/components/modalSucesso';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function CadastrarVistoria() {
   const router = useRouter();
-  const { session } = useAuth();
-  const produtorId = session || 1;
+  const { user } = useAuth();
 
   // --- Estados da Vistoria ---
   const [dataVistoria, setDataVistoria] = useState(new Date().toLocaleDateString('pt-BR'));
@@ -24,6 +25,39 @@ export default function CadastrarVistoria() {
   const [observacoes, setObservacoes] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
+
+  // Opções dinâmicas
+  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+  const [colmeiaOptions, setColmeiaOptions] = useState<{label: string, value: string}[]>([]);
+
+  useEffect(() => {
+    const fetchApiarios = async () => {
+        if (!user?.id) return;
+        try {
+            const data = await listarApiariosPorProdutor(user.id);
+            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar apiários:', e);
+        }
+    };
+    fetchApiarios();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchColmeias = async () => {
+        if (!apiario) {
+            setColmeiaOptions([]);
+            return;
+        };
+        try {
+            const data = await listarColmeiasPorApiario(apiario);
+            setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar colmeias:', e);
+        }
+    };
+    fetchColmeias();
+  }, [apiario]);
 
   // Estados para os checkboxes
   const [pragasObj, setPragasObj] = useState({
@@ -41,17 +75,7 @@ export default function CadastrarVistoria() {
     outro: false,
   });
 
-  // --- Opções (mock data) ---
-  const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: '1' },
-    { label: 'Vale das Abelhas', value: '2' },
-  ];
-
-  const colmeiaOptions = [
-    { label: 'Colmeia 1', value: '1' },
-    { label: 'Colmeia 2', value: '2' },
-  ];
-
+  // --- Opções fixas ---
   const condicaoOptions = [
     { label: 'Saudável', value: 'saudavel' },
     { label: 'Manutenção Necessária', value: 'manutencao' },
@@ -60,14 +84,13 @@ export default function CadastrarVistoria() {
   ];
 
   const handleSalvar = async () => {
-    if (!apiario || !colmeia) {
-      Alert.alert('Erro', 'Por favor, selecione o apiário e a colmeia.');
+    if (!apiario || !colmeia || !user?.id) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
     setLoading(true);
     try {
-      // Converte objetos de checkbox em arrays de strings
       const pragas = Object.entries(pragasObj)
         .filter(([_, checked]) => checked)
         .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
@@ -78,15 +101,16 @@ export default function CadastrarVistoria() {
 
       const payload = {
         data: dataVistoria,
-        apiarioId: apiario,
-        colmeiaId: colmeia,
+        apiarioId: Number(apiario),
+        colmeiaId: Number(colmeia),
         condicaoVistoria: condicao,
         observacoes,
         pragas,
         perdas,
+        produtorId: Number(user.id)
       };
 
-      await cadastrarVistoria(produtorId, payload);
+      await cadastrarVistoria(payload);
       setModalSucessoVisivel(true);
     } catch (error) {
       console.error('Erro ao salvar vistoria:', error);
@@ -101,7 +125,6 @@ export default function CadastrarVistoria() {
     router.back();
   };
 
-  // Componente auxiliar para renderizar cada item de checkbox
   const CheckboxItem = ({
     label,
     value,
@@ -161,7 +184,6 @@ export default function CadastrarVistoria() {
         value={condicao}
       />
 
-      {/* Seção de Checkboxes */}
       <View style={styles.checkboxSection}>
         <View style={styles.checkboxColumn}>
           <Text style={styles.checkboxTitle}>Pragas</Text>

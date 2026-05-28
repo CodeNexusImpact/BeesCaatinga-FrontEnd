@@ -9,6 +9,7 @@ import io.sage.BeesCaatinga.model.Apiario;
 import io.sage.BeesCaatinga.model.Colmeia;
 import io.sage.BeesCaatinga.repository.ApiarioRepository;
 import io.sage.BeesCaatinga.repository.ProdutorRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ public class ApiarioService {
     private final ApiarioRepository apiarioRepository;
     private final ApiarioMapper apiarioMapper;
 
+    @Transactional
     public ApiarioRetornoDTO salvarApiario(Long produtorId, ApiarioCriadoDTO dto){
         var produtor = repository.findById(produtorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
@@ -35,10 +37,11 @@ public class ApiarioService {
     }
 
     public List<ApiarioRetornoDTO> listar(Long produtorId){
-        var produtor = repository.findById(produtorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId));
+        if (!repository.existsById(produtorId)) {
+            throw new ResourceNotFoundException("Produtor não encontrado com id: " + produtorId);
+        }
 
-        var lista = produtor.getApiarios();
+        List<Apiario> lista = apiarioRepository.findByProdutorId(produtorId);
 
         return lista.stream()
                 .map(apiarioMapper::toRetornoDTO)

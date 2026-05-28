@@ -3,14 +3,15 @@ import { View, ScrollView, StyleSheet, ActivityIndicator, Alert, TouchableOpacit
 import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { getInsumos } from '@/services/insumoService';
+import { getInsumos, deletarInsumo } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
 import { InsumoRetornoDTO } from '@/types/insumos';
 import Subtexto from '@/components/subTexto';
+import Icon from '@/components/icon';
 
 export default function ListarInsumos() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { user } = useAuth();
 
   const [insumos, setInsumos] = useState<InsumoRetornoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,13 +19,13 @@ export default function ListarInsumos() {
 
   /**
    * Ciclo de Vida: Recarrega sempre que focar na tela.
-   * Espelho: Produção/Visualizar
    */
   const carregarInsumos = useCallback(async () => {
+    if (!user?.id) return;
+    
     setIsLoading(true);
     try {
-      const produtorId = session || '1';
-      const data = await getInsumos({ userId: produtorId });
+      const data = await getInsumos(user.id);
       setInsumos(data);
     } catch (error) {
       console.error('❌ [LISTAR INSUMOS] Erro:', error);
@@ -32,7 +33,7 @@ export default function ListarInsumos() {
     } finally {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +44,33 @@ export default function ListarInsumos() {
   const toggleExpand = (id: number) => {
     setExpandedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleEdit = (id: number) => {
+    router.push(`/insumos/editar?id=${id}`);
+  };
+
+  const handleDelete = (id: number) => {
+    Alert.alert(
+      'Confirmar Exclusão',
+      'Tem certeza que deseja excluir este insumo?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Excluir', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletarInsumo(id);
+              Alert.alert('Sucesso', 'Insumo excluído com sucesso.');
+              carregarInsumos();
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível excluir o insumo.');
+            }
+          }
+        }
+      ]
     );
   };
 
@@ -81,7 +109,14 @@ export default function ListarInsumos() {
                   <Text style={styles.headerTitle}>{insumo.nome}</Text>
                 </View>
                 <View style={styles.headerRight}>
-                  <Text style={styles.headerTitle}>Status</Text>
+                  <View style={{ flexDirection: 'row', gap: 12, marginRight: 12 }}>
+                    <TouchableOpacity onPress={() => handleEdit(insumo.id)}>
+                      <Icon name="edit" size={20} color={cores.primaria[100]} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDelete(insumo.id)}>
+                      <Icon name="delete" size={20} color="#F44336" />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={{ color: cores.texto }}>
                     {expandedIds.includes(insumo.id) ? '▲' : '▼'}
                   </Text>

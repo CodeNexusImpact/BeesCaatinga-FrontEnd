@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 const screenWidth = Dimensions.get('window').width;
 
 export default function DashboardInsumos() {
-    const { session } = useAuth();
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
     const [kpis, setKpis] = useState<KpiData[]>([]);
     const [graficos, setGraficos] = useState<{ porTipo: any[], porStatus: any[] } | null>(null);
@@ -21,13 +21,14 @@ export default function DashboardInsumos() {
      * Carregamento dinâmico via Service Nomeado
      */
     const carregarDados = useCallback(async () => {
-        const produtorId = session || '1';
+        if (!user?.id) return;
+        
         try {
             setIsLoading(true);
             
             const [kpiData, chartData] = await Promise.all([
-                getKpisInsumos(produtorId),
-                getGraficosInsumos(produtorId)
+                getKpisInsumos(user.id),
+                getGraficosInsumos(user.id)
             ]);
 
             setKpis([
@@ -44,7 +45,7 @@ export default function DashboardInsumos() {
         } finally {
             setIsLoading(false);
         }
-    }, [session]);
+    }, [user?.id]);
 
     useFocusEffect(
         useCallback(() => {

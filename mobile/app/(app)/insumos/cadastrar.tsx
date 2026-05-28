@@ -14,10 +14,10 @@ import Checkbox from 'expo-checkbox';
 
 export default function CadastrarInsumo() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { user } = useAuth();
 
   // --- Estados do Formulário (Espelho do db.json) ---
-  const [dataInsumo, setDataInsumo] = useState('18/05/2026');
+  const [dataInsumo, setDataInsumo] = useState(new Date().toLocaleDateString('pt-BR'));
   const [nome, setNome] = useState('');
   const [tipoInsumo, setTipoInsumo] = useState('');
   const [quantidade, setQuantidade] = useState('');
@@ -30,16 +30,14 @@ export default function CadastrarInsumo() {
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
 
   const handleSubmit = async () => {
-    if (isSubmitting) return;
-
-    const produtorId = session || '1';
+    if (isSubmitting || !user?.id) return;
     
     if (!nome || !quantidade || !tipoInsumo) {
       Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios (*)');
       return;
     }
 
-    // PAYLOAD: Remove ID manual para json-server gerar o sequencial
+    // PAYLOAD
     const payload = {
       dataInsumo,
       nome,
@@ -53,7 +51,7 @@ export default function CadastrarInsumo() {
 
     try {
       setIsSubmitting(true);
-      await cadastrarInsumo(produtorId, payload);
+      await cadastrarInsumo(user.id, payload);
       setModalSucessoVisivel(true);
     } catch (error) {
       console.error('❌ [CADASTRAR INSUMO] Erro:', error);

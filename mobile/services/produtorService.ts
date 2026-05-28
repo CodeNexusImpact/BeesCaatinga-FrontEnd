@@ -11,12 +11,17 @@ export const cadastrarProdutor = async (produtor: ProdutorCriado): Promise<Produ
   }
 };
 
-export const listarProdutores = async (): Promise<Produtor[]> => {
+export const atualizarProdutor = async (id: number | string, produtor: any): Promise<Produtor> => {
   try {
-    const response = await api.get<Produtor[]>('/produtores');
+    const response = await api.put<Produtor>(`/produtores/${id}`, produtor);
     return response.data;
   } catch (error) {
-    console.error('Erro ao listar produtores:', error);
+    console.error('Erro ao atualizar produtor:', error);
     throw error;
   }
+};
+
+export default {
+  cadastrarProdutor,
+  atualizarProdutor,
 };

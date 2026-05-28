@@ -6,7 +6,7 @@
   "/colmeias/produtor/:produtorId/apiario/:apiarioId/ativas": "/colmeias?produtorId=:produtorId&apiarioId=:apiarioId&ativa=true",
   "/colmeias/produtor/:produtorId/apiario/:apiarioId/inativas": "/colmeias?produtorId=:produtorId&apiarioId=:apiarioId&ativa=false",
   "/produtores/:id": "/produtores/:id",
-  "/insumos/:produtorId": "/insumos?produtorId=:produtorId",
-  "/producoes/:produtorId": "/producoes?produtorId=:produtorId",
-  "/vistorias/:colmeiaId": "/vistorias?colmeiaId=:colmeiaId"
+  "/insumos/p/:produtorId": "/insumos?produtorId=:produtorId",
+  "/producoes/p/:produtorId": "/producoes?produtorId=:produtorId",
+  "/vistorias/c/:colmeiaId": "/vistorias?colmeiaId=:colmeiaId"
 }

@@ -8,16 +8,20 @@ import cores from "@/constants/cores";
 import { styles as formStyle } from "@/styles/forms.styles";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
-import { listarProdutores } from "@/services/produtorService";
 
 
 function Login() {
-
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { signIn } = useAuth();
+  const router = useRouter();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const handleLogin = async () => {
     if (!email || !senha) {
@@ -27,26 +31,12 @@ function Login() {
 
     setLoading(true);
     try {
-      // 1. Pega a lista de todos os produtores da API
-      const produtores = await listarProdutores();
-
-      // 2. Procura um usuário com o email fornecido
-      const foundUser = produtores.find(p => p.email.toLowerCase() === email.toLowerCase());
-
-      // 3. Validação temporária (INSEGURA)
-      // O backend não retorna a senha, então esta validação de senha falhará.
-      // O login funcionará se o email for encontrado.
-      // Em um cenário real, o backend deve ter um endpoint /login que valide a senha.
-      if (foundUser) {
-        // A lógica de `signIn` do AuthContext será usada para criar a sessão
-        await signIn(email, senha);
-        // O Expo Router fará o redirecionamento automático
-      } else {
-        Alert.alert("Erro de Login", "Credenciais inválidas. Tente novamente.");
-      }
-
-    } catch (error) {
-      Alert.alert("Erro de Login", "Não foi possível conectar ao servidor. Tente novamente.");
+      // O signIn agora faz a chamada real ao backend /login
+      await signIn(email, senha);
+      // O redirecionamento automático é feito pelo RootLayout (_layout.tsx)
+    } catch (error: any) {
+      const message = error.response?.data?.message || "E-mail ou senha inválidos. Tente novamente.";
+      Alert.alert("Erro de Login", message);
       console.error("Login falhou:", error);
     } finally {
       setLoading(false);
@@ -54,14 +44,8 @@ function Login() {
   };
 
   const goToRegister = () => {
-    router.push('/(auth)/cadastro'); // Navega para a tela de cadastro
+    router.push('/(auth)/cadastro');
   }
-
-  const navigation = useNavigation();
-  const router = useRouter();
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
 
   return (
     <KeyboardAvoidingView

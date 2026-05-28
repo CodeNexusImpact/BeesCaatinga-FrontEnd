@@ -1,64 +1,116 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { Platform } from 'react-native';
+import api from '../services/api';
+import * as SecureStore from 'expo-secure-store';
 
-// 1. Definição dos tipos para o Contexto
+// Utilitário para persistência multiplataforma
+const storage = {
+    getItem: async (key: string) => {
+        if (Platform.OS === 'web') {
+            return localStorage.getItem(key);
+        }
+        return await SecureStore.getItemAsync(key);
+    },
+    setItem: async (key: string, value: string) => {
+        if (Platform.OS === 'web') {
+            localStorage.setItem(key, value);
+        } else {
+            await SecureStore.setItemAsync(key, value);
+        }
+    },
+    removeItem: async (key: string) => {
+        if (Platform.OS === 'web') {
+            localStorage.removeItem(key);
+        } else {
+            await SecureStore.deleteItemAsync(key);
+        }
+    }
+};
+
+// Definição do tipo do Produtor
+interface Produtor {
+    id: number;
+    email: string;
+    nomeCompleto: string;
+    nomeDaEmpresa?: string;
+    telefone?: string;
+    genero?: string;
+    endereco?: string;
+    caminhoDaFoto?: string;
+}
+
 interface AuthContextType {
-    session: string | null; // O token ou ID do usuário (null se deslogado)
-    isLoading: boolean;     // Para saber se ainda estamos carregando do storage
+    session: string | null; 
+    user: Produtor | null;
+    isLoading: boolean;     
     signIn: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
-// 2. Criação do Contexto (com valores iniciais para tipagem)
 export const AuthContext = createContext<AuthContextType>({
     session: null,
-    isLoading: false,
+    user: null,
+    isLoading: true,
     signIn: async () => {},
     signOut: async () => {},
 });
 
-// 3. O Provedor do Contexto
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<string | null>(null);
+    const [user, setUser] = useState<Produtor | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // [LÓGICA ESTÁTICA SIMULADA]
     useEffect(() => {
-        // Simula o carregamento da sessão do SecureStore na inicialização
-        // Se houver um token salvo, ele o carregaria aqui.
-        setTimeout(() => {
-            // No mundo real: setSession(await SecureStore.getItemAsync('session'));
-            setIsLoading(false); 
-        }, 1000); 
+        const loadStorageData = async () => {
+            try {
+                const storedUser = await storage.getItem('user_data');
+                const storedToken = await storage.getItem('user_token');
+
+                if (storedUser && storedToken) {
+                    setUser(JSON.parse(storedUser));
+                    setSession(storedToken);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados do storage', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadStorageData();
     }, []);
 
 
-    // [LÓGICA ESTÁTICA SIMULADA DE LOGIN]
-    const signIn = async (email: string, password: string) => {
-        // 1. No mundo real: Chamada à API do Backend
-        // 2. No mundo real: Se sucesso, salve o token no SecureStore.
-        
-        console.log(`Tentativa de Login: ${email}`);
-        
-        // Simulação de sucesso após 500ms
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                const fakeToken = 'user-token-12345';
-                setSession(fakeToken);
-                console.log('Login Estático bem-sucedido!');
-                resolve();
-            }, 500);
-        });
+    const signIn = async (email: string, senha: string) => {
+        try {
+            const response = await api.post<Produtor>('/login', { email, senha });
+            const produtor = response.data;
+            
+            const token = produtor.id.toString();
+
+            await storage.setItem('user_token', token);
+            await storage.setItem('user_data', JSON.stringify(produtor));
+
+            setSession(token);
+            setUser(produtor);
+            
+            console.log('Login bem-sucedido:', produtor.nomeCompleto);
+        } catch (error) {
+            console.error('Erro no login:', error);
+            throw new Error('E-mail ou senha inválidos');
+        }
     };
 
-    // [LÓGICA ESTÁTICA SIMULADA DE LOGOUT]
     const signOut = async () => {
-        // No mundo real: Remova o token do SecureStore.
+        await storage.removeItem('user_token');
+        await storage.removeItem('user_data');
         setSession(null);
-        console.log('Logout Estático efetuado!');
+        setUser(null);
+        console.log('Logout efetuado!');
     };
 
     return (
-        <AuthContext.Provider value={{ session, isLoading, signIn, signOut }}>
+        <AuthContext.Provider value={{ session, user, isLoading, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     );
