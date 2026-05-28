@@ -103,7 +103,7 @@ export default function DetalhesVistoria() {
 
       <View style={styles.acoes}>
         <Botao title="Editar" onPress={handleEdit} cor="secundaria" iconName="edit" />
-        <Botao title="Excluir" onPress={handleDelete} cor="complementarNegativa" iconName="delete" />
+        <Botao title="Excluir" onPress={handleDelete} cor="terciaria" iconName="delete" />
       </View>
 
       <ModalConfirmacao
@@ -117,6 +117,7 @@ export default function DetalhesVistoria() {
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
@@ -133,3 +134,4 @@ const styles = StyleSheet.create({
   value: { fontSize: 16, color: cores.texto, marginBottom: 16, fontWeight: '500' },
   acoes: { gap: layout.espacamento.amigavel, marginTop: 20 }
 });
+

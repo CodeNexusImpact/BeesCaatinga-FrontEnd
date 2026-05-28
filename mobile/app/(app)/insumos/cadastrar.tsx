@@ -30,6 +30,8 @@ export default function CadastrarInsumo() {
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+
     const produtorId = session || '1';
     
     if (!nome || !quantidade || !tipoInsumo) {
@@ -173,7 +175,6 @@ export default function CadastrarInsumo() {
         onPress={handleSubmit}
         cor="primaria"
         style={styles.button}
-        disabled={isSubmitting}
       />
 
       <ModalSucesso

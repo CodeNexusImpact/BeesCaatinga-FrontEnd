@@ -37,7 +37,7 @@ export default function EditarInsumo() {
         { label: 'Equipamento', value: 'Equipamento' },
         { label: 'Outro', value: 'Outro' },
     ];
-    
+
     const unidadeMedidaOptions = [
         { label: 'Kg', value: 'KG' },
         { label: 'g', value: 'G' },
@@ -60,11 +60,11 @@ export default function EditarInsumo() {
         try {
             setIsLoading(true);
             const data = await getInsumoById(id!);
-            
+
             // MAPEMAENTO DE CHAVES REAIS
-            setDataInsumo(data.dataInsumo || '');
+            setDataInsumo(data.dataEntrada || '');
             setNome(data.nome || '');
-            setTipoInsumo(data.tipoInsumo || '');
+            setTipoInsumo(data.tipo || '');
             setQuantidade(data.quantidade?.toString() || '');
             setUnidadeMedida(data.unidadeMedida || '');
             setDataValidade(data.dataValidade === 'N/A' ? '' : (data.dataValidade || ''));
@@ -81,6 +81,8 @@ export default function EditarInsumo() {
     };
 
     const handleSalvar = async () => {
+        if (isSaving) return;
+
         if (!nome || !quantidade || !tipoInsumo) {
             Alert.alert('Erro', 'Preencha os campos obrigatórios (*)');
             return;
@@ -210,7 +212,6 @@ export default function EditarInsumo() {
                 title={isSaving ? "Salvando..." : "Salvar Alterações"}
                 onPress={handleSalvar}
                 cor="primaria"
-                disabled={isSaving}
                 style={styles.button}
             />
 

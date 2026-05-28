@@ -102,9 +102,7 @@ export default function DashboardInsumos() {
                             paddingLeft={"15"}
                             center={[10, 0]}
                             absolute
-                            style={{
-                                transformOrigin: 'center' // Corrigido de transform-origin para transformOrigin
-                            }}
+                            style={styles.chartStyle}
                         />
                     ) : (
                         <Text style={styles.emptyText}>Sem dados categorizados.</Text>
@@ -125,7 +123,7 @@ export default function DashboardInsumos() {
                             yAxisLabel=""
                             yAxisSuffix=""
                             chartConfig={chartConfig}
-                            style={[styles.chartStyle, { transformOrigin: 'center' }]} // Corrigido transformOrigin
+                            style={styles.chartStyle}
                             showValuesOnTopOfBars
                             fromZero
                         />

@@ -24,9 +24,9 @@ export default function RelatorioInsumosTabela() {
         const produtorId = session || '1';
         try {
             setIsLoading(true);
-            const data = await getInsumos({ 
+            const data = await getInsumos({
                 userId: produtorId,
-                tipoInsumo: statusFiltro 
+                tipoInsumo: statusFiltro
             });
 
             // Processamento para padronização de exibição (Concatenar Quantidade + Unidade)
@@ -79,12 +79,12 @@ export default function RelatorioInsumosTabela() {
             {/* Filtros */}
             <View style={styles.filtroContainer}>
                 <View style={styles.linhaFiltro}>
-                    <Selector 
-                        label="Filtrar por Categoria" 
-                        options={statusOptions} 
-                        onSelect={setStatusFiltro} 
-                        placeholder="Todas" 
-                        style={{flex: 1}}
+                    <Selector
+                        label="Filtrar por Categoria"
+                        options={statusOptions}
+                        onSelect={setStatusFiltro}
+                        placeholder="Todas"
+                        style={{ flex: 1 }}
                         value={statusFiltro}
                     />
                 </View>
@@ -101,8 +101,8 @@ export default function RelatorioInsumosTabela() {
                     </Text>
 
                     <View style={styles.tabelaContainer}>
-                        <ScrollView 
-                            horizontal={true} 
+                        <ScrollView
+                            horizontal={true}
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={styles.scrollContentTabela}
                         >
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     filtroContainer: { zIndex: 10, marginBottom: layout.espacamento.texto },
     linhaFiltro: { flexDirection: 'row', gap: layout.espacamento.texto },
     itensEncontrados: { textAlign: 'center', fontSize: 12, color: '#888', marginBottom: 5 },
-    tabelaContainer: { 
+    tabelaContainer: {
         marginTop: layout.espacamento.texto,
         borderRadius: 8,
         borderWidth: 1,

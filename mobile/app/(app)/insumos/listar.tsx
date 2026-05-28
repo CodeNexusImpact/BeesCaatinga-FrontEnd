@@ -41,7 +41,7 @@ export default function ListarInsumos() {
   );
 
   const toggleExpand = (id: number) => {
-    setExpandedIds(prev => 
+    setExpandedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -72,7 +72,7 @@ export default function ListarInsumos() {
         ) : (
           insumos.map((insumo) => (
             <View key={insumo.id} style={styles.statusContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.statusHeader}
                 onPress={() => toggleExpand(insumo.id)}
               >
@@ -93,7 +93,7 @@ export default function ListarInsumos() {
                   <View style={styles.statusRow}>
                     <View style={styles.infoCol}>
                       <Text style={styles.label}>Tipo:</Text>
-                      <Text style={styles.value}>{insumo.tipoInsumo}</Text>
+                      <Text style={styles.value}>{insumo.tipo}</Text>
                     </View>
                     <View style={styles.infoCol}>
                       <Text style={styles.label}>Quantidade:</Text>
@@ -101,8 +101,8 @@ export default function ListarInsumos() {
                     </View>
                     <View style={[styles.statusDot, { backgroundColor: getStatusDotColor(insumo.statusInsumo) }]} />
                   </View>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={styles.btnDetalhes}
                     onPress={() => router.push(`/insumos/${insumo.id}`)}
                   >
