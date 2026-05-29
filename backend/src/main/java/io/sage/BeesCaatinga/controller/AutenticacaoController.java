@@ -22,10 +22,16 @@ public class AutenticacaoController {
     private final ProdutorMapper mapper;
 
     @PostMapping
-    public ResponseEntity<ProdutorRetornoDTO> login(@RequestBody @Valid LoginDTO dto) {
-        var produtor = repository.findByEmailAndSenha(dto.email(), dto.senha())
-                .orElseThrow(() -> new ResourceNotFoundException("E-mail ou senha inválidos!"));
+    public ResponseEntity<?> login(@RequestBody @Valid LoginDTO dto) {
+        try {
+            var produtor = repository.findFirstByEmailAndSenha(dto.email(), dto.senha())
+                    .orElseThrow(() -> new ResourceNotFoundException("E-mail ou senha inválidos!"));
 
-        return ResponseEntity.ok(mapper.toRetornoDTO(produtor));
+            return ResponseEntity.ok(mapper.toRetornoDTO(produtor));
+        } catch (Exception e) {
+            System.err.println("❌ Erro crítico no Login: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(401).body("Erro interno ao processar login. Verifique suas credenciais.");
+        }
     }
 }

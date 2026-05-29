@@ -100,8 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             console.log('✅ Login realizado com sucesso para:', produtor.nomeCompleto);
             
-            // Redirecionamento explícito após sucesso
-            router.replace('/(app)');
+            // Redirecionamento explícito após sucesso (para raiz força sincronização de URL na Web)
+            router.replace('/');
         } catch (error: any) {
             console.error('❌ Erro no login:', error.response?.data || error.message);
             throw new Error('E-mail ou senha inválidos');

@@ -18,10 +18,10 @@ function RootLayout() {
 
     if (!session && !inAuthGroup) {
       // Se não estiver logado e não estiver nas telas de login, vai para o login
-      router.replace('/(auth)/login');
+      router.replace('/login');
     } else if (session && inAuthGroup) {
-      // Se estiver logado e tentar acessar o login, vai para a home
-      router.replace('/(app)');
+      // Se estiver logado e tentar acessar o login, vai para a home absoluta
+      router.replace('/');
     }
   }, [session, isLoading, segments]);
 

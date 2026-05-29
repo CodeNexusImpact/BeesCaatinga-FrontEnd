@@ -2,7 +2,6 @@ package io.sage.BeesCaatinga.controller;
 
 import io.sage.BeesCaatinga.controller.dto.auth.LoginDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
-import io.sage.BeesCaatinga.controller.exception.ResourceNotFoundException;
 import io.sage.BeesCaatinga.controller.mapper.ProdutorMapper;
 import io.sage.BeesCaatinga.model.Produtor;
 import io.sage.BeesCaatinga.model.enums.Genero;
@@ -62,26 +61,28 @@ class AutenticacaoControllerTest {
     @Test
     @DisplayName("Deve realizar login com sucesso")
     void login_ComDadosValidos_DeveRetornarOk() {
-        when(repository.findByEmailAndSenha(loginDTO.email(), loginDTO.senha()))
+        when(repository.findFirstByEmailAndSenha(loginDTO.email(), loginDTO.senha()))
                 .thenReturn(Optional.of(produtor));
         when(mapper.toRetornoDTO(produtor)).thenReturn(produtorRetornoDTO);
 
-        ResponseEntity<ProdutorRetornoDTO> response = controller.login(loginDTO);
+        ResponseEntity<?> response = controller.login(loginDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(produtorRetornoDTO, response.getBody());
-        verify(repository, times(1)).findByEmailAndSenha(loginDTO.email(), loginDTO.senha());
+        verify(repository, times(1)).findFirstByEmailAndSenha(loginDTO.email(), loginDTO.senha());
         verify(mapper, times(1)).toRetornoDTO(produtor);
     }
 
     @Test
-    @DisplayName("Deve lançar ResourceNotFoundException quando credenciais forem inválidas")
-    void login_ComDadosInvalidos_DeveLancarExcecao() {
-        when(repository.findByEmailAndSenha(loginDTO.email(), loginDTO.senha()))
+    @DisplayName("Deve retornar UNAUTHORIZED quando credenciais forem inválidas")
+    void login_ComDadosInvalidos_DeveRetornarUnauthorized() {
+        when(repository.findFirstByEmailAndSenha(loginDTO.email(), loginDTO.senha()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> controller.login(loginDTO));
-        verify(repository, times(1)).findByEmailAndSenha(loginDTO.email(), loginDTO.senha());
+        ResponseEntity<?> response = controller.login(loginDTO);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(repository, times(1)).findFirstByEmailAndSenha(loginDTO.email(), loginDTO.senha());
         verify(mapper, never()).toRetornoDTO(any());
     }
 }

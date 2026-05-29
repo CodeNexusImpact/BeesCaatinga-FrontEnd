@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ProdutorRepository extends JpaRepository<Produtor, Long> {
     Optional<Produtor> findByEmail(String email);
-    Optional<Produtor> findByEmailAndSenha(String email, String senha);
+    Optional<Produtor> findFirstByEmailAndSenha(String email, String senha);
 }
