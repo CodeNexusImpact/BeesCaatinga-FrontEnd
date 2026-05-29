@@ -11,10 +11,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*") // Permite qualquer origem para desenvolvimento
+                .allowedOrigins("*") // Permite qualquer origem para desenvolvimento
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(false); // Quando se usa allowedOrigins("*"), allowCredentials deve ser false no Spring 3+
     }
 
     @Override

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import api from '../services/api';
 import * as SecureStore from 'expo-secure-store';
+import { useRouter } from 'expo-router';
 
 // Utilitário para persistência multiplataforma
 const storage = {
@@ -27,7 +28,7 @@ const storage = {
     }
 };
 
-// Definição do tipo do Produtor
+// Definição do tipo do Produtor conforme o retorno do Backend
 interface Produtor {
     id: number;
     email: string;
@@ -43,7 +44,7 @@ interface AuthContextType {
     session: string | null; 
     user: Produtor | null;
     isLoading: boolean;     
-    signIn: (email: string, password: string) => Promise<void>;
+    signIn: (email: string, senha: string) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<string | null>(null);
     const [user, setUser] = useState<Produtor | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         const loadStorageData = async () => {
@@ -83,9 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signIn = async (email: string, senha: string) => {
         try {
+            // Ajustado para bater no AutenticacaoController (LoginDTO espera email e senha)
             const response = await api.post<Produtor>('/login', { email, senha });
             const produtor = response.data;
             
+            // O token por enquanto é o ID (até implementarmos JWT)
             const token = produtor.id.toString();
 
             await storage.setItem('user_token', token);
@@ -94,9 +98,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(token);
             setUser(produtor);
             
-            console.log('Login bem-sucedido:', produtor.nomeCompleto);
-        } catch (error) {
-            console.error('Erro no login:', error);
+            console.log('✅ Login realizado com sucesso para:', produtor.nomeCompleto);
+            
+            // Redirecionamento explícito após sucesso
+            router.replace('/(app)');
+        } catch (error: any) {
+            console.error('❌ Erro no login:', error.response?.data || error.message);
             throw new Error('E-mail ou senha inválidos');
         }
     };

@@ -1,11 +1,11 @@
 import Botao from "@/components/botao";
 import Input from "@/components/input";
 import { Image } from "expo-image";
-import { Link, useNavigation } from "expo-router";
-import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
+import { useNavigation } from "expo-router";
+import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from "react-native";
 import { useEffect, useState } from "react";
 import cores from "@/constants/cores";
-import { styles as formStyle } from "@/styles/forms.styles";
+import layout from "@/constants/layout";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -25,19 +25,21 @@ function Login() {
 
   const handleLogin = async () => {
     if (!email || !senha) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      Alert.alert("Erro", "Por favor, preencha o e-mail e a senha.");
       return;
     }
 
     setLoading(true);
     try {
-      // O signIn agora faz a chamada real ao backend /login
+      // Chamada real ao backend via AuthContext -> api.ts
       await signIn(email, senha);
-      // O redirecionamento automático é feito pelo RootLayout (_layout.tsx)
+      console.log("✅ Login realizado com sucesso para:", email);
     } catch (error: any) {
-      const message = error.response?.data?.message || "E-mail ou senha inválidos. Tente novamente.";
-      Alert.alert("Erro de Login", message);
-      console.error("Login falhou:", error);
+      console.error("❌ Erro na tentativa de login:", error);
+      Alert.alert(
+        "Erro de Autenticação", 
+        "E-mail ou senha inválidos. Verifique suas credenciais e sua conexão de rede."
+      );
     } finally {
       setLoading(false);
     }
@@ -52,50 +54,63 @@ function Login() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={{ display: "flex", height: "100%" }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.conteinerLogo}>
           <Image
             style={styles.image}
             source={require("@/assets/images/LogoBeesCaatinga.png")}
             contentFit='contain'
-
           />
         </View>
-        <View
-          style={formStyle.formStyle}
-        >
-          <Text style={styles.textoTitulo} >Faça seu Login</Text>
-          <Input
-            iconName="email"
-            placeholder="Digite seu email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <Input
-            iconName="lock"
-            placeholder="Digite sua senha"
-            value={senha}
-            onChangeText={setSenha}
-            secureTextEntry={true}
-          />
-          <Link href="/(auth)/redefinirSenha" style={{ alignSelf: "flex-end", marginBottom: 20 }}>
-            <Text style={{ color: "blue" }}>Esqueceu a senha?</Text>
-          </Link>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.textoTitulo}>Faça seu Login</Text>
+          
+          <View style={styles.inputWrapper}>
+            <Input
+              iconName="email"
+              placeholder="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.inputField}
+            />
+          </View>
+
+          <View style={styles.inputWrapper}>
+            <Input
+              iconName="lock"
+              placeholder="Senha"
+              value={senha}
+              onChangeText={setSenha}
+              secureTextEntry={true}
+              style={styles.inputField}
+            />
+          </View>
+
+          <TouchableOpacity 
+            onPress={() => router.push("/(auth)/redefinirSenha")} 
+            style={styles.esqueceuSenha}
+          >
+            <Text style={styles.esqueceuSenhaTexto}>Esqueceu a senha?</Text>
+          </TouchableOpacity>
 
           {loading ? (
-            <ActivityIndicator size="large" color={cores.primaria} />
+            <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginVertical: 20 }} />
           ) : (
             <Botao title="Entrar" onPress={handleLogin} iconName="forward" />
           )}
 
           <Text style={styles.textoSimples}>Ou</Text>
+          
           <Botao
-            title="Cadastrar" cor="secundaria" onPress={goToRegister}
+            title="Cadastrar" 
+            cor="secundaria" 
+            onPress={() => router.push('/(auth)/cadastro')}
           />
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
@@ -103,33 +118,61 @@ function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  textoTitulo: {
-    color: '#000',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: "center"
-  },
-  textoSimples: {
-    color: '#000',
-    fontSize: 16,
-    textAlign: "center",
-    marginVertical: 10,
+    backgroundColor: cores.branco,
   },
   conteinerLogo: {
-    height: '30%',
-    backgroundColor: cores.primaria,
+    height: 250,
+    backgroundColor: cores.primaria[100],
     alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   image: {
-    width: "100%",
-    height: "100%",
-    alignSelf: 'center',
+    width: "80%",
+    height: "80%",
+  },
+  formContainer: {
+    padding: layout.espacamento.social,
+    marginTop: -20,
+    backgroundColor: cores.branco,
+    borderRadius: 30,
+    flex: 1,
+  },
+  textoTitulo: {
+    color: cores.texto,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: "center"
+  },
+  inputWrapper: {
+    marginBottom: 16,
+    height: 60, // Ajuste para comportar o design do componente Input
+  },
+  inputField: {
+    height: 55,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    borderRadius: 12,
+    backgroundColor: '#F9F9F9',
+  },
+  esqueceuSenha: {
+    alignSelf: "flex-end", 
+    marginBottom: 24
+  },
+  esqueceuSenhaTexto: {
+    color: cores.primaria[100],
+    fontWeight: '600',
+  },
+  textoSimples: {
+    color: cores.texto,
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 20,
   },
 });
 
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default Login;

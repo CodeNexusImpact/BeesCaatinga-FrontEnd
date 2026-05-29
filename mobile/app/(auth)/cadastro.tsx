@@ -10,14 +10,13 @@ import { maskDate, maskPhone, validateEmail, validatePassword } from "@/utils/ma
 import { Image } from "expo-image";
 import { Link, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View, ActivityIndicator } from "react-native";
 
-// --- DEFINIR A INTERFACE PARA OS ERROS ---
 interface ValidationErrors {
-  nome?: string;
+  nomeCompleto?: string;
   telefone?: string;
   email?: string;
-  dataNascimento?: string;
+  dataDeNascimento?: string;
   genero?: string;
   senha?: string;
   confirmarSenha?: string;
@@ -27,22 +26,22 @@ function Cadastro() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  // --- Estados dos campos ---
-  const [nome, setNome] = useState("");
+  const [nomeCompleto, setNomeCompleto] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
-  const [dataNascimento, setDataNascimento] = useState("");
+  const [dataDeNascimento, setDataDeNascimento] = useState("");
   const [genero, setGenero] = useState<Genero | "">("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // --- Estado do modal ---
   const [modalVisible, setModalVisible] = useState(false);
 
   const generoOptions = [
     { label: 'Masculino', value: 'MASCULINO' },
     { label: 'Feminino', value: 'FEMININO' },
-    { label: 'Outro', value: 'OUTRO' },];
+    { label: 'Outro', value: 'OUTRO' },
+  ];
 
   const [errors, setErrors] = useState<ValidationErrors>({});
 
@@ -52,47 +51,40 @@ function Cadastro() {
 
   const handleModalClose = () => {
     setModalVisible(false);
-    router.push('/(auth)/login');
+    router.replace('/(auth)/login');
   };
 
   const handleCadastro = async () => {
     const validationErrors: ValidationErrors = {};
 
-    // Validação do nome
-    if (!nome.trim()) {
-      validationErrors.nome = "O nome é obrigatório.";
-    }
-
-    // Validação do email
+    if (!nomeCompleto.trim()) validationErrors.nomeCompleto = "O nome completo é obrigatório.";
+    
     if (!email.trim()) {
       validationErrors.email = "O email é obrigatório.";
     } else if (!validateEmail(email)) {
       validationErrors.email = "O email é inválido.";
     }
 
-    // Validação do telefone
     if (!telefone.trim()) {
-      validationErrors.telefone = "O celular é obrigatório.";
+      validationErrors.telefone = "O telefone é obrigatório.";
+    } else if (telefone.replace(/\D/g, '').length < 10) {
+      validationErrors.telefone = "Telefone inválido.";
     }
 
-    // Validação da data de nascimento
-    if (!dataNascimento.trim()) {
-      validationErrors.dataNascimento = "A data de nascimento é obrigatória.";
+    if (!dataDeNascimento.trim()) {
+      validationErrors.dataDeNascimento = "A data de nascimento é obrigatória.";
+    } else if (dataDeNascimento.length < 10) {
+      validationErrors.dataDeNascimento = "Data incompleta.";
     }
 
-    // Validação de gênero
-    if (!genero.trim()) {
-      validationErrors.genero = "O gênero é obrigatório.";
-    }
+    if (!genero) validationErrors.genero = "O gênero é obrigatório.";
 
-    // Validação da senha
     if (!senha) {
       validationErrors.senha = "A senha é obrigatória.";
     } else if (!validatePassword(senha)) {
-      validationErrors.senha = "A senha deve ter 8+ caracteres, com maiúscula, minúscula, número e caractere especial.";
+      validationErrors.senha = "Senha muito fraca.";
     }
 
-    // Validação da confirmação de senha
     if (senha !== confirmarSenha) {
       validationErrors.confirmarSenha = "As senhas não coincidem.";
     }
@@ -100,30 +92,32 @@ function Cadastro() {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
+      setLoading(true);
+      
       const produtorData: ProdutorCriado = {
-        nomeCompleto: nome,
-        telefone: telefone,
-        email: email,
-        dataDeNascimento: dataNascimento,
+        nomeCompleto,
+        telefone,
+        email,
+        dataDeNascimento, // String no formato dd/MM/yyyy conforme @JsonFormat do Backend
         genero: genero as Genero,
-        senha: senha,
+        senha,
       };
 
       try {
         await cadastrarProdutor(produtorData);
         setModalVisible(true);
-      } catch (error) {
-        console.error("Erro no cadastro:", error);
-        Alert.alert("Erro", "Não foi possível realizar o cadastro. Tente novamente.");
+      } catch (error: any) {
+        console.error("❌ Erro no cadastro:", error.response?.data || error.message);
+        const backendMsg = error.response?.data?.message || "Não foi possível realizar o cadastro.";
+        Alert.alert("Erro no Cadastro", backendMsg);
+      } finally {
+        setLoading(false);
       }
-
-    } else {
-      console.log("Erros de validação:", validationErrors);
     }
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ModalSucesso
         visivel={modalVisible}
         mensagem="Cadastro realizado com sucesso! Você será redirecionado para a tela de login."
@@ -133,7 +127,7 @@ function Cadastro() {
         <Image
           style={styles.image}
           source={require("@/assets/images/LogoBeesCaatinga.png")}
-          contentFit='cover'
+          contentFit='contain'
         />
       </View>
 
@@ -147,15 +141,15 @@ function Cadastro() {
 
           <Input
             iconName="user"
-            placeholder="Digite seu nome completo"
-            value={nome}
-            onChangeText={setNome}
+            placeholder="Nome Completo"
+            value={nomeCompleto}
+            onChangeText={setNomeCompleto}
           />
-          {errors.nome && <Text style={styles.errorText}>{errors.nome}</Text>}
+          {errors.nomeCompleto && <Text style={styles.errorText}>{errors.nomeCompleto}</Text>}
 
           <Input
             iconName="phone"
-            placeholder="Digite o número do seu celular"
+            placeholder="Telefone (DDD + Número)"
             value={telefone}
             onChangeText={(text) => setTelefone(maskPhone(text))}
             keyboardType="phone-pad"
@@ -165,7 +159,7 @@ function Cadastro() {
 
           <Input
             iconName="email"
-            placeholder="Digite seu email"
+            placeholder="E-mail"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -175,21 +169,20 @@ function Cadastro() {
 
           <Input
             iconName="calendar"
-            placeholder="Digite sua data de nascimento (dd/MM/yyyy)"
-            value={dataNascimento}
-            onChangeText={(text) => setDataNascimento(maskDate(text))}
+            placeholder="Data de Nascimento (dd/MM/yyyy)"
+            value={dataDeNascimento}
+            onChangeText={(text) => setDataDeNascimento(maskDate(text))}
             keyboardType="numeric"
             maxLength={10}
           />
-          {errors.dataNascimento && <Text style={styles.errorText}>{errors.dataNascimento}</Text>}
+          {errors.dataDeNascimento && <Text style={styles.errorText}>{errors.dataDeNascimento}</Text>}
 
-          <Selector options={generoOptions} onSelect={(value) => setGenero(value as Genero)} iconName="human"></Selector>
-
+          <Selector options={generoOptions} onSelect={(value) => setGenero(value as Genero)} iconName="human" />
           {errors.genero && <Text style={styles.errorText}>{errors.genero}</Text>}
 
           <Input
             iconName="lock"
-            placeholder="Digite sua senha"
+            placeholder="Senha"
             secureTextEntry={true}
             value={senha}
             onChangeText={setSenha}
@@ -198,17 +191,18 @@ function Cadastro() {
 
           <Input
             iconName="lock"
-            placeholder="Confirme sua senha"
+            placeholder="Confirme sua Senha"
             secureTextEntry={true}
             value={confirmarSenha}
             onChangeText={setConfirmarSenha}
           />
           {errors.confirmarSenha && <Text style={styles.errorText}>{errors.confirmarSenha}</Text>}
 
-          <Botao
-            title="Cadastrar"
-            onPress={handleCadastro}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color={cores.primaria} style={{ marginTop: 20 }} />
+          ) : (
+            <Botao title="Finalizar Cadastro" onPress={handleCadastro} />
+          )}
 
           <Link href="/(auth)/login" style={styles.link}>
             <Text style={styles.textoLink}>Já tem conta? Faça login</Text>
@@ -225,39 +219,40 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center'
   },
   conteinerLogo: {
-    height: '30%',
+    height: '25%',
     backgroundColor: cores.primaria,
     alignItems: 'center',
+    justifyContent: 'center'
   },
   image: {
-    width: "100%",
-    height: '100%',
-    alignSelf: 'center',
+    width: "70%",
+    height: '70%',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 40
   },
   link: {
     alignSelf: "center",
-    marginTop: 5,
-    marginBottom: 20,
+    marginTop: 15,
   },
   textoLink: {
-    color: "blue",
+    color: cores.primaria,
     fontSize: 16,
+    fontWeight: 'bold'
   },
   errorText: {
     color: 'red',
-    fontSize: 14,
-    alignSelf: 'flex-start',
-    paddingLeft: 10,
-    marginBottom: 5,
+    fontSize: 12,
+    marginBottom: 10,
     marginTop: -5,
+    marginLeft: 10
   },
 });
 

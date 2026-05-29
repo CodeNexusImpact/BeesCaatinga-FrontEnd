@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Text, ActivityIndicator, View } from 'react-native';
 import temaCores from "@/constants/cores";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function RootLayout() {
   const { session, isLoading } = useAuth();
@@ -46,8 +47,10 @@ function RootLayout() {
 
 export default function LayoutWrapper() {
   return (
-    <AuthProvider>
-      <RootLayout />
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <RootLayout />
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

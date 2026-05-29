@@ -1,9 +1,8 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080'; 
-// Dica: Use 'http://10.0.2.2:8080' para emulador Android
-// Dica: Use seu IP local (ex: 192.168.1.x) para celular físico (ex: http://192.168.1.5:8080)
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.8:8080'; 
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -13,30 +12,55 @@ const api = axios.create({
   },
 });
 
-// // CONFIGURAÇÃO DO INTERCEPTADOR DE REQUISIÇÃO
+// Função utilitária para limpar os dados de sessão (Anti-Zumbi)
+const clearStorage = async () => {
+    try {
+        if (Platform.OS === 'web') {
+            localStorage.removeItem('user_token');
+            localStorage.removeItem('user_data');
+        } else {
+            await SecureStore.deleteItemAsync('user_token');
+            await SecureStore.deleteItemAsync('user_data');
+        }
+    } catch (e) {
+        console.error('Erro ao limpar storage no interceptor:', e);
+    }
+};
+
+// INTERCEPTADOR DE RESPOSTA
+api.interceptors.response.use(
+  (response) => {
+    // Se a resposta for sucesso, apenas retorna
+    return response;
+  },
+  async (error) => {
+    // Se houver erro e a resposta estiver disponível
+    if (error.response) {
+      const status = error.response.status;
+      // Se for Não Autorizado (401) ou Não Encontrado (404 - usuário deletado/inexistente)
+      if (status === 401 || status === 404) {
+        console.warn(`[Axios Interceptor] Erro ${status} detectado. Expurgando sessão zumbi...`);
+        await clearStorage();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// // CONFIGURAÇÃO DO INTERCEPTADOR DE REQUISIÇÃO (Comentado até implementação do JWT)
 // api.interceptors.request.use(
 //   async (config) => {
-//     // 1. Lista de rotas que NÃO precisam de token
 //     const rotasPublicas = ['/login', '/produtores', '/usuarios/registrar'];
-
-//     // 2. Verifica se a requisição atual coincide com alguma rota pública
-//     // Se a URL contiver ou terminar com uma das rotas públicas, envia direto sem token
 //     const ehRotaPublica = rotasPublicas.some(rota => config.url?.endsWith(rota));
-
 //     if (!ehRotaPublica) {
-//       // 3. Busca o token salvo de forma segura no dispositivo
 //       const token = await SecureStore.getItemAsync('user_token');
-
-//       // 4. Se o token existir, injeta ele no cabeçalho Authorization
 //       if (token) {
 //         config.headers.Authorization = `Bearer ${token}`;
 //       }
 //     }
-
 //     return config;
 //   },
 //   (error) => {
-//     // Trata erros antes da requisição ser enviada (raro de acontecer)
 //     return Promise.reject(error);
 //   }
 // );
