@@ -1,114 +1,182 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack, useRouter } from 'expo-router';
+import { useAuth } from '@/hooks/useAuth';
+import { deletarProdutor } from '@/services/produtorService';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import InputConfig from '@/components/inputConfig';
 import Icon from '@/components/icon';
 import Botao from '@/components/botao';
 
+const CONFIG_KEYS = {
+    NOTIFICACOES: '@config_notificacoes',
+    LOCALIZACAO: '@config_localizacao',
+    TEMA: '@config_tema',
+    FONTE: '@config_fonte'
+};
+
 export default function Index() {
-    // Estados para as configurações
+    const router = useRouter();
+    const { user, signOut } = useAuth();
+
+    // Estados locais
     const [notificacoesAtivadas, setNotificacoesAtivadas] = useState(true);
     const [localizacaoAtivada, setLocalizacaoAtivada] = useState(true);
     const [temaEscuro, setTemaEscuro] = useState(false);
     const [tamanhoFonte, setTamanhoFonte] = useState(16);
+    
     const [mostrarSeletorFonte, setMostrarSeletorFonte] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleNotificacoesPress = () => {
-        setNotificacoesAtivadas(!notificacoesAtivadas);
-        console.log('Notificações:', !notificacoesAtivadas ? 'Ativadas' : 'Desativadas');
-    };
+    useEffect(() => {
+        const carregarConfiguracoes = async () => {
+            try {
+                const notificacoes = await AsyncStorage.getItem(CONFIG_KEYS.NOTIFICACOES);
+                const localizacao = await AsyncStorage.getItem(CONFIG_KEYS.LOCALIZACAO);
+                const tema = await AsyncStorage.getItem(CONFIG_KEYS.TEMA);
+                const fonte = await AsyncStorage.getItem(CONFIG_KEYS.FONTE);
 
-    const handleLocalizacaoPress = () => {
-        setLocalizacaoAtivada(!localizacaoAtivada);
-        console.log('Localização:', !localizacaoAtivada ? 'Ativada' : 'Desativada');
-    };
+                if (notificacoes !== null) setNotificacoesAtivadas(JSON.parse(notificacoes));
+                if (localizacao !== null) setLocalizacaoAtivada(JSON.parse(localizacao));
+                if (tema !== null) setTemaEscuro(JSON.parse(tema));
+                if (fonte !== null) setTamanhoFonte(parseInt(fonte, 10));
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        carregarConfiguracoes();
+    }, []);
 
-    const handleTemaPress = () => {
-        setTemaEscuro(!temaEscuro);
-        console.log('Tema:', !temaEscuro ? 'Escuro' : 'Claro');
-    };
-
-    const handleSincronizarPress = () => {
-        console.log('Sincronizando dados...');
-    };
-
-    const handleTamanhoFontePress = () => {
-        setMostrarSeletorFonte(true);
+    // Handlers
+    const handleSalvarPress = async () => {
+        try {
+            await AsyncStorage.setItem(CONFIG_KEYS.NOTIFICACOES, JSON.stringify(notificacoesAtivadas));
+            await AsyncStorage.setItem(CONFIG_KEYS.LOCALIZACAO, JSON.stringify(localizacaoAtivada));
+            await AsyncStorage.setItem(CONFIG_KEYS.TEMA, JSON.stringify(temaEscuro));
+            await AsyncStorage.setItem(CONFIG_KEYS.FONTE, tamanhoFonte.toString());
+            
+            Alert.alert('Sucesso', 'Configurações salvas localmente!');
+        } catch (error) {
+            Alert.alert('Erro', 'Não foi possível salvar as configurações.');
+        }
     };
 
     const handleLimparCachePress = () => {
-        console.log('Limpando cache...');
-    };
-
-    const handleSalvarPress = () => {
-        console.log('Configurações salvas:', {
-            notificacoes: notificacoesAtivadas,
-            localizacao: localizacaoAtivada,
-            tema: temaEscuro ? 'escuro' : 'claro',
-            tamanhoFonte: tamanhoFonte
-        });
+        Alert.alert(
+            'Limpar Cache',
+            'Isso limpará dados temporários (exceto seu login). Deseja continuar?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                { 
+                    text: 'Limpar', 
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.clear();
+                            setNotificacoesAtivadas(true);
+                            setLocalizacaoAtivada(true);
+                            setTemaEscuro(false);
+                            setTamanhoFonte(16);
+                            Alert.alert('Sucesso', 'Cache limpo com sucesso.');
+                        } catch (error) {
+                            Alert.alert('Erro', 'Ocorreu um erro ao limpar o cache.');
+                        }
+                    } 
+                }
+            ]
+        );
     };
 
     const handleExcluirPerfilPress = () => {
-        console.log('Excluindo perfil...');
+        if (!user?.id) {
+            Alert.alert('Erro', 'Usuário não identificado.');
+            return;
+        }
+
+        Alert.alert(
+            'Atenção Crítica!',
+            'Tem certeza? Esta ação é irreversível e apagará TODOS os seus dados permanentemente.',
+            [
+                { text: 'Não, cancelar', style: 'cancel' },
+                { 
+                    text: 'Sim, excluir', 
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deletarProdutor(user.id);
+                            Alert.alert('Despedida', 'Seu perfil foi excluído com sucesso.');
+                            await signOut();
+                            router.replace('/login');
+                        } catch (error) {
+                            Alert.alert('Erro', 'Não foi possível excluir o perfil.');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
-    const selecionarTamanhoFonte = (tamanho: number) => {
-        setTamanhoFonte(tamanho);
-        setMostrarSeletorFonte(false);
-    };
+    // A tela inteira não deve ficar bloqueada pelo Loading. Apenas um overlay simples.
+    if (isLoading) {
+        return (
+            <View style={[styles.container, styles.center]} pointerEvents="none">
+                <ActivityIndicator size="large" color={cores.primaria} />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>                
-                {/* Lista de configurações */}
+            {/* Garantir o header e botão de voltar funcional */}
+            <Stack.Screen options={{ title: 'Configurações' }} />
+
+            <ScrollView 
+                style={styles.scrollView} 
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled" // Libera os toques perfeitamente
+            >                
+                {/* Lista de configurações com o componente original restaurado */}
                 <View style={styles.configList}>
-                    {/* Notificações */}
                     <InputConfig
                         label="Notificações"
                         status={notificacoesAtivadas ? "Ativado" : "Desativado"}
                         showSwitch={true}
-                        onPress={handleNotificacoesPress}
+                        value={notificacoesAtivadas}
+                        onValueChange={setNotificacoesAtivadas}
                         showArrow={false}
                     />
-                    
-                    {/* Localização */}
                     <InputConfig
                         label="Localização"
                         status={localizacaoAtivada ? "Ativado" : "Desativado"}
                         showSwitch={true}
-                        onPress={handleLocalizacaoPress}
+                        value={localizacaoAtivada}
+                        onValueChange={setLocalizacaoAtivada}
                         showArrow={false}
                     />
-                    
-                    {/* Tema com ícone */}
                     <InputConfig
                         label="Tema"
                         value={temaEscuro ? "Escuro" : "Claro"}
-                        onPress={handleTemaPress}
+                        onPress={() => setTemaEscuro(!temaEscuro)}
                         showArrow={true}
                         iconName={temaEscuro ? "weather-night" : "white-balance-sunny"}
                     />
-                    
-                    {/* Sincronização de Dados */}
                     <InputConfig
                         label="Sincronização de Dados"
                         showButton={true}
                         buttonText="Sincronizar"
-                        onButtonPress={handleSincronizarPress}
+                        onButtonPress={() => Alert.alert('Sincronização', 'Sincronização manual será implementada em breve.')}
                         showArrow={false}
                     />
-                    
-                    {/* Tamanho da Fonte */}
                     <InputConfig
                         label="Tamanho da Fonte"
                         value={tamanhoFonte.toString()}
-                        onPress={handleTamanhoFontePress}
+                        onPress={() => setMostrarSeletorFonte(true)}
                         showArrow={true}
                     />
-                    
-                    {/* Limpar Cache */}
                     <InputConfig
                         label="Limpar Cache"
                         showButton={true}
@@ -139,7 +207,7 @@ export default function Index() {
                 </View>
             </ScrollView>
 
-            {/* Modal para seleção de tamanho da fonte */}
+            {/* Modal para seleção de tamanho da fonte (design original restaurado) */}
             <Modal
                 visible={mostrarSeletorFonte}
                 transparent={true}
@@ -157,7 +225,10 @@ export default function Index() {
                                     styles.opcaoFonte,
                                     tamanhoFonte === tamanho && styles.opcaoFonteSelecionada
                                 ]}
-                                onPress={() => selecionarTamanhoFonte(tamanho)}
+                                onPress={() => {
+                                    setTamanhoFonte(tamanho);
+                                    setMostrarSeletorFonte(false);
+                                }}
                             >
                                 <Text style={[
                                     styles.textoOpcaoFonte,
@@ -189,6 +260,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: cores.branco,
+    },
+    center: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     scrollView: {
         flex: 1,

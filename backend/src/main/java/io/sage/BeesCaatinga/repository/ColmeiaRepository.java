@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface ColmeiaRepository extends JpaRepository<Colmeia, Long> {
+    List<Colmeia> findByApiarioProdutorId(Long produtorId);
+
     @Query("""
     SELECT c.situacao, COUNT(c)
     FROM Colmeia c

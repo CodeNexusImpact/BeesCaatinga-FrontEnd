@@ -84,7 +84,7 @@ export default function Cadastrar() {
                 observacoes,
             };
 
-            await cadastrarColmeia(payload);
+            await cadastrarColmeia(user.id, parseInt(apiario), payload);
             Alert.alert('Sucesso', 'Colmeia cadastrada com sucesso!');
             router.back();
         } catch (error) {

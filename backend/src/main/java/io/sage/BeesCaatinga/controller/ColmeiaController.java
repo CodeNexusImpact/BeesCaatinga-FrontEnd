@@ -36,6 +36,12 @@ public class ColmeiaController {
         return ResponseEntity.ok(colmeias);
     }
 
+    @GetMapping("/produtor/{produtorId}")
+    public ResponseEntity<List<ColmeiaRetornoDTO>> listarPorProdutor(@PathVariable Long produtorId){
+        var colmeias = service.listarPorProdutor(produtorId);
+        return ResponseEntity.ok(colmeias);
+    }
+
     @GetMapping("/produtor/{produtorId}/apiario/{apiarioId}/ativas")
     public ResponseEntity<List<ColmeiaRetornoDTO>> listarAtivos(@PathVariable Long produtorId, @PathVariable Long apiarioId){
         var colmeias = service.listarAtivas(produtorId, apiarioId);

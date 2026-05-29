@@ -1,9 +1,9 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'; 
-// Dica: Use 'http://10.0.2.2:3000' para emulador Android
-// Dica: Use seu IP local (ex: 192.168.1.x) para celular físico
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080'; 
+// Dica: Use 'http://10.0.2.2:8080' para emulador Android
+// Dica: Use seu IP local (ex: 192.168.1.x) para celular físico (ex: http://192.168.1.5:8080)
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -17,7 +17,7 @@ const api = axios.create({
 // api.interceptors.request.use(
 //   async (config) => {
 //     // 1. Lista de rotas que NÃO precisam de token
-//     const rotasPublicas = ['/auth/login', '/auth/cadastro', '/usuarios/registrar'];
+//     const rotasPublicas = ['/login', '/produtores', '/usuarios/registrar'];
 
 //     // 2. Verifica se a requisição atual coincide com alguma rota pública
 //     // Se a URL contiver ou terminar com uma das rotas públicas, envia direto sem token

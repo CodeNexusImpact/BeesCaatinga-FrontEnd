@@ -1,6 +1,6 @@
 import api from './api';
 
-export const listarLotesResumido = async (produtorId: number | string) => {
+export const listarLotes = async (produtorId: number | string) => {
   try {
     const response = await api.get(`/lotes/${produtorId}`);
     return response.data;
@@ -31,7 +31,7 @@ export const cadastrarLote = async (produtorId: number | string, dados: any) => 
 };
 
 export default {
-  listarLotesResumido,
+  listarLotes,
   listarLotesDetalhado,
   cadastrarLote,
 };

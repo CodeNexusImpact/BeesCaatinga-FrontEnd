@@ -50,19 +50,19 @@ export default function CadastrarProducao() {
 
   useEffect(() => {
     const fetchColmeias = async () => {
-        if (!apiario) {
+        if (!apiario || !user?.id) {
             setColmeiaOptions([]);
             return;
         };
         try {
-            const data = await listarColmeiasPorApiario(apiario);
+            const data = await listarColmeiasPorApiario(user.id, apiario);
             setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
         } catch (e) {
             console.error('Erro ao buscar colmeias:', e);
         }
     };
     fetchColmeias();
-  }, [apiario]);
+  }, [apiario, user?.id]);
 
   const handleSubmit = async () => {
     // Validação de campos vazios

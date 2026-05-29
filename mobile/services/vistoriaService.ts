@@ -2,15 +2,23 @@ import api from './api';
 
 const BASE_URL = '/vistorias';
 
-export const getVistorias = async (produtorId: number | string) => {
+export const listarVistoriasPorProdutor = async (produtorId: number | string) => {
   try {
-    const response = await api.get(BASE_URL, {
-      params: { produtorId: Number(produtorId) }
-    });
+    const response = await api.get(`${BASE_URL}/${produtorId}`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Erro ao buscar vistorias:', error);
     return [];
+  }
+};
+
+export const listarPorColmeia = async (colmeiaId: number | string) => {
+  try {
+    const response = await api.get(`${BASE_URL}/colmeia/${colmeiaId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Erro ao buscar vistorias da colmeia ${colmeiaId}:`, error);
+    throw error;
   }
 };
 
@@ -24,10 +32,9 @@ export const getVistoriaById = async (id: string | number) => {
   }
 };
 
-export const cadastrarVistoria = async (dados: any) => {
+export const cadastrarVistoria = async (produtorId: number | string, apiarioId: number | string, colmeiaId: number | string, dados: any) => {
   try {
-    const { id, ...payload } = dados; // Remove ID para auto-incremento do db.json
-    const response = await api.post(BASE_URL, payload);
+    const response = await api.post(`${BASE_URL}/produtor/${produtorId}/apiario/${apiarioId}/colmeia/${colmeiaId}`, dados);
     return response.data;
   } catch (error) {
     console.error('Erro ao cadastrar vistoria:', error);
@@ -35,29 +42,29 @@ export const cadastrarVistoria = async (dados: any) => {
   }
 };
 
-export const atualizarVistoria = async (id: string | number, dados: any) => {
+export const atualizarVistoria = async (vistoriaId: string | number, produtorId: number | string, dados: any) => {
   try {
-    const response = await api.put(`${BASE_URL}/${id}`, dados);
+    const response = await api.put(`${BASE_URL}/${vistoriaId}/produtor/${produtorId}`, dados);
     return response.data;
   } catch (error) {
-    console.error(`Erro ao atualizar vistoria ${id}:`, error);
+    console.error(`Erro ao atualizar vistoria ${vistoriaId}:`, error);
     throw error;
   }
 };
 
-export const deletarVistoria = async (id: string | number, produtorId?: number | string) => {
+export const deletarVistoria = async (vistoriaId: string | number, produtorId: number | string) => {
   try {
-    const response = await api.delete(`${BASE_URL}/${id}`);
+    const response = await api.delete(`${BASE_URL}/${vistoriaId}/produtor/${produtorId}`);
     return response.data;
   } catch (error) {
-    console.error(`Erro ao deletar vistoria ${id}:`, error);
+    console.error(`Erro ao deletar vistoria ${vistoriaId}:`, error);
     throw error;
   }
 };
 
 export const getKpisVistorias = async (produtorId: string | number) => {
   try {
-    const dados = await getVistorias(produtorId);
+    const dados = await listarVistoriasPorProdutor(produtorId);
     const total = dados.length;
     const saudaveis = dados.filter((v: any) => ['saudavel', 'excelente'].includes(v.condicaoVistoria?.toLowerCase())).length;
     const criticas = dados.filter((v: any) => ['risco', 'perdida', 'alerta'].includes(v.condicaoVistoria?.toLowerCase())).length;
@@ -76,5 +83,19 @@ export const getKpisVistorias = async (produtorId: string | number) => {
 };
 
 export const getGraficosVistorias = async (produtorId: string | number) => {
-  return await getVistorias(produtorId); 
+  return await listarVistoriasPorProdutor(produtorId); 
+};
+
+export const getVistorias = listarVistoriasPorProdutor;
+
+export default {
+  listarVistoriasPorProdutor,
+  getVistorias,
+  listarPorColmeia,
+  getVistoriaById,
+  cadastrarVistoria,
+  atualizarVistoria,
+  deletarVistoria,
+  getKpisVistorias,
+  getGraficosVistorias,
 };

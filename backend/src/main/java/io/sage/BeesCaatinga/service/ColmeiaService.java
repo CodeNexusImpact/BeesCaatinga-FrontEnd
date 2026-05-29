@@ -55,6 +55,13 @@ public class ColmeiaService {
                 .toList();
     }
 
+    public List<ColmeiaRetornoDTO> listarPorProdutor(Long produtorId) {
+        var lista = colmeiaRepository.findByApiarioProdutorId(produtorId);
+        return lista.stream()
+                .map(colmeiaMapper::toRetornoDTO)
+                .toList();
+    }
+
     public List<ColmeiaRetornoDTO> listarAtivas(Long produtorId, Long apiarioId) {
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));

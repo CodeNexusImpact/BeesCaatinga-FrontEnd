@@ -1,11 +1,9 @@
 import api from './api';
 import type { InsumoRetornoDTO } from '@/types/insumos';
 
-export const getInsumos = async (produtorId: number | string): Promise<InsumoRetornoDTO[]> => {
+export const listarInsumos = async (produtorId: number | string): Promise<InsumoRetornoDTO[]> => {
   try {
-    const response = await api.get<InsumoRetornoDTO[]>('/insumos', {
-      params: { produtorId: Number(produtorId) }
-    });
+    const response = await api.get<InsumoRetornoDTO[]>(`/insumos/${produtorId}`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Erro ao listar insumos:', error);
@@ -13,9 +11,11 @@ export const getInsumos = async (produtorId: number | string): Promise<InsumoRet
   }
 };
 
-export const getInsumoById = async (insumoId: number | string): Promise<any | null> => {
+export const getInsumos = listarInsumos;
+
+export const buscarInsumoPorId = async (insumoId: number | string, produtorId: number | string): Promise<any | null> => {
   try {
-    const response = await api.get<any>(`/insumos/${insumoId}`);
+    const response = await api.get<any>(`/insumos/${insumoId}/produtor/${produtorId}`);
     return response.data;
   } catch (error) {
     console.error(`Erro ao buscar insumo ${insumoId}:`, error);
@@ -25,10 +25,7 @@ export const getInsumoById = async (insumoId: number | string): Promise<any | nu
 
 export const cadastrarInsumo = async (produtorId: number | string, dados: any): Promise<any> => {
   try {
-    const { id, ...payloadLimpo } = dados;
-    payloadLimpo.produtorId = Number(produtorId);
-    
-    const response = await api.post<any>('/insumos', payloadLimpo);
+    const response = await api.post<any>(`/insumos/${produtorId}`, dados);
     return response.data;
   } catch (error) {
     console.error('Erro ao cadastrar insumo:', error);
@@ -36,10 +33,9 @@ export const cadastrarInsumo = async (produtorId: number | string, dados: any): 
   }
 };
 
-export const atualizarInsumo = async (insumoId: number | string, dados: any): Promise<any> => {
+export const atualizarInsumo = async (insumoId: number | string, produtorId: number | string, dados: any): Promise<any> => {
   try {
-    const { id, ...payloadLimpo } = dados;
-    const response = await api.put<any>(`/insumos/${insumoId}`, payloadLimpo);
+    const response = await api.put<any>(`/insumos/${insumoId}/produtor/${produtorId}`, dados);
     return response.data;
   } catch (error) {
     console.error(`Erro ao atualizar insumo ${insumoId}:`, error);
@@ -47,9 +43,9 @@ export const atualizarInsumo = async (insumoId: number | string, dados: any): Pr
   }
 };
 
-export const deletarInsumo = async (insumoId: number | string): Promise<void> => {
+export const deletarInsumo = async (insumoId: number | string, produtorId: number | string): Promise<void> => {
   try {
-    await api.delete(`/insumos/${insumoId}`);
+    await api.delete(`/insumos/${insumoId}/produtor/${produtorId}`);
   } catch (error) {
     console.error(`Erro ao deletar insumo ${insumoId}:`, error);
     throw error;
@@ -60,7 +56,7 @@ export const deletarInsumo = async (insumoId: number | string): Promise<void> =>
  * 6. KPIs: Estatísticas analíticas dinâmicas
  */
 export const getKpisInsumos = async (produtorId: string | number) => {
-  const insumos = await getInsumos(produtorId);
+  const insumos = await listarInsumos(produtorId);
   
   if (!insumos || insumos.length === 0) {
     return { totalItens: 0, estoqueBaixo: 0, emUso: 0 };
@@ -77,7 +73,7 @@ export const getKpisInsumos = async (produtorId: string | number) => {
  * 7. GRÁFICOS: Processamento analítico real para o Dashboard
  */
 export const getGraficosInsumos = async (produtorId: string | number) => {
-  const insumos = await getInsumos(produtorId);
+  const insumos = await listarInsumos(produtorId);
 
   if (!insumos || insumos.length === 0) {
     return { porTipo: [], porStatus: [], raw: [] };
@@ -116,4 +112,15 @@ export const getGraficosInsumos = async (produtorId: string | number) => {
     porStatus: dadosPorStatus,
     raw: insumos
   };
+};
+
+export default {
+  listarInsumos,
+  getInsumos,
+  buscarInsumoPorId,
+  cadastrarInsumo,
+  atualizarInsumo,
+  deletarInsumo,
+  getKpisInsumos,
+  getGraficosInsumos,
 };

@@ -45,19 +45,19 @@ export default function CadastrarVistoria() {
 
   useEffect(() => {
     const fetchColmeias = async () => {
-        if (!apiario) {
+        if (!apiario || !user?.id) {
             setColmeiaOptions([]);
             return;
         };
         try {
-            const data = await listarColmeiasPorApiario(apiario);
+            const data = await listarColmeiasPorApiario(user.id, apiario);
             setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
         } catch (e) {
             console.error('Erro ao buscar colmeias:', e);
         }
     };
     fetchColmeias();
-  }, [apiario]);
+  }, [apiario, user?.id]);
 
   // Estados para os checkboxes
   const [pragasObj, setPragasObj] = useState({
@@ -110,7 +110,7 @@ export default function CadastrarVistoria() {
         produtorId: Number(user.id)
       };
 
-      await cadastrarVistoria(payload);
+      await cadastrarVistoria(user.id, apiario, colmeia, payload);
       setModalSucessoVisivel(true);
     } catch (error) {
       console.error('Erro ao salvar vistoria:', error);

@@ -62,13 +62,18 @@ export default function ListarInsumos() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deletarInsumo(id);
-              Alert.alert('Sucesso', 'Insumo excluído com sucesso.');
-              carregarInsumos();
+              if (user?.id) {
+                await deletarInsumo(id, user.id);
+                Alert.alert('Sucesso', 'Insumo excluído com sucesso.');
+                carregarInsumos();
+              } else {
+                Alert.alert('Erro', 'Usuário não autenticado.');
+              }
             } catch (error) {
               Alert.alert('Erro', 'Não foi possível excluir o insumo.');
             }
           }
+
         }
       ]
     );

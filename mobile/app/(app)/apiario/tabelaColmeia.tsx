@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 
 // Componentes e Constantes Padronizados
@@ -9,6 +9,8 @@ import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { useAuth } from '@/hooks/useAuth';
+import { listarColmeiasPorProdutor } from '@/services/colmeiaService';
 
 // --- Interface Atualizada ---
 interface DadosColmeia {
@@ -21,41 +23,66 @@ interface DadosColmeia {
     ano: string;         // Campo auxiliar para o filtro
 }
 
-// --- Dados de Exemplo (Mock) com Datas ---
-const MOCK_COLMEIAS: DadosColmeia[] = [
-    { id: '1', identificador: 'COL-01', apiario: 'Rosa do Sertão', tipo: 'Madeira', status: 'Ativo', dataCriacao: '10/01/2025', ano: '2025' },
-    { id: '2', identificador: 'COL-02', apiario: 'Rosa do Sertão', tipo: 'Concreto', status: 'Ativo', dataCriacao: '15/02/2025', ano: '2025' },
-    { id: '3', identificador: 'COL-03', apiario: 'Vale das Abelhas', tipo: 'Poliestireno', status: 'Inativo', dataCriacao: '20/11/2024', ano: '2024' },
-    { id: '4', identificador: 'COL-04', apiario: 'Vale das Abelhas', tipo: 'Madeira', status: 'Ativo', dataCriacao: '05/12/2024', ano: '2024' },
-    { id: '5', identificador: 'COL-05', apiario: 'Bees Caatinga', tipo: 'Concreto', status: 'Ativo', dataCriacao: '12/08/2023', ano: '2023' },
-];
-
-// --- Configuração das Colunas (Data Adicionada) ---
+// --- Configuração das Colunas ---
 const colunasColmeia: TabelaColuna<DadosColmeia>[] = [
     { label: 'Identificador', dataKey: 'identificador', sortable: true, flex: 2 },
-    { label: 'Criação', dataKey: 'dataCriacao', sortable: true, flex: 2.5 }, // Nova Coluna
+    { label: 'Criação', dataKey: 'dataCriacao', sortable: true, flex: 2.5 },
     { label: 'Apiário', dataKey: 'apiario', sortable: true, flex: 3 },
     { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
     { label: 'Status', dataKey: 'status', sortable: true, flex: 2 },
 ];
 
-// --- Opções de Filtro por Ano ---
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' },
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-    { label: '2023', value: '2023' },
-];
-
 export default function TabelaColmeias() {
+    const { user } = useAuth();
     const [filtroAno, setFiltroAno] = useState('');
+    const [colmeias, setColmeias] = useState<DadosColmeia[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchColmeias = async () => {
+            if (!user?.id) return;
+            try {
+                setLoading(true);
+                const data = await listarColmeiasPorProdutor(user.id);
+                const formatados = data.map((c: any) => ({
+                    id: c.id.toString(),
+                    identificador: c.identificador,
+                    apiario: c.apiarioNome || 'N/A',
+                    tipo: c.tipoColmeia || 'N/A',
+                    status: c.ativa ? 'Ativo' : 'Inativo',
+                    dataCriacao: c.dataCriacao ? new Date(c.dataCriacao).toLocaleDateString('pt-BR') : 'N/A',
+                    ano: c.dataCriacao ? new Date(c.dataCriacao).getFullYear().toString() : ''
+                }));
+                setColmeias(formatados);
+            } catch (error) {
+                console.error('Erro ao buscar colmeias para tabela:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchColmeias();
+    }, [user?.id]);
 
     // --- LÓGICA: Filtra as colmeias pelo ano selecionado ---
     const dadosFiltrados = useMemo(() => {
-        return MOCK_COLMEIAS.filter(item => {
+        return colmeias.filter(item => {
             return filtroAno === '' ? true : item.ano === filtroAno;
         });
-    }, [filtroAno]);
+    }, [colmeias, filtroAno]);
+
+    const anoOptions = useMemo(() => {
+        const anos = Array.from(new Set(colmeias.map(c => c.ano).filter(a => a !== ''))).sort().reverse();
+        return [{ label: 'Todos os Anos', value: '' }, ...anos.map(a => ({ label: a, value: a }))];
+    }, [colmeias]);
+
+    if (loading) {
+        return (
+            <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={cores.primaria[100]} />
+                <Text>Carregando Relatório...</Text>
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -70,7 +97,8 @@ export default function TabelaColmeias() {
                     options={anoOptions} 
                     onSelect={setFiltroAno} 
                     placeholder="Selecione o ano" 
-                    iconName="calendar" // Ícone de calendário condizente com data
+                    iconName="calendar"
+                    value={filtroAno}
                 />
             </View>
 
@@ -85,7 +113,6 @@ export default function TabelaColmeias() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContentTabela}
                 >
-                    {/* minWidth aumentado para comportar a nova coluna de data sem espremer */}
                     <View style={{ minWidth: 750 }}>
                         <TabelaGenerica
                             colunas={colunasColmeia}
@@ -116,6 +143,7 @@ const styles = StyleSheet.create({
         padding: layout.espacamento.amigavel, 
         gap: layout.espacamento.colega 
     },
+    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     subtexto: { 
         width: '100%', 
         textAlign: 'center', 

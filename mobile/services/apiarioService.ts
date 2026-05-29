@@ -3,9 +3,7 @@ import { ApiarioCriadoDTO, ApiarioRetornoDTO, ApiarioAtualizadoDTO } from '@/typ
 
 export const listarApiariosPorProdutor = async (produtorId: number | string): Promise<ApiarioRetornoDTO[]> => {
   try {
-    const response = await api.get<ApiarioRetornoDTO[]>('/apiarios', {
-      params: { produtorId: Number(produtorId) }
-    });
+    const response = await api.get<ApiarioRetornoDTO[]>(`/apiarios/${produtorId}`);
     return response.data;
   } catch (error) {
     console.error('Erro ao listar apiários:', error);
