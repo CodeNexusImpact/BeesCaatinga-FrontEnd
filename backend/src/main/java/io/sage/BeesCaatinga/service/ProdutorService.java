@@ -74,6 +74,14 @@ public class ProdutorService {
         return mapper.toRetornoDTO(produtor);
     }
 
+    public ProdutorRetornoDTO atualizarFoto(Long id, String caminhoFoto) {
+        var produtor = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
+        produtor.setCaminhoDaFoto(caminhoFoto);
+        repository.save(produtor);
+        return mapper.toRetornoDTO(produtor);
+    }
+
     public void deletar(Long id){
         var produtor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));

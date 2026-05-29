@@ -7,12 +7,15 @@ import io.sage.BeesCaatinga.controller.dto.colmeia.ColmeiaRetornoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorAtualizadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorCriadoDTO;
 import io.sage.BeesCaatinga.controller.dto.produtor.ProdutorRetornoDTO;
+import io.sage.BeesCaatinga.service.FileStorageService;
 import io.sage.BeesCaatinga.service.ProdutorService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.List;
 public class ProdutorController {
 
     private final ProdutorService service;
+    private final FileStorageService fileStorageService;
 
     @PostMapping
     @Transactional
@@ -30,6 +34,14 @@ public class ProdutorController {
         var produtorSalvo = service.salvar(dto);
         var uri = uriBuilder.path("/produtores/{id}").buildAndExpand(produtorSalvo.id()).toUri();
         return ResponseEntity.created(uri).body(produtorSalvo);
+    }
+
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
+    public ResponseEntity<ProdutorRetornoDTO> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        String caminhoFoto = fileStorageService.salvarImagem(file, "produtores");
+        var produtorAtualizado = service.atualizarFoto(id, caminhoFoto);
+        return ResponseEntity.ok(produtorAtualizado);
     }
 
     @GetMapping("/{id}")
