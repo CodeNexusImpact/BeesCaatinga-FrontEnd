@@ -5,6 +5,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import Subtexto from '@/components/subTexto';
 import { getProducaoPorId, atualizarProducao, deletarProducao } from '@/services/producaoService';
@@ -15,6 +16,8 @@ const DENSIDADE_MEL_KG_L = 1.4;
 export default function Editar() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
+
+    const { user } = useAuth();
 
     const [tipoProduto, setTipoProduto] = useState('');
     const [quantidade, setQuantidade] = useState('');
@@ -103,7 +106,12 @@ export default function Editar() {
                 dataColeta: dataFormatada,
             };
 
-            await atualizarProducao(id as string, dto, {});
+            if (!user) {
+                Alert.alert('Erro', 'Usuário não autenticado.');
+                return;
+            }
+
+            await atualizarProducao(id as string, user.id, dto);
             Alert.alert('Sucesso', 'Produção atualizada com sucesso!', [
                 { text: 'OK', onPress: () => router.push('/producao/listar') }
             ]);
@@ -125,7 +133,12 @@ export default function Editar() {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await deletarProducao(parseInt(id as string));
+                            if (!user) {
+                                Alert.alert('Erro', 'Usuário não autenticado.');
+                                return;
+                            }
+
+                            await deletarProducao(parseInt(id as string), user.id);
                             Alert.alert('Sucesso', 'Registro apagado!', [
                                 { text: 'OK', onPress: () => router.push('/producao/listar') }
                             ]);

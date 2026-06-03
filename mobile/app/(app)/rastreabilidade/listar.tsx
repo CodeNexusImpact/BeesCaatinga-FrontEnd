@@ -19,7 +19,7 @@ export default function ListarLotesMel() {
 
   const carregarLotes = useCallback(async () => {
     if (!user?.id) return;
-    
+
     try {
       setIsLoading(true);
       const data = await getRastreabilidade(user.id);
@@ -40,12 +40,12 @@ export default function ListarLotesMel() {
   );
 
   // Filtrar lotes por apiário
-  const lotesFiltrados = filtroApiario 
-    ? lotes.filter(lote => (lote.nomeApiario || lote.apiarioId?.toString()) === filtroApiario)
+  const lotesFiltrados = filtroApiario
+    ? lotes.filter(lote => (lote.apiarioId || lote.apiarioId?.toString()) === filtroApiario)
     : lotes;
 
   // Obter apiários únicos para o filtro
-  const apiariosUnicos = ['Todos', ...new Set(lotes.map(lote => (lote.nomeApiario || lote.apiarioId?.toString())))];
+  const apiariosUnicos = ['Todos', ...new Set(lotes.map(lote => (lote.tipoAbelha || lote.apiarioId?.toString())))];
 
   // Handler para selecionar apiário
   const handleSelecionarApiario = (apiario: string) => {
@@ -59,7 +59,7 @@ export default function ListarLotesMel() {
 
   // Handler para navegar para detalhes do lote
   const handleLotePress = (idLote: number) => {
-    router.push(`/rastreabilidade/${idLote}`);
+    router.push(`/rastreabilidade/listar`);
   };
 
   const handleExportar = () => {
@@ -69,7 +69,7 @@ export default function ListarLotesMel() {
     }
 
     const cabecalho = 'ID,Data,Quantidade,Apiario,Florada,Abelha\n';
-    const linhas = lotesFiltrados.map(l => 
+    const linhas = lotesFiltrados.map(l =>
       `${l.id},${l.dataProducao},${l.quantidadeProduzida},${l.apiarioId},${l.tipoFlorada},${l.tipoAbelha}`
     ).join('\n');
 
@@ -92,7 +92,7 @@ export default function ListarLotesMel() {
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
     >
@@ -101,7 +101,7 @@ export default function ListarLotesMel() {
       {/* Card de Lista de Lotes */}
       <View style={styles.listaContainer}>
         {/* Header do Card (Clicável) */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.listaHeader}
           onPress={() => setIsListaVisivel(!isListaVisivel)}
         >
@@ -120,12 +120,12 @@ export default function ListarLotesMel() {
         {/* Conteúdo do Card (Sanfonado) */}
         {isListaVisivel && (
           <View style={styles.listaContent}>
-            
+
             {/* Seletor de Apiário */}
             <View style={styles.filtroContainer}>
               <Text style={styles.filtroLabel}>Filtrar por Apiário:</Text>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.seletor}
                 onPress={() => setModalVisivel(true)}
               >
@@ -140,14 +140,14 @@ export default function ListarLotesMel() {
                 animationType="fade"
                 onRequestClose={() => setModalVisivel(false)}
               >
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.modalOverlay}
                   activeOpacity={1}
                   onPress={() => setModalVisivel(false)}
                 >
                   <View style={styles.modalContent}>
                     <Text style={styles.modalTitulo}>Selecionar Apiário</Text>
-                    
+
                     {apiariosUnicos.map((apiario, index) => (
                       <TouchableOpacity
                         key={apiario}
@@ -155,22 +155,22 @@ export default function ListarLotesMel() {
                           styles.opcaoSeletor,
                           index === 0 && styles.primeiraOpcao,
                           index === apiariosUnicos.length - 1 && styles.ultimaOpcao,
-                          (apiario === 'Todos' && !filtroApiario) || 
-                          (apiario === filtroApiario) ? styles.opcaoSelecionada : null
+                          (apiario === 'Todos' && !filtroApiario) ||
+                            (apiario === filtroApiario) ? styles.opcaoSelecionada : null
                         ]}
                         onPress={() => handleSelecionarApiario(apiario)}
                       >
                         <Text style={[
                           styles.opcaoTexto,
-                          (apiario === 'Todos' && !filtroApiario) || 
-                          (apiario === filtroApiario) ? styles.opcaoTextoSelecionada : null
+                          (apiario === 'Todos' && !filtroApiario) ||
+                            (apiario === filtroApiario) ? styles.opcaoTextoSelecionada : null
                         ]}>
                           {apiario === 'Todos' ? 'Todos os Apiários' : apiario}
                         </Text>
-                        {(apiario === 'Todos' && !filtroApiario) || 
-                         (apiario === filtroApiario) && (
-                          <Text style={styles.opcaoCheck}>✓</Text>
-                        )}
+                        {(apiario === 'Todos' && !filtroApiario) ||
+                          (apiario === filtroApiario) && (
+                            <Text style={styles.opcaoCheck}>✓</Text>
+                          )}
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -206,7 +206,7 @@ export default function ListarLotesMel() {
                   {lote.quantidadeProduzida}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaApiario]}>
-                  {lote.nomeApiario || lote.apiarioId}
+                  {lote.apiarioId || lote.apiarioId}
                 </Text>
               </TouchableOpacity>
             ))}

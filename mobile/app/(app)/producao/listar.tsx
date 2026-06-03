@@ -43,7 +43,7 @@ export default function Visualizar() {
 
   const carregarProducoes = useCallback(async () => {
     if (!user?.id) return;
-    
+
     setIsLoading(true);
     try {
       const data = await getProducoes(user.id);
