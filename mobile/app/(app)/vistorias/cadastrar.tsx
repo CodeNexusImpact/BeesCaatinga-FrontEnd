@@ -77,10 +77,9 @@ export default function CadastrarVistoria() {
 
   // --- Opções fixas ---
   const condicaoOptions = [
-    { label: 'Saudável', value: 'saudavel' },
-    { label: 'Manutenção Necessária', value: 'manutencao' },
-    { label: 'Em Risco', value: 'risco' },
-    { label: 'Perdida', value: 'perdida' },
+    { label: 'Saudável', value: 'SAUDAVEL' },
+    { label: 'Manutenção Necessária', value: 'MANUTENCAO_NECESSARIA' },
+    { label: 'Agendar Colheita', value: 'AGENDAR_COLHEITA' },
   ];
 
   const handleSalvar = async () => {
@@ -93,21 +92,20 @@ export default function CadastrarVistoria() {
     try {
       const pragas = Object.entries(pragasObj)
         .filter(([_, checked]) => checked)
-        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+        .map(([key]) => key.toUpperCase());
       
       const perdas = Object.entries(perdasObj)
         .filter(([_, checked]) => checked)
-        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+        .map(([key]) => key.toUpperCase());
 
       const payload = {
-        data: dataVistoria,
-        apiarioId: Number(apiario),
-        colmeiaId: Number(colmeia),
-        condicaoVistoria: condicao,
+        dataVistoria: dataVistoria,
+        apiario_id: Number(apiario),
+        colmeia_id: Number(colmeia),
+        condicao: condicao,
         observacoes,
-        pragas,
-        perdas,
-        produtorId: Number(user.id)
+        pragasIdentificadas: pragas,
+        perdasIdentificadas: perdas,
       };
 
       await cadastrarVistoria(user.id, apiario, colmeia, payload);

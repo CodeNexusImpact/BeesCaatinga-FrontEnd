@@ -45,7 +45,6 @@ export default function Index() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Meu Perfil</Text>
-        
         {/* Foto do Perfil */}
         <TouchableOpacity style={styles.fotoContainer}>
           <View style={styles.fotoPlaceholder}>

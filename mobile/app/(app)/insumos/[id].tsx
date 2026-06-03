@@ -7,7 +7,7 @@ import ModalSucesso from '@/components/modalSucesso';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { getInsumoById, deletarInsumo } from '@/services/insumoService';
+import { getInsumos, deletarInsumo } from '@/services/insumoService';
 import { InsumoRetornoDTO } from '@/types/insumos';
 
 export default function InsumoDetalhe() {
@@ -26,7 +26,11 @@ export default function InsumoDetalhe() {
     if (!id) return;
     try {
       setIsLoading(true);
-      const data = await getInsumoById(id);
+      const insumos = await getInsumos(id);
+      const data = Array.isArray(insumos)
+        ? insumos.find((item) => String(item.id) === String(id))
+        : insumos;
+      if (!data) throw new Error('Insumo não encontrado.');
       setInsumo(data);
     } catch (error) {
       console.error('❌ [DETALHE INSUMO] Erro ao carregar:', error);
@@ -54,7 +58,7 @@ export default function InsumoDetalhe() {
   const confirmarExclusao = async () => {
     if (!id) return;
     try {
-      await deletarInsumo(id);
+      await deletarInsumo(id, undefined as any);
       setModalConfirmacaoVisivel(false);
       setModalSucessoVisivel(true);
     } catch (error) {

@@ -4,8 +4,10 @@ import { Stack, useLocalSearchParams, useRouter, useFocusEffect } from 'expo-rou
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Botao from '@/components/botao';
-import { getVistoriaById, deletarVistoria, Vistoria } from '@/services/vistoriaService';
+import { getVistoriaById, deletarVistoria } from '@/services/vistoriaService';
 import ModalConfirmacao from '@/components/modalConfirmacao';
+
+type Vistoria = Awaited<ReturnType<typeof getVistoriaById>>;
 
 export default function DetalhesVistoria() {
   const { id } = useLocalSearchParams();
@@ -52,10 +54,10 @@ export default function DetalhesVistoria() {
   };
 
   const confirmarExclusao = async () => {
-    if (id) {
+    if (id && vistoria) {
       try {
         const vistoriaId = Array.isArray(id) ? id[0] : id;
-        await deletarVistoria(vistoriaId);
+        await deletarVistoria(vistoriaId, vistoria.apiarioId);
         router.push('/vistorias/listar');
       } catch (error) {
         console.error('Erro ao excluir:', error);

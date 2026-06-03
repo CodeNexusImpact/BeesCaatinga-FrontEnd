@@ -11,8 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [email, setEmail] = useState(__DEV__ ? 'dev@produtor.com' : '');
+  const [senha, setSenha] = useState(__DEV__ ? 'dev123' : '');
   const [loading, setLoading] = useState(false);
 
   const { signIn } = useAuth();

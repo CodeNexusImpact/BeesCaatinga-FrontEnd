@@ -66,8 +66,8 @@ export const getKpisVistorias = async (produtorId: string | number) => {
   try {
     const dados = await listarVistoriasPorProdutor(produtorId);
     const total = dados.length;
-    const saudaveis = dados.filter((v: any) => ['saudavel', 'excelente'].includes(v.condicaoVistoria?.toLowerCase())).length;
-    const criticas = dados.filter((v: any) => ['risco', 'perdida', 'alerta'].includes(v.condicaoVistoria?.toLowerCase())).length;
+    const saudaveis = dados.filter((v: any) => ['saudavel', 'excelente', 'saudável'].includes(v.condicao?.toLowerCase())).length;
+    const criticas = dados.filter((v: any) => ['risco', 'perdida', 'alerta'].includes(v.condicao?.toLowerCase())).length;
     const taxa = total > 0 ? ((saudaveis / total) * 100).toFixed(0) : '0';
 
     return [

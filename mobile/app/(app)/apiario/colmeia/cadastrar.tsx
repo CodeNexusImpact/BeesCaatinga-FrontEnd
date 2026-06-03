@@ -77,11 +77,14 @@ export default function Cadastrar() {
         try {
             const payload = {
                 identificador,
-                dataCriacao, // O backend deve tratar a conversão se necessário
-                apiarioId: parseInt(apiario),
-                tipoColmeia: tipo.toUpperCase(),
+                apiario_id: parseInt(apiario),
+                tipo: tipo.toUpperCase(),
                 ativa: ativo === 'sim',
                 observacoes,
+                latitude: -8.0, // Default para evitar erro de nulo no backend se não vier do mapa
+                longitude: -36.0,
+                detalhesDaLocalizacao: "",
+                caminhoDaFoto: ""
             };
 
             await cadastrarColmeia(user.id, parseInt(apiario), payload);

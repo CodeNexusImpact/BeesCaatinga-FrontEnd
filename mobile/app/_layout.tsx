@@ -12,35 +12,36 @@ function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
+    // 1. Não navega enquanto estiver carregando o estado inicial do SecureStore
     if (isLoading) return;
 
+    // 2. Verifica se o usuário está dentro das pastas de autenticação
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!session && !inAuthGroup) {
-      // Se não estiver logado e não estiver nas telas de login, vai para o login
-      router.replace('/login');
+      // Caso 1: Usuário não está logado e tenta acessar área protegida -> Vai para Login
+      console.log("🛡️ Rota Protegida: Redirecionando para Login");
+      router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
-      // Se estiver logado e tentar acessar o login, vai para a home absoluta
-      router.replace('/');
+      // Caso 2: Usuário está logado mas está nas telas de auth -> Vai para Home
+      console.log("🛡️ Usuário Autenticado: Redirecionando para Home");
+      router.replace('/(app)');
     }
   }, [session, isLoading, segments]);
 
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: temaCores.branco }}>
-        <ActivityIndicator size="large" color={temaCores.primaria} />
-        <Text style={{ marginTop: 10, color: temaCores.texto }}>{"Carregando sessão..."}</Text>
+        <ActivityIndicator size="large" color={temaCores.primaria[100]} />
+        <Text style={{ marginTop: 10, color: temaCores.texto }}>{"Iniciando BeesCaatinga..."}</Text>
       </View>
     );
   }
 
   return (
-    <Stack screenOptions={{
-      headerShown: false,
-      contentStyle: { backgroundColor: temaCores.branco }
-    }}>
-      <Stack.Screen name="(app)" />
-      <Stack.Screen name="(auth)" />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(app)" options={{ headerShown: false }} />
     </Stack>
   );
 }

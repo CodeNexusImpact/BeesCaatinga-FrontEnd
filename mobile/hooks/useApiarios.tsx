@@ -10,9 +10,9 @@ export function useApiarios() {
 
     useEffect(() => {
         const fetchApiarios = async () => {
-            // Fallback seguro para evitar produtorId=NaN no terminal
-            const idDoProdutor = user?.id ? Number(user.id) : 1;
+            if (!user?.id || !session) return;
             
+            const idDoProdutor = Number(user.id);
             if (isNaN(idDoProdutor)) return;
 
             try {
@@ -26,9 +26,7 @@ export function useApiarios() {
             }
         };
 
-        if (session) {
-            fetchApiarios();
-        }
+        fetchApiarios();
     }, [session, user?.id]);
 
     return { apiarios, loading };

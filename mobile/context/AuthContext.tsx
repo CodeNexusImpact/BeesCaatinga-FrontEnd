@@ -1,8 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
-import api from '../services/api';
+import { api } from '../services/api';
 import * as SecureStore from 'expo-secure-store';
-import { useRouter } from 'expo-router';
 
 // Utilitário para persistência multiplataforma
 const storage = {
@@ -41,9 +40,9 @@ interface Produtor {
 }
 
 interface AuthContextType {
-    session: string | null; 
+    session: string | null;
     user: Produtor | null;
-    isLoading: boolean;     
+    isLoading: boolean;
     signIn: (email: string, senha: string) => Promise<void>;
     signOut: () => Promise<void>;
 }
@@ -52,15 +51,14 @@ export const AuthContext = createContext<AuthContextType>({
     session: null,
     user: null,
     isLoading: true,
-    signIn: async () => {},
-    signOut: async () => {},
+    signIn: async () => { },
+    signOut: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<string | null>(null);
     const [user, setUser] = useState<Produtor | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
 
     useEffect(() => {
         const loadStorageData = async () => {
@@ -85,23 +83,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signIn = async (email: string, senha: string) => {
         try {
-            // Ajustado para bater no AutenticacaoController (LoginDTO espera email e senha)
             const response = await api.post<Produtor>('/login', { email, senha });
             const produtor = response.data;
-            
-            // O token por enquanto é o ID (até implementarmos JWT)
+
             const token = produtor.id.toString();
 
             await storage.setItem('user_token', token);
             await storage.setItem('user_data', JSON.stringify(produtor));
 
+            // ATENÇÃO: O Contexto APENAS atualiza o estado. 
+            // O redirecionamento é responsabilidade exclusiva do RootLayout.
             setSession(token);
             setUser(produtor);
-            
-            console.log('✅ Login realizado com sucesso para:', produtor.nomeCompleto);
-            
-            // Redirecionamento explícito após sucesso (para raiz força sincronização de URL na Web)
-            router.replace('/');
+
+            console.log('✅ Estado de autenticação atualizado.');
         } catch (error: any) {
             console.error('❌ Erro no login:', error.response?.data || error.message);
             throw new Error('E-mail ou senha inválidos');
@@ -109,11 +104,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signOut = async () => {
-        await storage.removeItem('user_token');
-        await storage.removeItem('user_data');
-        setSession(null);
-        setUser(null);
-        console.log('Logout efetuado!');
+        try {
+            await storage.removeItem('user_token');
+            await storage.removeItem('user_data');
+
+            // Limpa o estado. O RootLayout detectará a mudança e levará ao login.
+            setSession(null);
+            setUser(null);
+            console.log('Logout efetuado com sucesso.');
+        } catch (e) {
+            console.error('Erro ao efetuar logout:', e);
+        }
     };
 
     return (

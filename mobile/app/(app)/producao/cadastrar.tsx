@@ -79,19 +79,13 @@ export default function CadastrarProducao() {
 
     setIsSubmitting(true);
     try {
-      // Formata a data de DD/MM/YYYY para YYYY-MM-DD
-      const partes = dataColeta.split('/');
-      if (partes.length !== 3) throw new Error('Formato de data inválido');
-      const [dia, mes, ano] = partes;
-      const dataFormatada = `${ano}-${mes}-${dia}`;
-
       const dto: ProducaoCriadaDTO = {
         tipoProducao: tipoProduto,
         quantidade: parseFloat(quantidade.replace(',', '.')),
         unidadeMedida: medida as UnidadeMedida,
         apiarioId: parseInt(apiario),
         colmeiaId: parseInt(colmeia),
-        dataColeta: dataFormatada,
+        dataColeta: dataColeta, // Enviando no formato dd/MM/yyyy conforme @JsonFormat no backend
       };
 
       await cadastrarProducao(user.id, dto);

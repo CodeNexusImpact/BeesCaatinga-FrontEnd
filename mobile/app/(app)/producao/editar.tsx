@@ -31,16 +31,21 @@ export default function Editar() {
             if (!id) return;
             try {
                 const data = await getProducaoPorId(id as string);
-                
+                if (!data) {
+                    Alert.alert('Erro', 'Produção não encontrada.');
+                    router.back();
+                    return;
+                }
+
                 // Preenche os estados com os dados da API
                 setTipoProduto(data.tipoProducao);
                 setQuantidade(data.quantidade.toString());
                 // Mapeamento reverso se necessário (neste caso o DTO não traz unidadeMedida, 
                 // mas vamos assumir KILOGRAMA como padrão ou buscar de onde paramos)
-                setMedida('KILOGRAMA'); 
+                setMedida('KILOGRAMA');
                 setApiario('1'); // IDs fixos para o mock se não vierem no DTO
                 setColmeia('1');
-                
+
                 // Formata data de YYYY-MM-DD para DD/MM/YYYY
                 if (data.dataColeta) {
                     const [ano, mes, dia] = data.dataColeta.split('-');
@@ -98,7 +103,7 @@ export default function Editar() {
                 dataColeta: dataFormatada,
             };
 
-            await atualizarProducao(id as string, dto);
+            await atualizarProducao(id as string, dto, {});
             Alert.alert('Sucesso', 'Produção atualizada com sucesso!', [
                 { text: 'OK', onPress: () => router.push('/producao/listar') }
             ]);
@@ -154,7 +159,7 @@ export default function Editar() {
                 value={id ? id.toString() : ''}
                 editable={false}
                 style={styles.idInput}
-                onChangeText={() => {}}
+                onChangeText={() => { }}
             />
 
             <Input
@@ -162,12 +167,12 @@ export default function Editar() {
                 value={conversao}
                 editable={false}
                 style={styles.conversaoInput}
-                onChangeText={() => {}}
+                onChangeText={() => { }}
             />
 
             <View style={styles.row}>
                 <Input
-                    label="Quantidade" 
+                    label="Quantidade"
                     value={quantidade}
                     onChangeText={setQuantidade}
                     keyboardType="decimal-pad"
@@ -181,12 +186,12 @@ export default function Editar() {
                         { label: 'L', value: 'LITRO' },
                     ]}
                     onSelect={(val) => setMedida(val as UnidadeMedida)}
-                    placeholder="Selecione" 
+                    placeholder="Selecione"
                     style={styles.inputMetade}
                     value={medida}
                 />
             </View>
-            
+
             <Selector
                 label="Tipo Produto"
                 options={[
@@ -224,7 +229,7 @@ export default function Editar() {
             />
 
             <Input
-                label="Data Coleta" 
+                label="Data Coleta"
                 value={dataColeta}
                 onChangeText={setDataColeta}
                 placeholder="dd/mm/aaaa"
@@ -232,7 +237,7 @@ export default function Editar() {
             />
 
             <Botao
-                title={isSaving ? "Salvando..." : "Salvar Edição"} 
+                title={isSaving ? "Salvando..." : "Salvar Edição"}
                 onPress={handleSalvar}
                 cor="primaria"
                 style={styles.buttonSave}
@@ -265,8 +270,8 @@ const styles = StyleSheet.create({
     },
     subtexto: {
         width: '100%',
-        paddingTop: layout.espacamento.amigavel, 
-        marginBottom: layout.espacamento.amigavel, 
+        paddingTop: layout.espacamento.amigavel,
+        marginBottom: layout.espacamento.amigavel,
     },
     row: {
         flexDirection: 'row',
@@ -278,7 +283,7 @@ const styles = StyleSheet.create({
     inputMetade: {
         flex: 1,
     },
-    buttonSave: { 
+    buttonSave: {
         marginTop: layout.espacamento.social,
     },
     idInput: {
@@ -286,10 +291,10 @@ const styles = StyleSheet.create({
         borderColor: '#DDDDDD',
     },
     conversaoInput: {
-        backgroundColor: cores.cores.primaria[10], 
-        borderColor: cores.cores.primaria[30], 
+        backgroundColor: cores.cores.primaria[10],
+        borderColor: cores.cores.primaria[30],
     },
     buttonDelete: {
-        marginTop: layout.espacamento.amigavel, 
+        marginTop: layout.espacamento.amigavel,
     },
 });

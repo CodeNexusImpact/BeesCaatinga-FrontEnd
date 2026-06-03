@@ -22,7 +22,6 @@ export default function ListarInsumos() {
    */
   const carregarInsumos = useCallback(async () => {
     if (!user?.id) return;
-    
     setIsLoading(true);
     try {
       const data = await getInsumos(user.id);
@@ -133,7 +132,7 @@ export default function ListarInsumos() {
                   <View style={styles.statusRow}>
                     <View style={styles.infoCol}>
                       <Text style={styles.label}>Tipo:</Text>
-                      <Text style={styles.value}>{insumo.tipo}</Text>
+                      <Text style={styles.value}>{insumo.tipoInsumo}</Text>
                     </View>
                     <View style={styles.infoCol}>
                       <Text style={styles.label}>Quantidade:</Text>

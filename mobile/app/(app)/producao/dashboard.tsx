@@ -42,14 +42,13 @@ const getEstacao = (dataStr: string) => {
 
 export default function Dashboard() {
     const { user } = useAuth();
-    const [ano, setAno] = useState(''); 
+    const [ano, setAno] = useState('');
     const [estacao, setEstacao] = useState('');
     const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const carregarDados = useCallback(async () => {
         if (!user?.id) return;
-        
         setIsLoading(true);
         try {
             const data = await getProducoes(user.id);
@@ -92,7 +91,6 @@ export default function Dashboard() {
     const dataLinha = useMemo(() => {
         const mesesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
         const volumes = new Array(12).fill(0);
-        
         dadosFiltrados.forEach(item => {
             const data = new Date(item.dataColeta + 'T00:00:00');
             const mesIndex = data.getMonth();
