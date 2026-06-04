@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import GenericCard, { CardField } from '@/components/genericCard';
-import ModalConfirmacao from '@/components/modalConfirmacao';
-import ModalSucesso from '@/components/modalSucesso';
+import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
+import ModalSucesso from '@/components/notificacao/modalSucesso';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';

@@ -20,7 +20,7 @@ interface TabelaGenericaProps<T extends object> {
     data: T[];
 }
 
-export default function TabelaGenerica<T extends object>({
+export default function Tabela<T extends object>({
     colunas,
     data,
 }: TabelaGenericaProps<T>) {

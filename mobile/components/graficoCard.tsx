@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Botao from './botao';
+import Botao from './formulario/botao';
 import Subtexto from './subTexto';
 import KpiCard from './kpiCard'; // Certifique-se que este componente existe
 

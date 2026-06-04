@@ -1,5 +1,5 @@
-import Botao from '@/components/botao';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,8 +18,8 @@ import { getVistorias, deletarVistoria, Vistoria } from '@/services/vistoriaServ
 import { useAuth } from '@/hooks/useAuth';
 
 // --- Importar os Modais ---
-import ModalConfirmacao from '@/components/modalConfirmacao';
-import ModalSucesso from '@/components/modalSucesso';
+import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
+import ModalSucesso from '@/components/notificacao/modalSucesso';
 
 import GenericCard from '@/components/genericCard';
 import type { CardField } from '@/components/genericCard';

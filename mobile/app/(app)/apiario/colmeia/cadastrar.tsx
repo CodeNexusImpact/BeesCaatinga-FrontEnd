@@ -15,9 +15,9 @@ const {
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 
 // Componentes internos
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
 import { useAuth } from '@/hooks/useAuth';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';

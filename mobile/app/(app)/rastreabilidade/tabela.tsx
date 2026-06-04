@@ -1,7 +1,7 @@
-import Botao from '@/components/botao';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
-import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
+import Tabela, { TabelaColuna } from '@/components/tabela';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack } from 'expo-router';
@@ -118,7 +118,7 @@ export default function RelatorioRastreabilidadeTabela() {
                     contentContainerStyle={styles.scrollContentTabela}
                 >
                     <View style={{ minWidth: 600 }}>
-                        <TabelaGenerica
+                        <Tabela
                             colunas={colunasDoRelatorio as any}
                             data={dadosFiltrados}
                         />

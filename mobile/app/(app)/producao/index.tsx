@@ -1,4 +1,4 @@
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';

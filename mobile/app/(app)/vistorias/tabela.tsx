@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
-import Selector from '@/components/selector';
-import Botao from '@/components/botao';
-import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
+import Selector from '@/components/formulario/selector';
+import Botao from '@/components/formulario/botao';
+import Tabela, { TabelaColuna } from '@/components/tabela';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -141,7 +141,7 @@ export default function RelatorioVistoriaTabela() {
                             contentContainerStyle={styles.scrollContentTabela}
                         >
                             <View style={{ minWidth: 1200 }}>
-                                <TabelaGenerica
+                                <Tabela
                                     colunas={colunasDoRelatorio}
                                     data={dadosFiltrados}
                                 />

@@ -6,9 +6,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { deletarProdutor } from '@/services/produtorService';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import InputConfig from '@/components/inputConfig';
+import InputConfig from '@/components/formulario/inputConfig';
 import Icon from '@/components/icon';
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 
 const CONFIG_KEYS = {
     NOTIFICACOES: '@config_notificacoes',

@@ -10,7 +10,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit'; 
-import Selector from '@/components/selector';
+import Selector from '@/components/formulario/selector';
 import GraficoCard from '@/components/graficoCard';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';

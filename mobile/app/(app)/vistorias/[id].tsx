@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 're
 import { Stack, useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 import { getVistoriaById, deletarVistoria } from '@/services/vistoriaService';
-import ModalConfirmacao from '@/components/modalConfirmacao';
+import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
 
 type Vistoria = Awaited<ReturnType<typeof getVistoriaById>>;
 

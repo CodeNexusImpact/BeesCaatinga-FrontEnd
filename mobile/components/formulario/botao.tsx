@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, GestureResponderEvent } from 'react-native';
-import Icon from './icon';
+import Icon from '../icon';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import fonts from '@/constants/fonts';

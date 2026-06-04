@@ -4,7 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Subtexto from '@/components/subTexto';
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 
 export default function Index() {
   const router = useRouter();

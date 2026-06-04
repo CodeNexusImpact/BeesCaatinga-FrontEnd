@@ -2,9 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 
-import Selector from '@/components/selector';
-import Botao from '@/components/botao';
-import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
+import Selector from '@/components/formulario/selector';
+import Botao from '@/components/formulario/botao';
+import Tabela, { TabelaColuna } from '@/components/tabela';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -91,7 +91,7 @@ export default function TabelaApiarios() {
             <View style={styles.tabelaContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={{ minWidth: 700 }}>
-                        <TabelaGenerica colunas={colunasApiario} data={dadosFiltrados} />
+                        <Tabela colunas={colunasApiario} data={dadosFiltrados} />
                     </View>
                 </ScrollView>
             </View>

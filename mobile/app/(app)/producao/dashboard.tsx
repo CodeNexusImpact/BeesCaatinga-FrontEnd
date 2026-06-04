@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit'; 
-import Selector from '@/components/selector';
+import Selector from '@/components/formulario/selector';
 import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';

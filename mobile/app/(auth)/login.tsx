@@ -1,5 +1,5 @@
-import Botao from "@/components/botao";
-import Input from "@/components/input";
+import Botao from "@/components/formulario/botao";
+import Input from "@/components/formulario/input";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from "react-native";

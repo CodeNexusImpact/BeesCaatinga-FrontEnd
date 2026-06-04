@@ -6,15 +6,15 @@ import { EnderecoProps } from '@/types/common/Endereco';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 
-import Input from '@/components/input';
-import FormEndereco from '@/components/formEndereco';
+import Input from '@/components/formulario/input';
+import FormEndereco from '@/components/formulario/formEndereco';
 import TipoQuantidadeColmeia from '@/components/apiario/tipoQuantidadeColmeia';
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 import Subtexto from '@/components/subTexto';
 
 import { styles as hero } from '@/styles/hero.styles';
 import { styles as formStyles } from '@/styles/forms.styles';
-import ImagemPicker from '@/components/imagemPicker';
+import ImagemPicker from '@/components/formulario/imagemPicker';
 import { useAuth } from '@/hooks/useAuth';
 import { cadastrarApiario } from '@/services/apiarioService';
 

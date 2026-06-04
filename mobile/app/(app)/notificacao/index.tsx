@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import CardNotificacao from '@/components/cardNotificacao';
+import CardNotificacao from '@/components/notificacao/cardNotificacao';
 
 export default function Index() {
         const notificacoes = [

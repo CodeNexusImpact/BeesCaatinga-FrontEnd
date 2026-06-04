@@ -2,7 +2,7 @@ import cores from '@/constants/cores';
 import styles from '@/styles/input.styles';
 import React, { useState, useEffect } from 'react'; 
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from './icon';
+import Icon from '../icon';
 
 interface Option {
     label: string;

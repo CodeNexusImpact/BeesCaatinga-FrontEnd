@@ -1,6 +1,6 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
@@ -10,7 +10,7 @@ import Checkbox from 'expo-checkbox';
 import { cadastrarVistoria } from '@/services/vistoriaService';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
-import ModalSucesso from '@/components/modalSucesso';
+import ModalSucesso from '@/components/notificacao/modalSucesso';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function CadastrarVistoria() {

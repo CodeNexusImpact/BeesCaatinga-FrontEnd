@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
-import Icon from './icon';
-import Botao from './botao';
+import Icon from '../icon';
+import Botao from '../formulario/botao';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 

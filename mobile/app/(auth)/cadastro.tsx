@@ -1,7 +1,7 @@
-import Botao from "@/components/botao";
-import Input from "@/components/input";
-import ModalSucesso from "@/components/modalSucesso";
-import Selector from "@/components/selector";
+import Botao from "@/components/formulario/botao";
+import Input from "@/components/formulario/input";
+import ModalSucesso from "@/components/notificacao/modalSucesso";
+import Selector from "@/components/formulario/selector";
 import cores from "@/constants/cores";
 import { cadastrarProdutor } from "@/services/produtorService";
 import { styles as formStyle } from "@/styles/forms.styles";

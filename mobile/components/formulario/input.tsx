@@ -2,9 +2,9 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import React, { useImperativeHandle, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
-import Icon from './icon';
+import Icon from '../icon';
 import { Typography } from '@/styles/fonts.styles';
-import ImagemPicker from './imagemPicker'; // Import ImagemPicker
+import ImagemPicker from '../imagemPicker'; // Import ImagemPicker
 
 interface InputProps extends TextInputProps {
     label?: string;

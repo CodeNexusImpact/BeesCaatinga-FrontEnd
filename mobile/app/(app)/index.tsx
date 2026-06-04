@@ -1,4 +1,4 @@
-import ItemHome from '@/components/itensHome';
+import ItemHome from '@/components/home/itensHome';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
