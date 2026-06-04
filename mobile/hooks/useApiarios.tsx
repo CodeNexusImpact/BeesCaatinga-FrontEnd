@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ApiarioRetornoDTO } from '@/types/apiario';
-import { listarApiariosPorProdutor } from '../services/apiarioService';
-import { useAuth } from './useAuth';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { useAuth } from '@/hooks/useAuth';
 
 export function useApiarios() {
     const [apiarios, setApiarios] = useState<ApiarioRetornoDTO[]>([]);

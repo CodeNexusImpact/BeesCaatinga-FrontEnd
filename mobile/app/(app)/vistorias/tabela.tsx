@@ -84,7 +84,7 @@ export default function RelatorioVistoriaTabela() {
         // Geração do CSV
         const cabecalho = 'Data,Apiario,Colmeia,Condicao,Pragas,Perdas,Observacoes\n';
         const linhas = dadosFiltrados.map(v => 
-            `${v.data},${v.apiarioId},${v.colmeiaId},${v.condicaoVistoria},"${v.pragasTexto}","${v.perdasTexto}","${v.observacoes.replace(/"/g, '""')}"`
+            `${v.data},${v.apiarioId},${v.colmeiaId},${v.condicaoVistoria},"${v.pragasTexto}","${v.perdasTexto}","${(v.observacoes ?? '').replace(/"/g, '""')}"`
         ).join('\n');
         
         const csvContent = cabecalho + linhas;

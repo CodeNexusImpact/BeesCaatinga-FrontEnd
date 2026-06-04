@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { cores, temaCores } from '@/constants/cores';
-import Icon from './icon';
+import Icon from '@/components/icon';
 
 interface HeaderProps {
     title: string;

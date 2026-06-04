@@ -2,7 +2,18 @@ import api from './api';
 
 const BASE_URL = '/vistorias';
 
-export const listarVistoriasPorProdutor = async (produtorId: number | string) => {
+export interface Vistoria {
+  id: number;
+  data: string;
+  condicaoVistoria: string;
+  apiarioId: number;
+  colmeiaId: number;
+  pragas?: string[];
+  perdas?: string[];
+  observacoes?: string;
+}
+
+export const listarVistoriasPorProdutor = async (produtorId: number | string): Promise<Vistoria[]> => {
   try {
     const response = await api.get(`${BASE_URL}/${produtorId}`);
     return Array.isArray(response.data) ? response.data : [];
@@ -12,7 +23,7 @@ export const listarVistoriasPorProdutor = async (produtorId: number | string) =>
   }
 };
 
-export const listarPorColmeia = async (colmeiaId: number | string) => {
+export const listarPorColmeia = async (colmeiaId: number | string): Promise<Vistoria[]> => {
   try {
     const response = await api.get(`${BASE_URL}/colmeia/${colmeiaId}`);
     return response.data;
@@ -22,7 +33,7 @@ export const listarPorColmeia = async (colmeiaId: number | string) => {
   }
 };
 
-export const getVistoriaById = async (id: string | number) => {
+export const getVistoriaById = async (id: string | number): Promise<Vistoria> => {
   try {
     const response = await api.get(`${BASE_URL}/${id}`);
     return response.data;

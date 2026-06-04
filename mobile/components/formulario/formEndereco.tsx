@@ -4,7 +4,7 @@ import Input from '@/components/formulario/input';
 import { EnderecoProps } from '@/types/common/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
 import { maskCEP } from '@/utils/masks';
-import Botao from './botao';
+import Botao from '@/components/formulario/botao';
 
 interface FormEnderecoProps {
     enderecoInicial: EnderecoProps;

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { api } from '../services/api';
+import api from '@/services/api';
 import * as SecureStore from 'expo-secure-store';
 
 // Utilitário para persistência multiplataforma

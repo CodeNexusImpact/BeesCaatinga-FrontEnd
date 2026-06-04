@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from './icon';
+import Icon from '@/components/icon';
 import { useRouter } from 'expo-router';
 import {temaCores} from '@/constants/cores';
 

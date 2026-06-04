@@ -2,7 +2,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from '../icon';
+import Icon from '@/components/icon';
 
 interface InputConfigProps {
     label: string;

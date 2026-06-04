@@ -48,6 +48,6 @@ api.interceptors.response.use(
 // O Interceptador de Requisição continua comentado até a implementação do JWT
 // ...
 
-export { api };
+export default api;
 
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-import ColmeiaItem from './colmeiaItem';
-import Icon from '../icon';
+import ColmeiaItem from '@/components/apiario/colmeiaItem';
+import Icon from '@/components/icon';
 import cores from '@/constants/cores';
-import LinhaDivisoria from '../linhaDivisoria';
+import LinhaDivisoria from '@/components/linhaDivisoria';
 
 import { ApiarioRetornoDTO } from '@/types/apiario';
 

@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { InsumoRetornoDTO } from '@/types/insumos';
 
 export default function RelatorioInsumosTabela() {
-    const { session } = useAuth();
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
     const [insumos, setInsumos] = useState<any[]>([]);
     const [statusFiltro, setStatusFiltro] = useState('');
@@ -21,10 +21,10 @@ export default function RelatorioInsumosTabela() {
      * Carregamento dinâmico via useFocusEffect (Sem Mocks)
      */
     const carregarDados = useCallback(async () => {
-        const produtorId = session || '1';
+        if (!user?.id) return;
         try {
             setIsLoading(true);
-            const data = await getInsumos(produtorId);
+            const data = await getInsumos(user.id);
 
             // Processamento para padronização de exibição (Concatenar Quantidade + Unidade)
             const dadosFormatados = data.map(item => ({
@@ -40,7 +40,7 @@ export default function RelatorioInsumosTabela() {
         } finally {
             setIsLoading(false);
         }
-    }, [session, statusFiltro]);
+    }, [user?.id, statusFiltro]);
 
     useFocusEffect(
         useCallback(() => {

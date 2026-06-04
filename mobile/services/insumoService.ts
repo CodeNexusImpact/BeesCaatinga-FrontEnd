@@ -1,9 +1,22 @@
 import api from './api';
 import type { InsumoRetornoDTO } from '@/types/insumos';
 
-export const listarInsumos = async (produtorId: number | string): Promise<InsumoRetornoDTO[]> => {
+export interface Insumo {
+  id: number;
+  produtorId: number;
+  dataInsumo: string;
+  nome: string;
+  tipoInsumo: string;
+  quantidade: number;
+  unidadeMedida: string;
+  dataValidade: string;
+  statusInsumo: string;
+  observacoes: string;
+}
+
+export const listarInsumos = async (produtorId: number | string): Promise<Insumo[]> => {
   try {
-    const response = await api.get<InsumoRetornoDTO[]>(`/insumos/${produtorId}`);
+    const response = await api.get<Insumo[]>(`/insumos/${produtorId}`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Erro ao listar insumos:', error);
@@ -13,9 +26,9 @@ export const listarInsumos = async (produtorId: number | string): Promise<Insumo
 
 export const getInsumos = listarInsumos;
 
-export const buscarInsumoPorId = async (insumoId: number | string, produtorId: number | string): Promise<any | null> => {
+export const buscarInsumoPorId = async (insumoId: number | string, produtorId: number | string): Promise<Insumo> => {
   try {
-    const response = await api.get<any>(`/insumos/${insumoId}/produtor/${produtorId}`);
+    const response = await api.get<Insumo>(`/insumos/${insumoId}/produtor/${produtorId}`);
     return response.data;
   } catch (error) {
     console.error(`Erro ao buscar insumo ${insumoId}:`, error);
@@ -23,9 +36,9 @@ export const buscarInsumoPorId = async (insumoId: number | string, produtorId: n
   }
 };
 
-export const cadastrarInsumo = async (produtorId: number | string, dados: any): Promise<any> => {
+export const cadastrarInsumo = async (produtorId: number | string, dados: any): Promise<Insumo> => {
   try {
-    const response = await api.post<any>(`/insumos/${produtorId}`, dados);
+    const response = await api.post<Insumo>(`/insumos/${produtorId}`, dados);
     return response.data;
   } catch (error) {
     console.error('Erro ao cadastrar insumo:', error);
@@ -33,9 +46,9 @@ export const cadastrarInsumo = async (produtorId: number | string, dados: any): 
   }
 };
 
-export const atualizarInsumo = async (insumoId: number | string, produtorId: number | string, dados: any): Promise<any> => {
+export const atualizarInsumo = async (insumoId: number | string, produtorId: number | string, dados: any): Promise<Insumo> => {
   try {
-    const response = await api.put<any>(`/insumos/${insumoId}/produtor/${produtorId}`, dados);
+    const response = await api.put<Insumo>(`/insumos/${insumoId}/produtor/${produtorId}`, dados);
     return response.data;
   } catch (error) {
     console.error(`Erro ao atualizar insumo ${insumoId}:`, error);

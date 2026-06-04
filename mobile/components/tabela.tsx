@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Icon from './icon'; 
+import Icon from '@/components/icon'; 
 
 export interface TabelaColuna<T extends object> {
     label: string;

@@ -25,7 +25,7 @@ export default function ListarInsumos() {
     setIsLoading(true);
     try {
       const data = await getInsumos(user.id);
-      setInsumos(data);
+      setInsumos(data as InsumoRetornoDTO[]);
     } catch (error) {
       console.error('❌ [LISTAR INSUMOS] Erro:', error);
       Alert.alert('Erro', 'Não foi possível carregar os insumos.');

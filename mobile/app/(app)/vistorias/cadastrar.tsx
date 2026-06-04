@@ -216,9 +216,8 @@ export default function CadastrarVistoria() {
         onPress={handleSalvar}
         cor="primaria"
         style={styles.button}
-        disabled={loading}
       />
-
+2
       <ModalSucesso
         visivel={modalSucessoVisivel}
         mensagem="Vistoria cadastrada com sucesso!"

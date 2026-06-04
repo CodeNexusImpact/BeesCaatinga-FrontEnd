@@ -7,14 +7,15 @@ import ModalSucesso from '@/components/notificacao/modalSucesso';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { getInsumos, deletarInsumo } from '@/services/insumoService';
-import { InsumoRetornoDTO } from '@/types/insumos';
+import { buscarInsumoPorId, deletarInsumo, Insumo } from '@/services/insumoService';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function InsumoDetalhe() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuth();
 
-  const [insumo, setInsumo] = useState<InsumoRetornoDTO | null>(null);
+  const [insumo, setInsumo] = useState<Insumo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
@@ -23,14 +24,10 @@ export default function InsumoDetalhe() {
    * Busca detalhada do item via ID real.
    */
   const carregarInsumo = useCallback(async () => {
-    if (!id) return;
+    if (!id || !user?.id) return;
     try {
       setIsLoading(true);
-      const insumos = await getInsumos(id);
-      const data = Array.isArray(insumos)
-        ? insumos.find((item) => String(item.id) === String(id))
-        : insumos;
-      if (!data) throw new Error('Insumo não encontrado.');
+      const data = await buscarInsumoPorId(id, user.id);
       setInsumo(data);
     } catch (error) {
       console.error('❌ [DETALHE INSUMO] Erro ao carregar:', error);
@@ -39,7 +36,7 @@ export default function InsumoDetalhe() {
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,9 +53,9 @@ export default function InsumoDetalhe() {
   };
 
   const confirmarExclusao = async () => {
-    if (!id) return;
+    if (!id || !user?.id) return;
     try {
-      await deletarInsumo(id, undefined as any);
+      await deletarInsumo(id, user.id);
       setModalConfirmacaoVisivel(false);
       setModalSucessoVisivel(true);
     } catch (error) {

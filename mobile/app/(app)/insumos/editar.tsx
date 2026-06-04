@@ -7,13 +7,15 @@ import layout from '@/constants/layout';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native';
-import { getInsumoById, atualizarInsumo } from '@/services/insumoService';
+import { buscarInsumoPorId, atualizarInsumo } from '@/services/insumoService';
 import { maskDate } from '@/utils/masks';
+import { useAuth } from '@/hooks/useAuth';
 import Checkbox from 'expo-checkbox';
 
 export default function EditarInsumo() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
+    const { user } = useAuth();
 
     // Estados de Controle
     const [isLoading, setIsLoading] = useState(true);
@@ -57,9 +59,10 @@ export default function EditarInsumo() {
     }, [id]);
 
     const carregarDados = async () => {
+        if (!user?.id) return;
         try {
             setIsLoading(true);
-            const data = await getInsumoById(id!);
+            const data = await buscarInsumoPorId(id!, user.id);
 
             // MAPEMAENTO DE CHAVES REAIS (db.json)
             setDataInsumo(data.dataInsumo || '');
@@ -81,7 +84,7 @@ export default function EditarInsumo() {
     };
 
     const handleSalvar = async () => {
-        if (isSaving) return;
+        if (isSaving || !user?.id) return;
 
         if (!nome || !quantidade || !tipoInsumo) {
             Alert.alert('Erro', 'Preencha os campos obrigatórios (*)');
@@ -102,7 +105,7 @@ export default function EditarInsumo() {
 
         try {
             setIsSaving(true);
-            await atualizarInsumo(id!, payload);
+            await atualizarInsumo(id!, user.id, payload);
             setModalSucessoVisivel(true);
         } catch (error) {
             console.error('❌ [EDITAR INSUMO] Erro ao salvar:', error);
