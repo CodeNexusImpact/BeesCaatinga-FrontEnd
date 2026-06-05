@@ -217,7 +217,7 @@ export default function CadastrarVistoria() {
         cor="primaria"
         style={styles.button}
       />
-2
+
       <ModalSucesso
         visivel={modalSucessoVisivel}
         mensagem="Vistoria cadastrada com sucesso!"

@@ -2,7 +2,7 @@ import Botao from "@/components/formulario/botao";
 import Input from "@/components/formulario/input";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
-import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from "react-native";
+import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useEffect, useState } from "react";
 import cores from "@/constants/cores";
 import layout from "@/constants/layout";
@@ -18,6 +18,8 @@ function Login() {
   const { signIn } = useAuth();
   const router = useRouter();
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
+  const isWebPC = Platform.OS === 'web' && width > 768;
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -31,7 +33,6 @@ function Login() {
 
     setLoading(true);
     try {
-      // Chamada real ao backend via AuthContext -> api.ts
       await signIn(email, senha);
       console.log("✅ Login realizado com sucesso para:", email);
     } catch (error: any) {
@@ -45,17 +46,13 @@ function Login() {
     }
   };
 
-  const goToRegister = () => {
-    router.push('/(auth)/cadastro');
-  }
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.conteinerLogo}>
+      <View style={[styles.mainWrapper, isWebPC && styles.mainWrapperWeb]}>
+        <View style={[styles.conteinerLogo, isWebPC && styles.conteinerLogoWeb]}>
           <Image
             style={styles.image}
             source={require("@/assets/images/LogoBeesCaatinga.png")}
@@ -63,54 +60,60 @@ function Login() {
           />
         </View>
 
-        <View style={styles.formContainer}>
-          <Text style={styles.textoTitulo}>Faça seu Login</Text>
-          
-          <View style={styles.inputWrapper}>
-            <Input
-              iconName="email"
-              placeholder="E-mail"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.inputField}
+        <ScrollView 
+          style={[styles.scrollArea, isWebPC && styles.scrollAreaWeb]}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.formContainer, isWebPC && styles.formContainerWeb]}>
+            <Text style={styles.textoTitulo}>Faça seu Login</Text>
+            
+            <View style={styles.inputWrapper}>
+              <Input
+                iconName="email"
+                placeholder="E-mail"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.inputField}
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Input
+                iconName="lock"
+                placeholder="Senha"
+                value={senha}
+                onChangeText={setSenha}
+                secureTextEntry={true}
+                style={styles.inputField}
+              />
+            </View>
+
+            <TouchableOpacity 
+              onPress={() => router.push("/(auth)/redefinirSenha")} 
+              style={styles.esqueceuSenha}
+            >
+              <Text style={styles.esqueceuSenhaTexto}>Esqueceu a senha?</Text>
+            </TouchableOpacity>
+
+            {loading ? (
+              <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginVertical: 20 }} />
+            ) : (
+              <Botao title="Entrar" onPress={handleLogin} iconName="forward" />
+            )}
+
+            <Text style={styles.textoSimples}>Ou</Text>
+            
+            <Botao
+              title="Cadastrar" 
+              cor="secundaria" 
+              onPress={() => router.push('/(auth)/cadastro')}
             />
           </View>
-
-          <View style={styles.inputWrapper}>
-            <Input
-              iconName="lock"
-              placeholder="Senha"
-              value={senha}
-              onChangeText={setSenha}
-              secureTextEntry={true}
-              style={styles.inputField}
-            />
-          </View>
-
-          <TouchableOpacity 
-            onPress={() => router.push("/(auth)/redefinirSenha")} 
-            style={styles.esqueceuSenha}
-          >
-            <Text style={styles.esqueceuSenhaTexto}>Esqueceu a senha?</Text>
-          </TouchableOpacity>
-
-          {loading ? (
-            <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginVertical: 20 }} />
-          ) : (
-            <Botao title="Entrar" onPress={handleLogin} iconName="forward" />
-          )}
-
-          <Text style={styles.textoSimples}>Ou</Text>
-          
-          <Botao
-            title="Cadastrar" 
-            cor="secundaria" 
-            onPress={() => router.push('/(auth)/cadastro')}
-          />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   )
 }
@@ -120,35 +123,62 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: cores.branco,
   },
+  mainWrapper: {
+    flex: 1,
+  },
+  mainWrapperWeb: {
+    flexDirection: 'row',
+  },
   conteinerLogo: {
     height: 250,
-    backgroundColor: cores.primaria[100],
+    backgroundColor: cores.primaria,
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
+  conteinerLogoWeb: {
+    flex: 1,
+    height: '100%',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
   image: {
     width: "80%",
     height: "80%",
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollAreaWeb: {
+    flex: 1.2,
+    backgroundColor: cores.branco,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   formContainer: {
     padding: layout.espacamento.social,
     marginTop: -20,
     backgroundColor: cores.branco,
     borderRadius: 30,
-    flex: 1,
+  },
+  formContainerWeb: {
+    marginTop: 0,
+    borderRadius: 0,
+    padding: 50,
   },
   textoTitulo: {
     color: cores.texto,
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: "center"
   },
   inputWrapper: {
-    marginBottom: 16,
-    height: 60, // Ajuste para comportar o design do componente Input
+    marginBottom: 20,
+    height: 60,
   },
   inputField: {
     height: 55,
@@ -172,7 +202,5 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 });
-
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default Login;

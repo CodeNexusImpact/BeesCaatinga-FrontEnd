@@ -8,9 +8,10 @@ import { styles as formStyle } from "@/styles/forms.styles";
 import { Genero, ProdutorCriado } from "@/types/user";
 import { maskDate, maskPhone, validateEmail, validatePassword } from "@/utils/masks";
 import { Image } from "expo-image";
-import { Link, useNavigation, useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View, ActivityIndicator } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, Platform, useWindowDimensions } from "react-native";
+import layout from "@/constants/layout";
 
 interface ValidationErrors {
   nomeCompleto?: string;
@@ -22,9 +23,17 @@ interface ValidationErrors {
   confirmarSenha?: string;
 }
 
+const generoOptions = [
+  { label: 'Masculino', value: 'MASCULINO' },
+  { label: 'Feminino', value: 'FEMININO' },
+  { label: 'Outro', value: 'OUTRO' },
+];
+
 function Cadastro() {
   const router = useRouter();
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
+  const isWebPC = Platform.OS === 'web' && width > 768;
 
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -36,12 +45,6 @@ function Cadastro() {
   const [loading, setLoading] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
-
-  const generoOptions = [
-    { label: 'Masculino', value: 'MASCULINO' },
-    { label: 'Feminino', value: 'FEMININO' },
-    { label: 'Outro', value: 'OUTRO' },
-  ];
 
   const [errors, setErrors] = useState<ValidationErrors>({});
 
@@ -98,7 +101,7 @@ function Cadastro() {
         nomeCompleto,
         telefone,
         email,
-        dataDeNascimento, // String no formato dd/MM/yyyy conforme @JsonFormat do Backend
+        dataDeNascimento, 
         genero: genero as Genero,
         senha,
       };
@@ -117,108 +120,128 @@ function Cadastro() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={styles.container}>
       <ModalSucesso
         visivel={modalVisible}
         mensagem="Cadastro realizado com sucesso! Você será redirecionado para a tela de login."
         aoFechar={handleModalClose}
       />
-      <View style={styles.conteinerLogo}>
-        <Image
-          style={styles.image}
-          source={require("@/assets/images/LogoBeesCaatinga.png")}
-          contentFit='contain'
-        />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={formStyle.formStyle}>
-          <Text style={styles.textoTitulo}>Faça seu Cadastro</Text>
-
-          <Input
-            iconName="user"
-            placeholder="Nome Completo"
-            value={nomeCompleto}
-            onChangeText={setNomeCompleto}
+      <View style={[styles.mainWrapper, isWebPC && styles.mainWrapperWeb]}>
+        <View style={[styles.conteinerLogo, isWebPC && styles.conteinerLogoWeb]}>
+          <Image
+            style={styles.image}
+            source={require("@/assets/images/LogoBeesCaatinga.png")}
+            contentFit='contain'
           />
-          {errors.nomeCompleto && <Text style={styles.errorText}>{errors.nomeCompleto}</Text>}
-
-          <Input
-            iconName="phone"
-            placeholder="Telefone (DDD + Número)"
-            value={telefone}
-            onChangeText={(text) => setTelefone(maskPhone(text))}
-            keyboardType="phone-pad"
-            maxLength={15}
-          />
-          {errors.telefone && <Text style={styles.errorText}>{errors.telefone}</Text>}
-
-          <Input
-            iconName="email"
-            placeholder="E-mail"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-          <Input
-            iconName="calendar"
-            placeholder="Data de Nascimento (dd/MM/yyyy)"
-            value={dataDeNascimento}
-            onChangeText={(text) => setDataDeNascimento(maskDate(text))}
-            keyboardType="numeric"
-            maxLength={10}
-          />
-          {errors.dataDeNascimento && <Text style={styles.errorText}>{errors.dataDeNascimento}</Text>}
-
-          <Selector options={generoOptions} onSelect={(value) => setGenero(value as Genero)} iconName="human" />
-          {errors.genero && <Text style={styles.errorText}>{errors.genero}</Text>}
-
-          <Input
-            iconName="lock"
-            placeholder="Senha"
-            secureTextEntry={true}
-            value={senha}
-            onChangeText={setSenha}
-          />
-          {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
-
-          <Input
-            iconName="lock"
-            placeholder="Confirme sua Senha"
-            secureTextEntry={true}
-            value={confirmarSenha}
-            onChangeText={setConfirmarSenha}
-          />
-          {errors.confirmarSenha && <Text style={styles.errorText}>{errors.confirmarSenha}</Text>}
-
-          {loading ? (
-            <ActivityIndicator size="large" color={cores.primaria} style={{ marginTop: 20 }} />
-          ) : (
-            <Botao title="Finalizar Cadastro" onPress={handleCadastro} />
-          )}
-
-          <Link href="/(auth)/login" style={styles.link}>
-            <Text style={styles.textoLink}>Já tem conta? Faça login</Text>
-          </Link>
         </View>
-      </ScrollView>
+
+        <ScrollView
+          style={[styles.scrollView, isWebPC && styles.scrollViewWeb]}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[formStyle.formStyle, isWebPC && styles.formContainerWeb]}>
+            <Text style={styles.textoTitulo}>Faça seu Cadastro</Text>
+
+            <Input
+              iconName="user"
+              placeholder="Nome Completo"
+              value={nomeCompleto}
+              onChangeText={setNomeCompleto}
+            />
+            {errors.nomeCompleto && <Text style={styles.errorText}>{errors.nomeCompleto}</Text>}
+
+            <Input
+              iconName="phone"
+              placeholder="Telefone (DDD + Número)"
+              value={telefone}
+              onChangeText={(text) => setTelefone(maskPhone(text))}
+              keyboardType="phone-pad"
+              maxLength={15}
+            />
+            {errors.telefone && <Text style={styles.errorText}>{errors.telefone}</Text>}
+
+            <Input
+              iconName="email"
+              placeholder="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
+            <Input
+              iconName="calendar"
+              placeholder="Data de Nascimento (dd/MM/yyyy)"
+              value={dataDeNascimento}
+              onChangeText={(text) => setDataDeNascimento(maskDate(text))}
+              keyboardType="numeric"
+              maxLength={10}
+            />
+            {errors.dataDeNascimento && <Text style={styles.errorText}>{errors.dataDeNascimento}</Text>}
+
+            <Selector 
+              options={generoOptions} 
+              onSelect={(value) => setGenero(value as Genero)} 
+              iconName="human" 
+              value={genero}
+            />
+            {errors.genero && <Text style={styles.errorText}>{errors.genero}</Text>}
+
+            <Input
+              iconName="lock"
+              placeholder="Senha"
+              secureTextEntry={true}
+              value={senha}
+              onChangeText={setSenha}
+            />
+            {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
+
+            <Input
+              iconName="lock"
+              placeholder="Confirme sua Senha"
+              secureTextEntry={true}
+              value={confirmarSenha}
+              onChangeText={setConfirmarSenha}
+            />
+            {errors.confirmarSenha && <Text style={styles.errorText}>{errors.confirmarSenha}</Text>}
+
+            {loading ? (
+              <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginTop: 20 }} />
+            ) : (
+              <Botao title="Finalizar Cadastro" onPress={handleCadastro} />
+            )}
+
+            <TouchableOpacity 
+              onPress={() => router.push('/(auth)/login')} 
+              style={styles.link}
+            >
+              <Text style={styles.textoLink}>Já tem conta? Faça login</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: cores.branco,
+  },
+  mainWrapper: {
+    flex: 1,
+  },
+  mainWrapperWeb: {
+    flexDirection: 'row',
+  },
   textoTitulo: {
     color: '#000',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
     textAlign: 'center'
   },
   conteinerLogo: {
@@ -227,6 +250,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  conteinerLogoWeb: {
+    flex: 1,
+    height: '100%',
+  },
   image: {
     width: "70%",
     height: '70%',
@@ -234,16 +261,26 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollViewWeb: {
+    flex: 1.2,
+  },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40
+    padding: 20,
+    justifyContent: 'center',
+  },
+  formContainerWeb: {
+    padding: 40,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   link: {
     alignSelf: "center",
     marginTop: 15,
   },
   textoLink: {
-    color: cores.primaria,
+    color: cores.primaria[100],
     fontSize: 16,
     fontWeight: 'bold'
   },
