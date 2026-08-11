@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Input from '@/components/input';
-import { EnderecoProps } from '@/types/Endereco';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, GestureResponderEvent } from 'react-native';
+import Input from '@/components/formulario/input';
+import { EnderecoProps } from '@/types/common/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
 import { maskCEP } from '@/utils/masks';
+import Botao from '@/components/formulario/botao';
 
 interface FormEnderecoProps {
     enderecoInicial: EnderecoProps;
@@ -12,6 +13,11 @@ interface FormEnderecoProps {
 
 const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEnderecoChange }) => {
     const [endereco, setEndereco] = useState<EnderecoProps>(enderecoInicial);
+
+    // Sincroniza o estado interno se o endereço inicial mudar (ex: carregamento via API)
+    useEffect(() => {
+        setEndereco(enderecoInicial);
+    }, [enderecoInicial]);
 
     const handleChange = (field: string, value: string) => {
         let formattedValue = value;
@@ -24,8 +30,18 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
         onEnderecoChange(updatedEndereco);
     };
 
+    function handleUseCurrentLocation(event: GestureResponderEvent) {
+        // Aqui você pode implementar a lógica para obter a localização atual do usuário
+        // e atualizar o estado do endereço com as coordenadas e, se possível, preencher os campos de endereço.
+        // Exemplo (usando expo-location):
+        /*
+        import * as Location from 'expo-location';
+        */
+    }
+
     return (
         <View style={formStyles.formStyle}>
+        <Botao title={'Usar localização atual'} iconName='location' textStyle={{ color: '#000000' }} onPress={handleUseCurrentLocation}></Botao>
 
             <Input
                 label="CEP"

@@ -1,0 +1,12 @@
+{
+  "name": "beescaatinga-mock-api",
+  "version": "1.0.0",
+  "description": "Mock API for BeesCaatinga",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "json-server": "^0.17.4"
+  }
+}

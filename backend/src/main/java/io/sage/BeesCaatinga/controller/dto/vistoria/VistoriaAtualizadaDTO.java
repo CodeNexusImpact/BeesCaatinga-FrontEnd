@@ -11,8 +11,6 @@ import java.util.List;
 public record VistoriaAtualizadaDTO(
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataVistoria,
-        Long apiario_id,
-        Long colmeia_id,
         CondicaoVistoria condicao,
         List<TipoPraga> pragasIdentificadas,
         List<TipoPerda> perdasIdentificadas,

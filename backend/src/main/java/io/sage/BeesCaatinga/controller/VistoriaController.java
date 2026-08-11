@@ -36,7 +36,13 @@ public class VistoriaController {
 
     @GetMapping("/{produtorId}")
     public ResponseEntity<List<VistoriaRetornoDTO>> listar(@PathVariable Long produtorId){
-        var vistorias = service.listar(produtorId);
+        List<VistoriaRetornoDTO> vistorias = service.listar(produtorId);
+        return ResponseEntity.ok(vistorias);
+    }
+
+    @GetMapping("/colmeia/{colmeiaId}")
+    public ResponseEntity<List<VistoriaRetornoDTO>> listarPorColmeia(@PathVariable Long colmeiaId){
+        List<VistoriaRetornoDTO> vistorias = service.listarPorColmeia(colmeiaId);
         return ResponseEntity.ok(vistorias);
     }
 

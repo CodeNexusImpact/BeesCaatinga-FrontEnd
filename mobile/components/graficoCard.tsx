@@ -2,9 +2,9 @@ import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Botao from './botao';
-import Subtexto from './subTexto';
-import KpiCard from './kpiCard'; // Certifique-se que este componente existe
+import Botao from '@/components/formulario/botao';
+import Subtexto from '@/components/subTexto';
+import KpiCard from '@/components/kpiCard'; // Certifique-se que este componente existe
 
 export interface KpiData {
     label: string;

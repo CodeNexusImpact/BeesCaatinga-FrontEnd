@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Icon from './icon';
+import Icon from '@/components/icon';
 import temaCores from '@/constants/cores';
 import layout from '@/constants/layout';
-import ModalSelecaoImagem from './modalSelecaoImagem'; // Importe o novo modal
+import ModalSelecaoImagem from '@/components/formulario/modalSelecaoImagem'; // Importe o novo modal
 
 interface ImagemPickerProps {
   onImagePicked: (uri: string | null) => void;

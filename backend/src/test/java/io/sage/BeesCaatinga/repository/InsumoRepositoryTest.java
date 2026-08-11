@@ -49,6 +49,7 @@ class InsumoRepositoryTest {
         insumo1.setNome("Cera");
         insumo1.setProdutor(produtor1);
         insumo1.setDataEntrada(LocalDate.of(2023, 1, 15));
+        insumo1.setDataValidade(LocalDate.of(2025, 1, 15));
         insumo1.setTipo("Material");
         entityManager.persist(insumo1);
 
@@ -56,6 +57,7 @@ class InsumoRepositoryTest {
         insumo2.setNome("Alimentador");
         insumo2.setProdutor(produtor1);
         insumo2.setDataEntrada(LocalDate.of(2023, 2, 20));
+        insumo2.setDataValidade(LocalDate.of(2025, 2, 20));
         insumo2.setTipo("Equipamento");
         entityManager.persist(insumo2);
 
@@ -63,6 +65,7 @@ class InsumoRepositoryTest {
         insumo3.setNome("Remédio");
         insumo3.setProdutor(produtor2);
         insumo3.setDataEntrada(LocalDate.of(2023, 3, 25));
+        insumo3.setDataValidade(LocalDate.of(2025, 3, 25));
         insumo3.setTipo("Medicamento");
         entityManager.persist(insumo3);
 

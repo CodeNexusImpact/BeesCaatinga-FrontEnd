@@ -4,7 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Subtexto from '@/components/subTexto';
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 
 export default function Index() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function Index() {
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Tabela da Produção"
+            title="Tabela de Vistorias"
             cor="secundaria"
             iconName="fileDocument"
             onPress={() => router.push('/vistorias/tabela')}
@@ -51,7 +51,7 @@ export default function Index() {
 
         <View style={styles.botaoCard}>
           <Botao
-            title="Dashboard da Produção"
+            title="Dashboard de Vistorias"
             cor="secundaria"
             iconName="fileDocument"
             onPress={() => router.push('/vistorias/dashboard')}

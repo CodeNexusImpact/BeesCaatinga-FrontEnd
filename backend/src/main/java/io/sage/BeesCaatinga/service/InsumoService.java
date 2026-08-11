@@ -49,6 +49,11 @@ public class InsumoService {
                 .toList();
     }
 
+    public InsumoRetornoDTO buscarPorId(Long produtorId, Long insumoId) {
+        Insumo insumo = validarInsumoDoProdutor(produtorId, insumoId);
+        return insumoMapper.toRetornoDTO(insumo);
+    }
+
     public InsumoRetornoDTO atualizar(Long produtorId, Long insumoId, InsumoAtualizadoDTO dto) {
         var insumo = validarInsumoDoProdutor(produtorId, insumoId);
 

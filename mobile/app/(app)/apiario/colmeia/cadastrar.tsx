@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 // Importe o React Native como um objeto completo
 import * as RN from 'react-native';
 import { maskDate } from '@/utils/masks';
@@ -8,16 +8,20 @@ const {
     View,
     Text,
     KeyboardAvoidingView,
-    Platform } = RN;
+    Platform,
+    Alert,
+    ActivityIndicator } = RN;
 
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 
 // Componentes internos
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
-import ImagePickerExample from '@/components/imagemPicker';
+import { useAuth } from '@/hooks/useAuth';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { cadastrarColmeia } from '@/services/colmeiaService';
 
 // Constantes
 import cores from '@/constants/cores';
@@ -25,36 +29,79 @@ import layout from '@/constants/layout';
 
 export default function Cadastrar() {
     const router = useRouter();
+    const { user } = useAuth();
 
-    const [identificador, setIdentificador] = useState('Colmeia Automática');
-    const [dataCriacao, setDataCriacao] = useState('');
+    const [identificador, setIdentificador] = useState('');
+    const [dataCriacao, setDataCriacao] = useState(new Date().toLocaleDateString('pt-BR'));
     const [apiario, setApiario] = useState('');
     const [tipo, setTipo] = useState('');
-    const [ativo, setAtivo] = useState('');
+    const [ativo, setAtivo] = useState('sim');
     const [observacoes, setObservacoes] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = () => {
-        // Lógica de submissão aqui
-        console.log('Dados da colmeia:', {
-            identificador,
-            dataCriacao,
-            apiario,
-            tipo,
-            ativo,
-            observacoes,
-        });
-        // router.push('/(app)/apiario/colmeia/listar'); // Exemplo de navegação
+    // Opções dinâmicas
+    const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+
+    /**
+     * Busca dinâmica de Apiários com useFocusEffect para garantir dados atualizados
+     */
+    const carregarApiarios = useCallback(async () => {
+        if (!user?.id) return;
+        try {
+            const data = await listarApiariosPorProdutor(user.id);
+            if (Array.isArray(data)) {
+                const options = data.map(a => ({ 
+                    label: a.nome || `Apiário ${a.id}`, 
+                    value: a.id.toString() 
+                }));
+                setApiarioOptions(options);
+            }
+        } catch (e) {
+            console.error('Erro ao buscar apiários para o select:', e);
+        }
+    }, [user?.id]);
+
+    useFocusEffect(
+        useCallback(() => {
+            carregarApiarios();
+        }, [carregarApiarios])
+    );
+
+    const handleSubmit = async () => {
+        if (!identificador || !apiario || !tipo || !user?.id) {
+            Alert.alert('Erro', 'Por favor, selecione um apiário válido e preencha os campos obrigatórios.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const payload = {
+                identificador,
+                apiario_id: parseInt(apiario),
+                tipo: tipo.toUpperCase(),
+                ativa: ativo === 'sim',
+                observacoes,
+                latitude: -8.0, // Default para evitar erro de nulo no backend se não vier do mapa
+                longitude: -36.0,
+                detalhesDaLocalizacao: "",
+                caminhoDaFoto: ""
+            };
+
+            await cadastrarColmeia(user.id, parseInt(apiario), payload);
+            Alert.alert('Sucesso', 'Colmeia cadastrada com sucesso!');
+            router.back();
+        } catch (error) {
+            console.error('Erro ao cadastrar colmeia:', error);
+            Alert.alert('Erro', 'Não foi possível cadastrar a colmeia.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDateChange = (text: string) => {
         setDataCriacao(maskDate(text));
     };
 
-
-    const apiarioOptions = [
-        { label: 'Rosa do Sertão', value: 'rosa' },
-        { label: 'Vale das Abelhas', value: 'vale' },
-    ];
 
     const tipoOptions = [
         { label: 'Madeira', value: 'madeira' },
@@ -107,6 +154,7 @@ export default function Cadastrar() {
                             onSelect={setApiario}
                             placeholder="Selecione o Apiário"
                             iconName="home"
+                            value={apiario}
                         />
                     </View>
 
@@ -117,6 +165,7 @@ export default function Cadastrar() {
                             onSelect={setTipo}
                             placeholder="Selecione o tipo"
                             iconName="beehiveOutline"
+                            value={tipo}
                         />
                     </View>
 
@@ -126,6 +175,7 @@ export default function Cadastrar() {
                             options={[{ label: 'Sim', value: 'sim' }, { label: 'Não', value: 'nao' }]}
                             onSelect={setAtivo}
                             placeholder="Está ativa?"
+                            value={ativo}
                         />
                     </View>
                 </View>

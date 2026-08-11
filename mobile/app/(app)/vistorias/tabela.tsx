@@ -1,125 +1,163 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
-import Selector from '@/components/selector';
-import Botao from '@/components/botao';
-import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
+import Selector from '@/components/formulario/selector';
+import Botao from '@/components/formulario/botao';
+import Tabela, { TabelaColuna } from '@/components/tabela';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
+import { getVistorias, Vistoria } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
 
-// --- Interfaces e Dados ---
-interface DadosVistoria {
-    id: string;
-    ano: string; // Usado para filtro
-    dataInspeção: string;
-    pragas: string;
-    perdas: string;
-    observacoes: string;
-    statusColmeia: string;
-}
-
-const MASTER_TABLE_DATA: DadosVistoria[] = [
-    { id: '1', ano: '2025', dataInspeção: '20/08/2025', pragas: 'Varroa', perdas: 'Nenhuma', observacoes: 'Tratamento iniciado com fitas.', statusColmeia: 'Ativa' },
-    { id: '2', ano: '2025', dataInspeção: '20/08/2025', pragas: 'Formigas', perdas: 'Rainha fraca', observacoes: 'Necessário substituir rainha.', statusColmeia: 'Ativa' },
-    { id: '3', ano: '2025', dataInspeção: '22/08/2025', pragas: 'Ácaros', perdas: 'Baixa', observacoes: 'Enxame fraco, unificar.', statusColmeia: 'Ativa' },
-    { id: '4', ano: '2025', dataInspeção: '25/08/2025', pragas: 'Nenhuma', perdas: 'Nenhuma', observacoes: 'Colmeia muito forte, adicionar melgueira.', statusColmeia: 'Ativa' },
-    
-    { id: '5', ano: '2024', dataInspeção: '15/08/2024', pragas: 'Traça', perdas: 'Total', observacoes: 'Colmeia abandonada.', statusColmeia: 'Inativa' },
-    { id: '6', ano: '2024', dataInspeção: '20/09/2024', pragas: 'Nenhuma', perdas: 'Clima', observacoes: 'Produção baixa devido seca.', statusColmeia: 'Ativa' },
+const colunasDoRelatorio: TabelaColuna<any>[] = [
+    { label: 'Data', dataKey: 'data', sortable: true, flex: 2 },
+    { label: 'Apiário', dataKey: 'apiarioId', sortable: true, flex: 2 },
+    { label: 'Colmeia', dataKey: 'colmeiaId', sortable: true, flex: 2 },
+    { label: 'Condição', dataKey: 'condicaoVistoria', sortable: true, flex: 3 },
+    { label: 'Pragas', dataKey: 'pragasTexto', sortable: true, flex: 3 },
+    { label: 'Perdas', dataKey: 'perdasTexto', sortable: true, flex: 3 },
+    { label: 'Obs.', dataKey: 'observacoes', sortable: false, flex: 4 },
 ];
 
-const colunasDoRelatorio: TabelaColuna<DadosVistoria>[] = [
-    { label: 'Data', dataKey: 'dataInspeção', sortable: true, flex: 2 },
-    { label: 'Pragas', dataKey: 'pragas', sortable: true, flex: 2 },
-    { label: 'Perdas', dataKey: 'perdas', sortable: true, flex: 2 },
-    { label: 'Obs.', dataKey: 'observacoes', sortable: false, flex: 4 }, // Coluna maior
-    { label: 'Status', dataKey: 'statusColmeia', sortable: true, flex: 2 },
-];
-
-// --- Opções de Filtro ---
 const anoOptions = [
     { label: 'Todos os Anos', value: '' },
+    { label: '2026', value: '2026' },
     { label: '2025', value: '2025' },
     { label: '2024', value: '2024' },
 ];
 
+const statusOptions = [
+    { label: 'Todos os Status', value: '' },
+    { label: 'Saudável', value: 'saudavel' },
+    { label: 'Excelente', value: 'excelente' },
+    { label: 'Manutenção', value: 'manutencao' },
+    { label: 'Em Risco', value: 'risco' },
+    { label: 'Perdida', value: 'perdida' },
+];
+
 export default function RelatorioVistoriaTabela() {
-    const [ano, setAno] = useState('');
-    const [status, setStatus] = useState(''); // ✅ Novo estado
+    const { session } = useAuth();
+    const produtorId = session || 1;
+
+    const [vistorias, setVistorias] = useState<Vistoria[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [anoSelecionado, setAnoSelecionado] = useState('');
+    const [statusSelecionado, setStatusSelecionado] = useState('');
+
+    const carregarVistorias = useCallback(async () => {
+        try {
+            setLoading(true);
+            const dados = await getVistorias(produtorId);
+            setVistorias(dados);
+        } catch (error) {
+            console.error('Erro ao carregar vistorias para tabela:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [produtorId]);
+
+    useFocusEffect(
+        useCallback(() => {
+            carregarVistorias();
+        }, [carregarVistorias])
+    );
+
+    const dadosFiltrados = useMemo(() => {
+        return vistorias.filter(item => {
+            const filtroAno = anoSelecionado === '' ? true : item.data.includes(anoSelecionado);
+            const filtroStatus = statusSelecionado === '' ? true : item.condicaoVistoria?.toLowerCase() === statusSelecionado.toLowerCase();
+            return filtroAno && filtroStatus;
+        }).map(item => ({
+            ...item,
+            pragasTexto: item.pragas?.length ? item.pragas.join(', ') : 'Nenhuma',
+            perdasTexto: item.perdas?.length ? item.perdas.join(', ') : 'Nenhuma',
+        }));
+    }, [vistorias, anoSelecionado, statusSelecionado]);
 
     const handleExportar = () => {
-        alert(`Exportando ${dadosFiltrados.length} vistorias...`);
+        if (dadosFiltrados.length === 0) {
+            Alert.alert('Aviso', 'Não há dados para exportar.');
+            return;
+        }
+
+        // Geração do CSV
+        const cabecalho = 'Data,Apiario,Colmeia,Condicao,Pragas,Perdas,Observacoes\n';
+        const linhas = dadosFiltrados.map(v => 
+            `${v.data},${v.apiarioId},${v.colmeiaId},${v.condicaoVistoria},"${v.pragasTexto}","${v.perdasTexto}","${(v.observacoes ?? '').replace(/"/g, '""')}"`
+        ).join('\n');
+        
+        const csvContent = cabecalho + linhas;
+
+        console.log('--- EXPORTAÇÃO CSV (VISTORIAS) ---');
+        console.log(csvContent);
+        console.log('----------------------------------');
+
+        Alert.alert(
+            'Sucesso',
+            `O relatório com ${dadosFiltrados.length} registros foi gerado no console com sucesso!`,
+            [{ text: 'OK' }]
+        );
     };
-
-    // ✅ Opções de status (extraídas dos dados ou fixas)
-    const statusOptions = [
-        { label: 'Todos os Status', value: '' },
-        { label: 'Ativa', value: 'Ativa' },
-        { label: 'Inativa', value: 'Inativa' },
-    ];
-
-    // ✅ Filtragem por ano E status
-    const dadosFiltrados = useMemo(() => {
-        return MASTER_TABLE_DATA.filter(item => {
-            const filtroAno = ano === '' ? true : item.ano === ano;
-            const filtroStatus = status === '' ? true : item.statusColmeia === status;
-            return filtroAno && filtroStatus;
-        });
-    }, [ano, status]);
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             <Stack.Screen options={{ title: 'Tabela' }} />
             <Subtexto style={styles.subtexto}>Vistorias Detalhadas</Subtexto>
 
-            {/* 👇 Filtros em linha */}
             <View style={styles.filtroWrapper}>
                 <View style={styles.filtrosRow}>
                     <Selector 
                         label="Ano"
                         options={anoOptions} 
-                        onSelect={setAno} 
+                        onSelect={setAnoSelecionado} 
                         placeholder="Todos"
                         style={styles.seletor}
+                        value={anoSelecionado}
                     />
                     <Selector 
                         label="Status"
                         options={statusOptions}
-                        onSelect={setStatus}
+                        onSelect={setStatusSelecionado}
                         placeholder="Todos"
                         style={styles.seletor}
+                        value={statusSelecionado}
                     />
                 </View>
             </View>
 
-            <Text style={styles.resultadosTexto}>
-                {dadosFiltrados.length} registros encontrados
-            </Text>
+            {loading ? (
+                <ActivityIndicator size="large" color={cores.primaria} />
+            ) : (
+                <>
+                    <Text style={styles.resultadosTexto}>
+                        {dadosFiltrados.length} registros encontrados
+                    </Text>
 
-            {/* --- TABELA COM SCROLL HORIZONTAL --- */}
-            <View style={styles.tabelaContainer}>
-                <ScrollView 
-                    horizontal={true} 
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContentTabela}
-                >
-                    <View style={{ minWidth: 900 }}>
-                        <TabelaGenerica
-                            colunas={colunasDoRelatorio}
-                            data={dadosFiltrados}
-                        />
+                    <View style={styles.tabelaContainer}>
+                        <ScrollView 
+                            horizontal={true} 
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.scrollContentTabela}
+                        >
+                            <View style={{ minWidth: 1200 }}>
+                                <Tabela
+                                    colunas={colunasDoRelatorio}
+                                    data={dadosFiltrados}
+                                />
+                            </View>
+                        </ScrollView>
                     </View>
-                </ScrollView>
-            </View>
-            <Text style={styles.dicaScroll}>Deslize para ver as observações completas</Text>
+                    <Text style={styles.dicaScroll}>Deslize para ver as observações completas</Text>
 
-            <Botao
-                title="Exportar Relatório"
-                cor="primaria"
-                onPress={handleExportar}
-                style={styles.botaoExportar}
-            />
+                    <Botao
+                        title="Exportar Relatório (CSV)"
+                        cor="primaria"
+                        onPress={handleExportar}
+                        style={styles.botaoExportar}
+                    />
+                </>
+            )}
         </ScrollView>
     );
 }
@@ -139,8 +177,6 @@ const styles = StyleSheet.create({
         color: cores.texto, 
         marginBottom: layout.espacamento.texto 
     },
-
-    // ✅ Wrapper com zIndex alto
     filtroWrapper: {
         position: 'relative',
         zIndex: 999,
@@ -149,20 +185,18 @@ const styles = StyleSheet.create({
     filtrosRow: {
         flexDirection: 'row',
         gap: layout.espacamento.texto,
-        flexWrap: 'wrap', // permite quebrar em telas pequenas
+        flexWrap: 'wrap',
     },
     seletor: {
         flex: 1,
-        minWidth: 130, // ajustado para caber 2 em linha (ex: 360px → 130+130+gap)
+        minWidth: 130,
     },
-
     resultadosTexto: {
         textAlign: 'center',
         fontSize: 12,
         color: '#888',
         marginBottom: 5,
     },
-
     tabelaContainer: { 
         marginTop: layout.espacamento.texto,
         borderRadius: 8,
@@ -171,18 +205,15 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         backgroundColor: '#fff',
     },
-    
     scrollContentTabela: {
         paddingRight: 20,
     },
-
     dicaScroll: {
         textAlign: 'center',
         fontSize: 10,
         color: '#999',
         marginTop: 4,
     },
-
     botaoExportar: { 
         marginTop: layout.espacamento.amigavel 
     },

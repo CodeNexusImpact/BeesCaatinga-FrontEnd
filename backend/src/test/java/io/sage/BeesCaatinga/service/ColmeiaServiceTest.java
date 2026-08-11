@@ -89,7 +89,6 @@ class ColmeiaServiceTest {
         // Corrected constructor call
         colmeiaAtualizadaDTO = new ColmeiaAtualizadaDTO(
                 "C001-Atualizado",
-                null, // apiario_id is optional for update
                 TipoColmeia.CONCRETO,
                 false,
                 "Obs Att",
@@ -100,6 +99,7 @@ class ColmeiaServiceTest {
         );
 
         colmeiaRetornoDTO = new ColmeiaRetornoDTO(
+                colmeiaAtiva.getId(),
                 "C001", "foto.jpg", "Apiario Teste", TipoColmeia.MADEIRA,
                 StatusColmeia.SAUDAVEL, LocalDate.now(), "Obs",
                 BigDecimal.valueOf(10.0), BigDecimal.valueOf(20.0), "Detalhes loc"

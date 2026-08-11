@@ -54,12 +54,14 @@ class VistoriaRepositoryTest {
         vistoria1.setApiario(apiario);
         vistoria1.setColmeia(colmeia);
         vistoria1.setDataVistoria(LocalDate.of(2023, 1, 5));
+        vistoria1.setCondicao(io.sage.BeesCaatinga.model.enums.CondicaoVistoria.SAUDAVEL);
         entityManager.persist(vistoria1);
 
         Vistoria vistoria2 = new Vistoria();
         vistoria2.setApiario(apiario);
         vistoria2.setColmeia(colmeia);
         vistoria2.setDataVistoria(LocalDate.of(2023, 2, 10));
+        vistoria2.setCondicao(io.sage.BeesCaatinga.model.enums.CondicaoVistoria.SAUDAVEL);
         entityManager.persist(vistoria2);
 
         entityManager.flush();

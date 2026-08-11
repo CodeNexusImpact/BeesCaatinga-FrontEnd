@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { LineChart, PieChart } from 'react-native-chart-kit'; 
-import Selector from '@/components/selector';
-import Botao from '@/components/botao';
+import Selector from '@/components/formulario/selector';
+import Botao from '@/components/formulario/botao';
 import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';

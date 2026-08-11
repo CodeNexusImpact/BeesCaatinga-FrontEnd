@@ -55,6 +55,13 @@ public class ColmeiaService {
                 .toList();
     }
 
+    public List<ColmeiaRetornoDTO> listarPorProdutor(Long produtorId) {
+        var lista = colmeiaRepository.findByApiarioProdutorId(produtorId);
+        return lista.stream()
+                .map(colmeiaMapper::toRetornoDTO)
+                .toList();
+    }
+
     public List<ColmeiaRetornoDTO> listarAtivas(Long produtorId, Long apiarioId) {
         var apiario = apiarioRepository.findById(apiarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + apiarioId));
@@ -100,17 +107,6 @@ public class ColmeiaService {
         if (dto.caminhoDaFoto() != null) colmeia.setCaminhoDaFoto(dto.caminhoDaFoto());
         if (dto.latitude() != null) colmeia.setLatitude(dto.latitude());
         if (dto.longitude() != null) colmeia.setLongitude(dto.longitude());
-
-        if (dto.apiario_id() != null && !dto.apiario_id().equals(apiarioId)) {
-            var novoApiario = apiarioRepository.findById(dto.apiario_id())
-                    .orElseThrow(() -> new ResourceNotFoundException("Apiário não encontrado com id: " + dto.apiario_id()));
-
-            if (!novoApiario.getProdutor().getId().equals(produtorId)) {
-                throw new ResourceNotFoundException("Novo apiário não pertence ao produtor");
-            }
-
-            colmeia.setApiario(novoApiario);
-        }
 
         colmeiaRepository.save(colmeia);
         return colmeiaMapper.toRetornoDTO(colmeia);

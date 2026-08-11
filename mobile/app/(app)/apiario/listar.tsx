@@ -5,8 +5,8 @@ import { Stack, useRouter } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Subtexto from '@/components/subTexto';
-import Botao from '@/components/botao';
-import Mapa from '@/components/apiario/mapa';
+import Botao from '@/components/formulario/botao';
+import Mapa from '@/components/mapa/mapa';
 import ApiarioList from '@/components/apiario/apiarioList';
 
 import { useApiarios } from '@/hooks/useApiarios';

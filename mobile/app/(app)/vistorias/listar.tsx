@@ -1,85 +1,100 @@
-import Botao from '@/components/botao';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
+import { getVistorias, deletarVistoria, Vistoria } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
 
 // --- Importar os Modais ---
-import ModalConfirmacao from '@/components/modalConfirmacao';
-import ModalSucesso from '@/components/modalSucesso';
+import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
+import ModalSucesso from '@/components/notificacao/modalSucesso';
 
-// ---  Importar o GenericCard ---
-import GenericCard, { CardField } from '@/components/genericCard';
-
-// --- Dados Mock (Substituir por dados reais) ---
-const vistoriasMock = [
-  {
-    id: 1, 
-    data: '18/09/2025',
-    status: 'Saudável',
-    colmeiaNome: 'Colmeia 1',
-    apiarioNome: 'Apiario Rosa do Sertão',
-    pragas: '--------',
-    perdas: 'Alimentação',
-    observacoes:
-      'Apesar das perdas por alimentação, a colmeia está saudável.',
-    corStatus: cores.sucesso,
-  },
-  {
-    id: 2,
-    data: '10/09/2025',
-    status: 'Necessita Manuntenção',
-    colmeiaNome: 'Colmeia 2',
-    apiarioNome: 'Apiario Rosa do Sertão',
-    pragas: 'Formigas',
-    perdas: '--------',
-    observacoes: null,
-    corStatus: cores.alerta,
-  },
-  {
-    id: 3,
-    data: '03/09/2025',
-    status: 'Agendar Colheita',
-    colmeiaNome: 'Colmeia 3',
-    apiarioNome: 'Apiario Rosa do Sertão',
-    pragas: '--------',
-    perdas: '--------',
-    observacoes: null,
-    corStatus: cores.secundaria,
-  },
-];
-
-// (Mock de options... sem mudança)
-const apiarioOptions = [
-  { label: 'Rosa do Sertão', value: 'rosa' },
-  { label: 'Vale das Abelhas', value: 'vale' },
-];
-const colmeiaOptions = [
-  { label: 'Colmeia 1', value: '1' },
-  { label: 'Colmeia 2', value: '2' },
-];
+import GenericCard from '@/components/genericCard';
+import type { CardField } from '@/components/genericCard';
 
 export default function ListarVistorias() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  // (Estados de Filtro.
-  const [apiario, setApiario] = useState('');
-  const [colmeia, setColmeia] = useState('');
-  const [filtroTempo, setFiltroTempo] = useState('mes');
+  // Estados de Dados ---
+  const [vistorias, setVistorias] = useState<Vistoria[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [ordemCrescente, setOrdemCrescente] = useState(false);
+
+  // Estados de Filtro ---
+  const [mes, setMes] = useState('');
+  const [ano, setAno] = useState('');
+  const [estado, setEstado] = useState('');
 
   //  Estados dos Modais --- 
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
-  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null); // <-- number
+  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
+
+  // --- Opções
+  const mesOptions = [
+    { label: 'Janeiro', value: '01' }, { label: 'Fevereiro', value: '02' }, { label: 'Março', value: '03' },
+    { label: 'Abril', value: '04' }, { label: 'Maio', value: '05' }, { label: 'Junho', value: '06' },
+    { label: 'Julho', value: '07' }, { label: 'Agosto', value: '08' }, { label: 'Setembro', value: '09' },
+    { label: 'Outubro', value: '10' }, { label: 'Novembro', value: '11' }, { label: 'Dezembro', value: '12' },
+  ];
+  
+  const anoOptions = [
+    { label: '2024', value: '2024' },
+    { label: '2025', value: '2025' },
+    { label: '2026', value: '2026' },
+  ];
+
+  const carregarVistorias = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      const dados = await getVistorias(user.id);
+      setVistorias(dados);
+    } catch (error) {
+      console.error('Erro ao carregar vistorias:', error);
+      Alert.alert('Erro', 'Não foi possível carregar as vistorias.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarVistorias();
+    }, [carregarVistorias])
+  );
+
+  // Lógica de Ordenação
+  const vistoriasOrdenadas = useMemo(() => {
+    return [...vistorias].sort((a, b) => {
+        const parseDate = (d: string) => {
+            const parts = d.includes('/') ? d.split('/') : d.split('-');
+            if (d.includes('/')) return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+            return new Date(d).getTime();
+        };
+        const dataA = parseDate(a.data);
+        const dataB = parseDate(b.data);
+        return ordemCrescente ? dataA - dataB : dataB - dataA;
+    });
+  }, [vistorias, ordemCrescente]);
+
+  const toggleOrdem = () => {
+    setOrdemCrescente(!ordemCrescente);
+  };
 
   // Funções de Navegação --- 
   const handleEdit = (id: number) => {
@@ -92,15 +107,19 @@ export default function ListarVistorias() {
     setModalConfirmacaoVisivel(true);
   };
 
-  const confirmarExclusao = () => {
-    if (idParaExcluir !== null) {
-      console.log('Vistoria excluída com ID:', idParaExcluir);
-      // TODO: Lógica de exclusão
+  const confirmarExclusao = async () => {
+    if (idParaExcluir !== null && user?.id) {
+      try {
+        await deletarVistoria(idParaExcluir, user.id);
+        setModalConfirmacaoVisivel(false);
+        setModalSucessoVisivel(true);
+        carregarVistorias(); // Recarrega a lista
+      } catch (error) {
+        console.error('Erro ao excluir vistoria:', error);
+        Alert.alert('Erro', 'Não foi possível excluir a vistoria.');
+        setModalConfirmacaoVisivel(false);
+      }
     }
-    setModalConfirmacaoVisivel(false);
-    setTimeout(() => {
-      setModalSucessoVisivel(true);
-    }, 350);
   };
 
   const cancelarExclusao = () => {
@@ -108,8 +127,30 @@ export default function ListarVistorias() {
     setIdParaExcluir(null);
   };
 
-  const handleGerarRelatorio = () => {
-    console.log('Gerar Relatório...');
+  const handleBuscar = () => {
+    carregarVistorias();
+  };
+
+  const getCorStatus = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'saudavel':
+      case 'excelente': return cores.sucesso;
+      case 'manutencao': return cores.alerta;
+      case 'risco': return cores.perigo;
+      case 'perdida': return cores.preto;
+      default: return cores.secundaria;
+    }
+  };
+
+  const getLabelStatus = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'saudavel': return 'Saudável';
+      case 'excelente': return 'Excelente';
+      case 'manutencao': return 'Manutenção';
+      case 'risco': return 'Em Risco';
+      case 'perdida': return 'Perdida';
+      default: return status;
+    }
   };
 
   return (
@@ -118,38 +159,34 @@ export default function ListarVistorias() {
       <View style={styles.container}>
         
         <ScrollView contentContainerStyle={styles.contentContainer}>
-          {/* 👇 Área de Filtros — CORRIGIDA COM zIndex ALTO */}
+          {/* 👇 Área de Filtros Simplificada */}
           <View style={styles.filtroWrapper}>
             <View style={styles.filtroContainer}>
               <Text style={styles.filtroTitulo}>Filtros</Text>
-              <Selector
-                label="Selecione o Apiário*"
-                options={apiarioOptions}
-                onSelect={setApiario}
-                placeholder="Selecione"
-                iconName="home"
-              />
-              <Selector
-                label="Selecione a Colmeia"
-                options={colmeiaOptions}
-                onSelect={setColmeia}
-                placeholder="Selecione"
-                iconName="beehiveOutline"
-              />
+              
               <View style={styles.botoesRow}>
-                <Botao
-                  title="Mês"
-                  onPress={() => setFiltroTempo('mes')}
-                  cor={filtroTempo === 'mes' ? 'primaria' : 'secundaria'}
-                  style={styles.botaoMetade}
+                <Selector
+                  label="Mês"
+                  options={mesOptions}
+                  onSelect={setMes}
+                  placeholder="Selecione"
+                  style={{flex: 1}}
                 />
-                <Botao
-                  title="Estação"
-                  onPress={() => setFiltroTempo('estacao')}
-                  cor={filtroTempo === 'estacao' ? 'primaria' : 'secundaria'}
-                  style={styles.botaoMetade}
+                <Selector
+                  label="Ano"
+                  options={anoOptions}
+                  onSelect={setAno}
+                  placeholder="Selecione"
+                  style={{flex: 1}}
                 />
               </View>
+
+              <Botao
+                title="Buscar"
+                onPress={handleBuscar}
+                cor="primaria"
+                iconName="magnify"
+              />
             </View>
           </View>
 
@@ -158,10 +195,10 @@ export default function ListarVistorias() {
           </Text>
 
           {/* --- Botão de Ordenar --- */}
-          <TouchableOpacity style={styles.ordemButton}>
+          <TouchableOpacity style={styles.ordemButton} onPress={toggleOrdem}>
             <Text style={styles.ordemButtonText}>Ordem Data</Text>
             <MaterialCommunityIcons
-              name="arrow-up"
+              name={ordemCrescente ? "arrow-up" : "arrow-down"}
               size={16}
               color={cores.preto}
             />
@@ -169,61 +206,60 @@ export default function ListarVistorias() {
 
           {/*Lista de Vistorias --- */}
           <View style={styles.listaContainer}>
-            {vistoriasMock.map((vistoria) => {
-              // Monta os campos para o card
-              const fields: CardField[] = [
-                {
-                  label: 'Status',
-                  value: vistoria.status,
-                  valueStyle: { color: vistoria.corStatus },
-                },
-                {
-                  label: 'Local',
-                  value: `${vistoria.colmeiaNome} - ${vistoria.apiarioNome}`,
-                },
-                { label: 'Data', value: vistoria.data },
-                { label: 'Pragas', value: vistoria.pragas },
-                { label: 'Perdas', value: vistoria.perdas },
-              ];
-              // Adiciona observações SÓ se existirem
-              if (vistoria.observacoes) {
-                fields.push({
-                  label: 'Obs',
-                  value: vistoria.observacoes,
-                });
-              }
+            {loading ? (
+              <ActivityIndicator size="large" color={cores.primaria} />
+            ) : vistoriasOrdenadas.length === 0 ? (
+              <Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhuma vistoria encontrada.</Text>
+            ) : (
+              vistoriasOrdenadas.map((vistoria) => {
+                // ENRIQUECIMENTO DO MAPEAMENTO DO CARD
+                const fields: CardField[] = [
+                  {
+                    label: 'Status',
+                    value: getLabelStatus(vistoria.condicaoVistoria),
+                    valueStyle: { color: getCorStatus(vistoria.condicaoVistoria) },
+                  },
+                  {
+                    label: 'Local',
+                    value: `Apiário ${vistoria.apiarioId} | Colmeia ${vistoria.colmeiaId}`,
+                  },
+                  { label: 'Data', value: vistoria.data },
+                  {
+                    label: 'Pragas',
+                    value: vistoria.pragas?.length ? vistoria.pragas.join(', ') : 'Nenhuma',
+                  },
+                  {
+                    label: 'Perdas',
+                    value: vistoria.perdas?.length ? vistoria.perdas.join(', ') : 'Nenhuma',
+                  },
+                  {
+                    label: 'Obs',
+                    value: vistoria.observacoes || 'Nenhuma',
+                  },
+                ];
 
-              //  Renderiza o GenericCard
-              return (
-                <GenericCard
-                  key={vistoria.id}
-                  id={vistoria.id}
-                  fields={fields}
-                  actions={[
-                    {
-                      iconName: 'delete',
-                      onPress: () => handleDelete(vistoria.id),
-                    },
-                    {
-                      iconName: 'edit',
-                      onPress: () => handleEdit(vistoria.id),
-                    },
-                  ]}
-                />
-              );
-            })}
+                return (
+                  <GenericCard
+                    key={vistoria.id}
+                    id={vistoria.id!}
+                    fields={fields}
+                    actions={[
+                      {
+                        iconName: 'delete',
+                        onPress: () => handleDelete(vistoria.id!),
+                      },
+                      {
+                        iconName: 'edit',
+                        onPress: () => handleEdit(vistoria.id!),
+                      },
+                    ]}
+                  />
+                );
+              })
+            )}
           </View>
-
-          {/* --- Botão Gerar Relatório  --- */}
-          <Botao
-            title="Gerar Relatório"
-            onPress={handleGerarRelatorio}
-            cor="primaria"
-            style={styles.footerButton}
-          />
         </ScrollView>
 
-        {/* --- Modais --- */}
         <ModalSucesso
           visivel={modalSucessoVisivel}
           mensagem="Vistoria excluída com sucesso!"
@@ -243,7 +279,6 @@ export default function ListarVistorias() {
   );
 }
 
-// --- Estilos --- 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -252,11 +287,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: layout.espacamento.amigavel,
     gap: layout.espacamento.colega,
-    overflow: 'visible', // ⚠️ IMPORTANTE: evita cortar dropdowns
+    overflow: 'visible',
   },
   filtroWrapper: {
-    position: 'relative', // necessário para zIndex funcionar
-    zIndex: 999, // força estar acima de tudo
+    position: 'relative',
+    zIndex: 999,
     marginBottom: layout.espacamento.texto,
   },
   filtroContainer: {
@@ -275,9 +310,8 @@ const styles = StyleSheet.create({
   botoesRow: {
     flexDirection: 'row',
     gap: layout.espacamento.amigavel,
-  },
-  botaoMetade: {
-    flex: 1,
+    zIndex: 10, // Garante que o conteúdo (dropdown) fique por cima do botão abaixo
+    elevation: 10, // Necessário para Android
   },
   resumoTexto: {
     fontSize: 14,

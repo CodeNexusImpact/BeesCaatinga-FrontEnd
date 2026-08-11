@@ -95,6 +95,7 @@ class VistoriaServiceTest {
         vistoria.setObservacoes("Observacoes da vistoria");
 
         vistoriaRetornoDTO = new VistoriaRetornoDTO(
+                vistoria.getId(),
                 vistoria.getDataVistoria(),
                 vistoria.getCondicao(),
                 vistoria.getColmeia().getIdentificador(),

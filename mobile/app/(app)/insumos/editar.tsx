@@ -1,274 +1,252 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
+import ModalSucesso from '@/components/notificacao/modalSucesso';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Text } from 'react-native';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native';
+import { buscarInsumoPorId, atualizarInsumo } from '@/services/insumoService';
+import { maskDate } from '@/utils/masks';
+import { useAuth } from '@/hooks/useAuth';
 import Checkbox from 'expo-checkbox';
 
 export default function EditarInsumo() {
     const router = useRouter();
+    const { id } = useLocalSearchParams<{ id: string }>();
+    const { user } = useAuth();
 
-    // Estados
-    const [dataEntrada, setDataEntrada] = useState('18/09/2025');
-    const [nomeInsumo, setNomeInsumo] = useState('');
+    // Estados de Controle
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
+
+    // Estados do Formulário (Espelho do db.json)
+    const [dataInsumo, setDataInsumo] = useState('');
+    const [nome, setNome] = useState('');
     const [tipoInsumo, setTipoInsumo] = useState('');
     const [quantidade, setQuantidade] = useState('');
     const [unidadeMedida, setUnidadeMedida] = useState('');
-    const [isAtivo, setIsAtivo] = useState(true);
-    const [dataValidade, setDataValidade] = useState('18/09/2025');
+    const [dataValidade, setDataValidade] = useState('');
     const [semValidade, setSemValidade] = useState(false);
+    const [statusInsumo, setStatusInsumo] = useState('DISPONIVEL');
     const [observacoes, setObservacoes] = useState('');
 
-    // Opções
-    const nomeInsumoOptions = [
-        { label: 'Cera de Abelha', value: 'cera' },
-        { label: 'Açúcar (Xarope)', value: 'acucar' },
-    ];
     const tipoInsumoOptions = [
-        { label: 'Alimentação', value: 'alimentacao' },
-        { label: 'Material', value: 'material' },
-    ];
-    const unidadeMedidaOptions = [
-        { label: 'Kg', value: 'kg' },
-        { label: 'L', value: 'l' },
-        { label: 'Unidade(s)', value: 'un' },
+        { label: 'Alimentação', value: 'Alimentação' },
+        { label: 'Medicamento', value: 'Medicamento' },
+        { label: 'Equipamento', value: 'Equipamento' },
+        { label: 'Outro', value: 'Outro' },
     ];
 
-    // Função para lidar com a mudança do checkbox "Sem validade"
-    const handleSemValidadeChange = (value: boolean) => {
-        setSemValidade(value);
-        if (value) {
-            setDataValidade('');
+    const unidadeMedidaOptions = [
+        { label: 'Kg', value: 'KG' },
+        { label: 'g', value: 'G' },
+        { label: 'L', value: 'L' },
+        { label: 'mL', value: 'ML' },
+        { label: 'Unidade(s)', value: 'UN' },
+    ];
+
+    const statusOptions = [
+        { label: 'Disponível', value: 'DISPONIVEL' },
+        { label: 'Em Uso', value: 'EM_USO' },
+        { label: 'Estoque Baixo', value: 'ESTOQUE_BAIXO' },
+    ];
+
+    useEffect(() => {
+        if (id) carregarDados();
+    }, [id]);
+
+    const carregarDados = async () => {
+        if (!user?.id) return;
+        try {
+            setIsLoading(true);
+            const data = await buscarInsumoPorId(id!, user.id);
+
+            // MAPEMAENTO DE CHAVES REAIS (db.json)
+            setDataInsumo(data.dataInsumo || '');
+            setNome(data.nome || '');
+            setTipoInsumo(data.tipoInsumo || '');
+            setQuantidade(data.quantidade?.toString() || '');
+            setUnidadeMedida(data.unidadeMedida || '');
+            setDataValidade(data.dataValidade === 'N/A' ? '' : (data.dataValidade || ''));
+            setSemValidade(data.dataValidade === 'N/A');
+            setStatusInsumo(data.statusInsumo || 'DISPONIVEL');
+            setObservacoes(data.observacoes || '');
+        } catch (error) {
+            console.error('❌ [EDITAR INSUMO] Erro:', error);
+            Alert.alert('Erro', 'Não foi possível carregar os dados para edição.');
+            router.back();
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    const handleSalvar = async () => {
+        if (isSaving || !user?.id) return;
+
+        if (!nome || !quantidade || !tipoInsumo) {
+            Alert.alert('Erro', 'Preencha os campos obrigatórios (*)');
+            return;
+        }
+
+        // Payload sem o campo ID (id vai apenas na URL do PUT)
+        const payload = {
+            dataInsumo,
+            nome,
+            tipoInsumo,
+            quantidade: parseFloat(quantidade.replace(',', '.')),
+            unidadeMedida,
+            dataValidade: semValidade ? 'N/A' : dataValidade,
+            statusInsumo,
+            observacoes
+        };
+
+        try {
+            setIsSaving(true);
+            await atualizarInsumo(id!, user.id, payload);
+            setModalSucessoVisivel(true);
+        } catch (error) {
+            console.error('❌ [EDITAR INSUMO] Erro ao salvar:', error);
+            Alert.alert('Erro', 'Ocorreu um erro ao salvar as alterações no servidor.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={cores.primaria[100]} />
+            </View>
+        );
+    }
+
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.contentContainer}
-        >
-            <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
-            {/* Data de Entrada */}
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <Stack.Screen options={{ title: 'Editar Insumo' }} />
+
             <Input
                 label="Data de Entrada"
-                value={dataEntrada}
-                onChangeText={setDataEntrada}
+                value={dataInsumo}
+                onChangeText={(t) => setDataInsumo(maskDate(t))}
                 placeholder="dd/mm/aaaa"
                 iconName="calendar"
+                maxLength={10}
             />
 
-            {/* Quantidade + Unidade Medida */}
-            <View style={styles.row}>
+            <Input
+                label="Nome do Insumo*"
+                value={nome}
+                onChangeText={setNome}
+                placeholder="Ex: Cera Alveolada"
+            />
+
+            <View style={[styles.row, { zIndex: 30 }]}>
                 <Input
                     label="Quantidade*"
                     value={quantidade}
-                    onChangeText={(text) => {
-                        const cleaned = text.replace(/[^0-9.,]/g, '');
-                        setQuantidade(cleaned);
-                    }}
+                    onChangeText={(t) => setQuantidade(t.replace(/[^0-9.,]/g, ''))}
                     keyboardType="decimal-pad"
                     style={styles.inputMetade}
-                    placeholder="0,0"
+                    placeholder="0.00"
                 />
-                <Selector
-                    label="Unidade medida"
-                    options={unidadeMedidaOptions}
-                    onSelect={setUnidadeMedida}
-                    placeholder="Selecione o tipo de medida"
-                    style={styles.inputMetade}
-                />
+                <View style={styles.inputMetade}>
+                    <Selector
+                        label="Unidade"
+                        options={unidadeMedidaOptions}
+                        value={unidadeMedida}
+                        onSelect={setUnidadeMedida}
+                    />
+                </View>
             </View>
 
-            {/* Nome do insumo */}
-            <Selector
-                label="Nome do insumo*"
-                options={nomeInsumoOptions}
-                onSelect={setNomeInsumo}
-                placeholder="Selecione o nome do insumo"
+            <View style={[styles.row, { zIndex: 20 }]}>
+                <View style={styles.inputMetade}>
+                    <Selector
+                        label="Tipo de Insumo*"
+                        options={tipoInsumoOptions}
+                        value={tipoInsumo}
+                        onSelect={setTipoInsumo}
+                    />
+                </View>
+                <View style={styles.inputMetade}>
+                    <Selector
+                        label="Status*"
+                        options={statusOptions}
+                        value={statusInsumo}
+                        onSelect={setStatusInsumo}
+                    />
+                </View>
+            </View>
+
+            <Input
+                label="Data de Validade"
+                value={semValidade ? 'Não se aplica' : dataValidade}
+                onChangeText={(t) => setDataValidade(maskDate(t))}
+                placeholder="dd/mm/aaaa"
+                iconName="calendar"
+                editable={!semValidade}
+                style={semValidade ? styles.inputDisabled : {}}
+                maxLength={10}
             />
 
-            {/* Tipo de insumo */}
-            <Selector
-                label="Tipo de insumo*"
-                options={tipoInsumoOptions}
-                onSelect={setTipoInsumo}
-                placeholder="Selecione o tipo de insumo"
+            <View style={styles.checkboxContainer}>
+                <Checkbox
+                    value={semValidade}
+                    onValueChange={setSemValidade}
+                    color={semValidade ? cores.primaria : undefined}
+                />
+                <Text style={styles.checkboxLabel}>Não se aplica / Sem validade</Text>
+            </View>
+
+            <Input
+                label="Observações (opcional)"
+                value={observacoes}
+                onChangeText={setObservacoes}
+                placeholder="Detalhes adicionais..."
+                multiline={true}
+                numberOfLines={4}
+                style={styles.textArea}
             />
 
-            {/* CAMPO: Status */}
-            <View style={styles.validadeContainer}>
-                <Input
-                    label="Status"
-                    value={isAtivo ? 'ativo no estoque' : 'inativo'}
-                    editable={false}
-                    style={styles.inputValidade}
-                    placeholder=""
-                    onChangeText={() => { }}
-                />
-                <View style={styles.checkboxContainer}>
-                    <Checkbox
-                        value={isAtivo}
-                        onValueChange={setIsAtivo}
-                        color={isAtivo ? cores.cores.primaria[60] : undefined}
-                    />
-                    <Text style={styles.checkboxLabel}>Ativo</Text>
-                </View>
-            </View>
-
-            {/* Data de Validade + Checkbox */}
-            <View style={styles.validadeContainer}>
-                <Input
-                    label="Data de validade"
-                    value={semValidade ? 'Sem validade' : dataValidade}
-                    onChangeText={setDataValidade}
-                    placeholder={semValidade ? '' : 'dd/mm/aaaa'}
-                    iconName="calendar"
-                    style={[
-                        styles.inputValidade,
-                        semValidade && styles.inputDisabled
-                    ]}
-                    editable={!semValidade}
-                />
-                <View style={styles.checkboxContainer}>
-                    <Checkbox
-                        value={semValidade}
-                        onValueChange={handleSemValidadeChange}
-                        color={semValidade ? cores.cores.primaria[60] : undefined}
-                    />
-                    <Text style={styles.checkboxLabel}>Sem validade</Text>
-                </View>
-            </View>
-
-            {/* Observações */}
-            <View style={styles.observacoesSection}>
-                <Text style={styles.observacoesLabel}>Observações (opcional)</Text>
-                <View style={styles.observacoesInputContainer}>
-                    <Input
-                        value={observacoes}
-                        onChangeText={setObservacoes}
-                        placeholder="Observações (opcional):"
-                        multiline={true}
-                        numberOfLines={6}
-                        style={styles.observacoesInput}
-                        textAlignVertical="top"
-                        label=""
-                    />
-                </View>
-            </View>
-
-            {/* Botão Salvar */}
             <Botao
-                title="Salvar"
-                onPress={() => {
-                    console.log({
-                        dataEntrada,
-                        nomeInsumo,
-                        tipoInsumo,
-                        quantidade,
-                        unidadeMedida,
-                        isAtivo,
-                        dataValidade: semValidade ? 'N/A' : dataValidade,
-                        observacoes,
-                    });
-                    router.push('/insumos/listar');
-                }}
+                title={isSaving ? "Salvando..." : "Salvar Alterações"}
+                onPress={handleSalvar}
                 cor="primaria"
                 style={styles.button}
             />
 
-            {/* BOTÃO: Apagar */}
             <Botao
-                title="Apagar"
-                onPress={() => {
-                    console.log('APAGAR INSUMO');
-                    router.back();
-                }}
+                title="Cancelar"
+                onPress={() => router.back()}
                 cor="secundaria"
-                style={styles.buttonDelete}
+                style={styles.buttonCancel}
             />
 
+            <ModalSucesso
+                visivel={modalSucessoVisivel}
+                mensagem="Insumo atualizado com sucesso!"
+                aoFechar={() => {
+                    setModalSucessoVisivel(false);
+                    router.back();
+                }}
+            />
         </ScrollView>
     );
 }
 
-// Estilos
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: cores.fundo,
-    },
-    contentContainer: {
-        padding: layout.espacamento.amigavel,
-        gap: layout.espacamento.colega,
-        paddingBottom: 50,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: layout.espacamento.amigavel,
-        zIndex: 10,
-        position: 'relative',
-    },
-    inputMetade: {
-        flex: 1,
-    },
-    validadeContainer: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        gap: layout.espacamento.amigavel,
-    },
-    inputValidade: {
-        flex: 1,
-    },
-    inputDisabled: {
-        backgroundColor: '#f5f5f5',
-        color: '#999',
-    },
-    checkboxContainer: {
-        paddingBottom: 14,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        minWidth: 120,
-    },
-    checkboxLabel: {
-        fontSize: 14,
-        color: cores.primaria,
-    },
-  
-    observacoesSection: {
-        marginTop: 8,
-    },
-    observacoesLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: cores.primaria,
-        marginBottom: 8,
-        marginLeft: 4,
-    },
-    observacoesInputContainer: {
-        borderWidth: 1,
-        borderColor: cores.borda,
-        borderRadius: 8,
-        backgroundColor: '#FFFFFF',
-        overflow: 'hidden',
-    },
-    observacoesInput: {
-        height: 140,
-        textAlignVertical: 'top',
-        textAlign: 'left',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 16,
-        lineHeight: 20,
-    },
-    button: {
-        marginTop: layout.espacamento.social,
-    },
-    buttonDelete: {
-        marginTop: layout.espacamento.amigavel,
-    }
+    container: { flex: 1, backgroundColor: cores.fundo },
+    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, paddingBottom: 50 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', gap: layout.espacamento.amigavel },
+    inputMetade: { flex: 1 },
+    textArea: { minHeight: 100, textAlignVertical: 'top' },
+    inputDisabled: { backgroundColor: '#f0f0f0' },
+    checkboxContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -8 },
+    checkboxLabel: { fontSize: 14, color: cores.texto },
+    button: { marginTop: layout.espacamento.social },
+    buttonCancel: { marginTop: layout.espacamento.amigavel }
 });

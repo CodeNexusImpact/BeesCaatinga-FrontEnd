@@ -1,51 +1,119 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
+import { cadastrarProducao } from '@/services/producaoService';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { listarColmeiasPorApiario } from '@/services/colmeiaService';
+import { useAuth } from '@/hooks/useAuth';
+import type { ProducaoCriadaDTO } from '@/types/producao';
+import { UnidadeMedida } from '@/types/insumos/Enums';
 
 export default function CadastrarProducao() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Estados
   const [tipoProduto, setTipoProduto] = useState('');
   const [quantidade, setQuantidade] = useState('');
-  const [medida, setMedida] = useState('');
+  const [medida, setMedida] = useState<UnidadeMedida | ''>('');
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
-  const [dataColeta, setDataColeta] = useState('');
+  const [dataColeta, setDataColeta] = useState(new Date().toLocaleDateString('pt-BR'));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    router.push('/producao/listar'); // Redirecionado para 'listar'
+  // Opções dinâmicas
+  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+  const [colmeiaOptions, setColmeiaOptions] = useState<{label: string, value: string}[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
+  useEffect(() => {
+    const fetchApiarios = async () => {
+        if (!user?.id) return;
+        try {
+            setLoadingOptions(true);
+            const data = await listarApiariosPorProdutor(user.id);
+            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar apiários:', e);
+        } finally {
+            setLoadingOptions(false);
+        }
+    };
+    fetchApiarios();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchColmeias = async () => {
+        if (!apiario || !user?.id) {
+            setColmeiaOptions([]);
+            return;
+        };
+        try {
+            const data = await listarColmeiasPorApiario(user.id, apiario);
+            setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar colmeias:', e);
+        }
+    };
+    fetchColmeias();
+  }, [apiario, user?.id]);
+
+  const handleSubmit = async () => {
+    // Validação de campos vazios
+    if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta || !user?.id) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    // Validação básica de formato de data (DD/MM/YYYY)
+    if (dataColeta.length < 10) {
+      Alert.alert('Erro', 'Por favor, insira uma data válida (dd/mm/aaaa).');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const dto: ProducaoCriadaDTO = {
+        tipoProducao: tipoProduto,
+        quantidade: parseFloat(quantidade.replace(',', '.')),
+        unidadeMedida: medida as UnidadeMedida,
+        apiarioId: parseInt(apiario),
+        colmeiaId: parseInt(colmeia),
+        dataColeta: dataColeta, // Enviando no formato dd/MM/yyyy conforme @JsonFormat no backend
+      };
+
+      await cadastrarProducao(user.id, dto);
+      
+      Alert.alert('Sucesso', 'Produção cadastrada com sucesso!', [
+        { text: 'OK', onPress: () => router.push('/producao/listar') }
+      ]);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível cadastrar a produção.');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDateChange = (text: string) => {
     setDataColeta(maskDate(text));
   };
 
-  // Opções fixas (substitua por dados dinâmicos depois, se necessário)
+  // Opções fixas
   const tipoProdutoOptions = [
-    { label: 'Mel de Jandaíra', value: 'jandaira' },
-    { label: 'Mel de Marmeleiro', value: 'marmeleiro' },
+    { label: 'Mel de Jandaíra', value: 'Mel de Jandaíra' },
+    { label: 'Mel de Marmeleiro', value: 'Mel de Marmeleiro' },
   ];
 
   const medidaOptions = [
-    { label: 'Kg', value: 'kg' },
-    { label: 'L', value: 'l' },
-  ];
-
-  const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: 'rosa' },
-    { label: 'Vale das Abelhas', value: 'vale' },
-  ];
-
-  const colmeiaOptions = [
-    { label: 'Colmeia 1', value: '1' },
-    { label: 'Colmeia 2', value: '2' },
+    { label: 'Kg', value: 'KILOGRAMA' },
+    { label: 'L', value: 'LITRO' },
   ];
 
   // Conversão fixa só para exibição (pode ser calculada depois)
@@ -64,7 +132,7 @@ export default function CadastrarProducao() {
         editable={false}
         style={styles.conversaoInput}
         placeholder="Cálculo automático"
-        onChangeText={() => {}} // Pode ser uma função vazia
+        onChangeText={() => {}} 
       />
 
       {/* Quantidade + Medida */}
@@ -83,9 +151,10 @@ export default function CadastrarProducao() {
         <Selector
           label="Medida"
           options={medidaOptions}
-          onSelect={setMedida}
-          placeholder="Selecione o tipo de Medida"
+          onSelect={(val) => setMedida(val as UnidadeMedida)}
+          placeholder="Selecione"
           style={styles.inputMetade}
+          value={medida}
         />
       </View>
 
@@ -96,6 +165,7 @@ export default function CadastrarProducao() {
         onSelect={setTipoProduto}
         placeholder="Selecione o tipo de Mel"
         iconName="honeycomb"
+        value={tipoProduto}
       />
 
       {/* Apiário */}
@@ -105,6 +175,7 @@ export default function CadastrarProducao() {
         onSelect={setApiario}
         placeholder="Selecione o Apiário"
         iconName="home"
+        value={apiario}
       />
 
       {/* Colmeia */}
@@ -114,6 +185,7 @@ export default function CadastrarProducao() {
         onSelect={setColmeia}
         placeholder="Selecione a Colmeia"
         iconName="beehiveOutline"
+        value={colmeia}
       />
 
       {/* Data Coleta */}
@@ -128,10 +200,10 @@ export default function CadastrarProducao() {
 
       {/* Botão */}
       <Botao
-        title="Cadastrar"
+        title={isSubmitting ? "Enviando..." : "Cadastrar"}
         onPress={handleSubmit}
         cor="primaria"
-        style={styles.button}
+        style={[styles.button, isSubmitting && { opacity: 0.7 }]}
       />
     </ScrollView>
   );

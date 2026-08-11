@@ -1,6 +1,6 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Checkbox from 'expo-checkbox';
@@ -12,137 +12,130 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from 'react-native';
-
-// --- MOCK DATA (Simula os dados que viriam da API) ---
-// Em um app real, você buscaria isso de um banco de dados
-const mockApiData: { [key: string]: any } = {
-  '1': {
-    dataVistoria: '18/09/2025',
-    apiario: 'rosa',
-    colmeia: '1',
-    condicao: 'saudavel',
-    pragas: { varroa: false, formiga: false, traca: false, lagartixa: false, outro: false },
-    perdas: { alimentacao: true, veneno: false, clima: false, outro: false },
-    observacoes: 'Apesar das perdas por alimentação, a colmeia está saudável.',
-  },
-  '2': {
-    dataVistoria: '10/09/2025',
-    apiario: 'rosa',
-    colmeia: '2',
-    condicao: 'manutencao',
-    pragas: { varroa: false, formiga: true, traca: false, lagartixa: false, outro: false },
-    perdas: { alimentacao: false, veneno: false, clima: false, outro: false },
-    observacoes: '',
-  },
-  '3': {
-    dataVistoria: '03/09/2025',
-    apiario: 'serra',
-    colmeia: '3',
-    condicao: 'colheita', // Vamos supor que o valor seja 'colheita'
-    pragas: { varroa: false, formiga: false, traca: false, lagartixa: false, outro: false },
-    perdas: { alimentacao: false, veneno: false, clima: false, outro: false },
-    observacoes: 'Pronta para colher.',
-  },
-};
+import { getVistoriaById, atualizarVistoria } from '@/services/vistoriaService';
 
 export default function EditarVistoria() {
   const router = useRouter();
-  const { id } = useLocalSearchParams(); // Pega o 'id' da URL 
+  const { id } = useLocalSearchParams(); 
 
-  // Estado de carregamento
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // --- Estados do Formulário (começam vazios) ---
   const [dataVistoria, setDataVistoria] = useState('');
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
   const [condicao, setCondicao] = useState('');
   const [observacoes, setObservacoes] = useState('');
-  const [pragas, setPragas] = useState({
+  
+  const [pragasObj, setPragasObj] = useState({
     varroa: false, formiga: false, traca: false, lagartixa: false, outro: false,
   });
-  const [perdas, setPerdas] = useState({
+  const [perdasObj, setPerdasObj] = useState({
     alimentacao: false, veneno: false, clima: false, outro: false,
   });
 
-  // --- Opções
   const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: 'rosa' },
-    { label: 'Vale das Abelhas', value: 'vale' },
-    { label: 'Serra do Mel', value: 'serra' },
+    { label: 'Rosa do Sertão', value: '1' },
+    { label: 'Vale das Abelhas', value: '2' },
   ];
   const colmeiaOptions = [
     { label: 'Colmeia 1', value: '1' },
     { label: 'Colmeia 2', value: '2' },
-    { label: 'Colmeia 3', value: '3' },
   ];
   const condicaoOptions = [
-    { label: 'Manutenção Necessária', value: 'manutencao' },
     { label: 'Saudável', value: 'saudavel' },
-    { label: 'Agendar Colheita', value: 'colheita' }, 
+    { label: 'Manutenção Necessária', value: 'manutencao' },
     { label: 'Em Risco', value: 'risco' },
     { label: 'Perdida', value: 'perdida' },
   ];
 
-  // Roda quando o componente é montado ou o 'id' muda
   useEffect(() => {
-    if (id) {
-      console.log('Carregando dados para Vistoria ID:', id);
-      setIsLoading(true);
-      // --- Simulação de busca na API ---
-      // TODO: Substituir isso por uma busca real no seu banco de dados
-      setTimeout(() => {
-        const vistoriaId = Array.isArray(id) ? id[0] : id; // Garante que id é string
-        const dados = mockApiData[vistoriaId];
-        
-        if (dados) {
-          setDataVistoria(dados.dataVistoria);
-          setApiario(dados.apiario);
-          setColmeia(dados.colmeia);
-          setCondicao(dados.condicao);
-          setPragas(dados.pragas);
-          setPerdas(dados.perdas);
-          setObservacoes(dados.observacoes);
-        } else {
-          console.error('Vistoria não encontrada!');
-          // Talvez redirecionar de volta
+    const carregarVistoria = async () => {
+      if (id) {
+        try {
+          setIsLoading(true);
+          const vistoriaId = Array.isArray(id) ? id[0] : id;
+          const dados = await getVistoriaById(vistoriaId);
+          
+          if (dados) {
+            setDataVistoria(dados.data);
+            setApiario(dados.apiarioId?.toString() || '');
+            setColmeia(dados.colmeiaId?.toString() || '');
+            setCondicao(dados.condicaoVistoria);
+            setObservacoes(dados.observacoes);
+
+            // Reconstrói objetos de checkbox a partir dos arrays do banco
+            if (dados.pragas) {
+                setPragasObj(prev => {
+                    const next = { ...prev };
+                    dados.pragas?.forEach(p => {
+                        const key = p.toLowerCase() as keyof typeof prev;
+                        if (key in next) (next as any)[key] = true;
+                    });
+                    return next;
+                });
+            }
+            if (dados.perdas) {
+                setPerdasObj(prev => {
+                    const next = { ...prev };
+                    dados.perdas?.forEach(p => {
+                        const key = p.toLowerCase() as keyof typeof prev;
+                        if (key in next) (next as any)[key] = true;
+                    });
+                    return next;
+                });
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao buscar vistoria:', error);
+          Alert.alert('Erro', 'Vistoria não encontrada!');
           router.back();
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      }, 500); // Meio segundo de delay para simular a rede
-    }
+      }
+    };
+
+    carregarVistoria();
   }, [id]);
 
-  // --- Funções Auxiliares
-  const setPraga = (key: keyof typeof pragas, value: boolean) => {
-    setPragas((prev) => ({ ...prev, [key]: value }));
-  };
-  const setPerda = (key: keyof typeof perdas, value: boolean) => {
-    setPerdas((prev) => ({ ...prev, [key]: value }));
-  };
+  const handleSalvar = async () => {
+    if (!id) return;
 
-  // --- Ação de Salvar
-  const handleSalvar = () => {
-    console.log(`--- ATUALIZANDO Vistoria ID: ${id} ---`);
-    console.log({
-      dataVistoria,
-      apiario,
-      colmeia,
-      condicao,
-      pragas,
-      perdas,
-      observacoes,
-    });
-    // TODO: Enviar dados atualizados para a API
-    
-    // Navega de volta para a lista
-    if (router.canGoBack()) {
-      router.back();
+    setIsSaving(true);
+    try {
+      const vistoriaId = Array.isArray(id) ? id[0] : id;
+
+      const pragas = Object.entries(pragasObj)
+        .filter(([_, checked]) => checked)
+        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+      
+      const perdas = Object.entries(perdasObj)
+        .filter(([_, checked]) => checked)
+        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
+
+      await atualizarVistoria(vistoriaId, {
+        data: dataVistoria,
+        apiarioId: apiario,
+        colmeiaId: colmeia,
+        condicaoVistoria: condicao,
+        observacoes,
+        pragas,
+        perdas,
+      });
+
+      Alert.alert('Sucesso', 'Vistoria atualizada com sucesso!');
+      router.push('/vistorias/listar');
+    } catch (error) {
+      console.error('Erro ao atualizar vistoria:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar a vistoria.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Componente auxiliar
   const CheckboxItem = ({ label, value, onValueChange }: {
     label: string; value: boolean; onValueChange: (value: boolean) => void;
   }) => (
@@ -157,7 +150,6 @@ export default function EditarVistoria() {
     </View>
   );
 
-  // --- Renderização do Carregamento ---
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -167,14 +159,12 @@ export default function EditarVistoria() {
     );
   }
 
-  // --- Renderização do Formulário 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
       <Stack.Screen options={{ title: 'Editar' }} />
-      {/* Data da Vistoria */}
       <Input
         label="Data da Vistoria:"
         value={dataVistoria}
@@ -183,7 +173,6 @@ export default function EditarVistoria() {
         iconName="calendar"
       />
 
-      {/* Apiário */}
       <Selector
         label="Selecione o Apiário*"
         options={apiarioOptions}
@@ -193,7 +182,6 @@ export default function EditarVistoria() {
         value={apiario}
       />
 
-      {/* Colmeia */}
       <Selector
         label="Selecione a Colmeia*"
         options={colmeiaOptions}
@@ -203,7 +191,6 @@ export default function EditarVistoria() {
         value={colmeia} 
       />
 
-      {/* Condição */}
       <Selector
         label="Condição:"
         options={condicaoOptions}
@@ -212,29 +199,25 @@ export default function EditarVistoria() {
         value={condicao} 
       />
 
-      {/* Seção de Checkboxes */}
       <View style={styles.checkboxSection}>
-        {/* Coluna Pragas */}
         <View style={styles.checkboxColumn}>
           <Text style={styles.checkboxTitle}>Pragas</Text>
-          <CheckboxItem label="Varroa" value={pragas.varroa} onValueChange={(v) => setPraga('varroa', v)} />
-          <CheckboxItem label="Formiga" value={pragas.formiga} onValueChange={(v) => setPraga('formiga', v)} />
-          <CheckboxItem label="Traça" value={pragas.traca} onValueChange={(v) => setPraga('traca', v)} />
-          <CheckboxItem label="Lagartixa" value={pragas.lagartixa} onValueChange={(v) => setPraga('lagartixa', v)} />
-          <CheckboxItem label="Outro" value={pragas.outro} onValueChange={(v) => setPraga('outro', v)} />
+          <CheckboxItem label="Varroa" value={pragasObj.varroa} onValueChange={(v) => setPragasObj(p => ({...p, varroa: v}))} />
+          <CheckboxItem label="Formiga" value={pragasObj.formiga} onValueChange={(v) => setPragasObj(p => ({...p, formiga: v}))} />
+          <CheckboxItem label="Traça" value={pragasObj.traca} onValueChange={(v) => setPragasObj(p => ({...p, traca: v}))} />
+          <CheckboxItem label="Lagartixa" value={pragasObj.lagartixa} onValueChange={(v) => setPragasObj(p => ({...p, lagartixa: v}))} />
+          <CheckboxItem label="Outro" value={pragasObj.outro} onValueChange={(v) => setPragasObj(p => ({...p, outro: v}))} />
         </View>
 
-        {/* Coluna Perda por */}
         <View style={styles.checkboxColumn}>
           <Text style={styles.checkboxTitle}>Perda por</Text>
-          <CheckboxItem label="Alimentação" value={perdas.alimentacao} onValueChange={(v) => setPerda('alimentacao', v)} />
-          <CheckboxItem label="Veneno" value={perdas.veneno} onValueChange={(v) => setPerda('veneno', v)} />
-          <CheckboxItem label="Clima" value={perdas.clima} onValueChange={(v) => setPerda('clima', v)} />
-          <CheckboxItem label="Outro" value={perdas.outro} onValueChange={(v) => setPerda('outro', v)} />
+          <CheckboxItem label="Alimentação" value={perdasObj.alimentacao} onValueChange={(v) => setPerdasObj(p => ({...p, alimentacao: v}))} />
+          <CheckboxItem label="Veneno" value={perdasObj.veneno} onValueChange={(v) => setPerdasObj(p => ({...p, veneno: v}))} />
+          <CheckboxItem label="Clima" value={perdasObj.clima} onValueChange={(v) => setPerdasObj(p => ({...p, clima: v}))} />
+          <CheckboxItem label="Outro" value={perdasObj.outro} onValueChange={(v) => setPerdasObj(p => ({...p, outro: v}))} />
         </View>
       </View>
 
-      {/* Observações */}
       <Input
         value={observacoes}
         onChangeText={setObservacoes}
@@ -244,7 +227,6 @@ export default function EditarVistoria() {
         style={styles.textArea}
       />
 
-      {/* Botão */}
       <Botao
         title="Salvar"
         onPress={handleSalvar}
@@ -255,7 +237,6 @@ export default function EditarVistoria() {
   );
 }
 
-// --- ESTILOS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -308,7 +289,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: cores.preto,
   },
-  // --- Estilos para o Loading ---
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

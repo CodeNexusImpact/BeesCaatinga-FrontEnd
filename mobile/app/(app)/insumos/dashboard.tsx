@@ -1,101 +1,62 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit'; 
-import Selector from '@/components/selector';
 import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack } from 'expo-router';
-
-// --- DADOS MOCKADOS (Base de Dados Local) ---
-const MASTER_DATA = [
-    { ano: '2025', tipo: 'Equipamento', status: 'Disponível', qtd: 5 },
-    { ano: '2025', tipo: 'Outro', status: 'Em uso', qtd: 100 },
-    { ano: '2025', tipo: 'Alimentação', status: 'Estoque baixo', qtd: 10 },
-    { ano: '2025', tipo: 'EPI', status: 'Disponível', qtd: 8 },
-    { ano: '2025', tipo: 'Equipamento', status: 'Em uso', qtd: 3 },
-    
-    { ano: '2024', tipo: 'Equipamento', status: 'Disponível', qtd: 10 },
-    { ano: '2024', tipo: 'Alimentação', status: 'Vencido', qtd: 5 },
-    { ano: '2024', tipo: 'EPI', status: 'Em uso', qtd: 12 },
-    { ano: '2024', tipo: 'Outro', status: 'Disponível', qtd: 50 },
-];
+import { Stack, useFocusEffect } from 'expo-router';
+import { getKpisInsumos, getGraficosInsumos } from '@/services/insumoService';
+import { useAuth } from '@/hooks/useAuth';
 
 const screenWidth = Dimensions.get('window').width;
 
-// --- Opções de Filtro ---
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' },
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-];
-
-const tipoOptions = [
-    { label: 'Todos os Tipos', value: '' },
-    { label: 'Equipamento', value: 'Equipamento' },
-    { label: 'Alimentação', value: 'Alimentação' },
-    { label: 'EPI', value: 'EPI' },
-    { label: 'Outro', value: 'Outro' },
-];
-
 export default function DashboardInsumos() {
-    const [ano, setAno] = useState(''); // '' = Todos
-    const [tipo, setTipo] = useState('');
+    const { user } = useAuth();
+    const [isLoading, setIsLoading] = useState(true);
+    const [kpis, setKpis] = useState<KpiData[]>([]);
+    const [graficos, setGraficos] = useState<{ porTipo: any[], porStatus: any[] } | null>(null);
 
-    // --- 1. Lógica de Filtragem ---
-    const dadosFiltrados = useMemo(() => {
-        return MASTER_DATA.filter(item => {
-            const filtroAno = ano === '' ? true : item.ano === ano;
-            const filtroTipo = tipo === '' ? true : item.tipo === tipo;
-            return filtroAno && filtroTipo;
-        });
-    }, [ano, tipo]);
-
-    // --- 2. Cálculo dos KPIs ---
-    const kpisCalculados: KpiData[] = useMemo(() => {
-        const totalItens = dadosFiltrados.length; // Contagem de registros
-        const estoqueBaixo = dadosFiltrados.filter(d => d.status === 'Estoque baixo').length;
-        const emUso = dadosFiltrados.filter(d => d.status === 'Em uso').length;
-        const disponiveis = dadosFiltrados.filter(d => d.status === 'Disponível').length;
-
-        return [
-            { label: 'Registros de Insumos', value: totalItens.toString() },
-            { label: 'Disponíveis', value: disponiveis.toString() },
-            { label: 'Em Uso', value: emUso.toString() },
-            { label: 'Estoque Baixo', value: estoqueBaixo.toString() },
-        ];
-    }, [dadosFiltrados]);
-
-    // --- 3. Gráfico de Pizza (Distribuição por Tipo) ---
-    const dataPizza = useMemo(() => {
-        const countTipo = (t: string) => dadosFiltrados.filter(d => d.tipo === t).length;
+    /**
+     * Carregamento dinâmico via Service Nomeado
+     */
+    const carregarDados = useCallback(async () => {
+        if (!user?.id) return;
         
-        const dados = [
-            { name: 'Equip.', population: countTipo('Equipamento'), color: '#3498db', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'Alim.', population: countTipo('Alimentação'), color: '#e67e22', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'EPI', population: countTipo('EPI'), color: '#2ecc71', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'Outro', population: countTipo('Outro'), color: '#95a5a6', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-        ];
-        return dados.filter(d => d.population > 0);
-    }, [dadosFiltrados]);
+        try {
+            setIsLoading(true);
+            
+            const [kpiData, chartData] = await Promise.all([
+                getKpisInsumos(user.id),
+                getGraficosInsumos(user.id)
+            ]);
 
-    // --- 4. Gráfico de Barras (Status do Estoque) ---
-    const dataBarra = useMemo(() => {
-        const disponivel = dadosFiltrados.filter(d => d.status === 'Disponível').length;
-        const emUso = dadosFiltrados.filter(d => d.status === 'Em uso').length;
-        const baixo = dadosFiltrados.filter(d => d.status === 'Estoque baixo' || d.status === 'Vencido').length;
+            setKpis([
+                { label: 'Total Registros', value: kpiData.totalItens.toString() },
+                { label: 'Estoque Baixo', value: kpiData.estoqueBaixo.toString() },
+                { label: 'Em Uso', value: kpiData.emUso.toString() },
+                { label: 'Disponíveis', value: (kpiData.totalItens - kpiData.emUso).toString() },
+            ]);
 
-        return {
-            labels: ["Disponível", "Em Uso", "Crítico"],
-            datasets: [{ data: [disponivel, emUso, baixo] }]
-        };
-    }, [dadosFiltrados]);
+            setGraficos(chartData);
+        } catch (error) {
+            console.error('❌ [DASHBOARD INSUMOS] Erro:', error);
+            Alert.alert('Erro', 'Não foi possível carregar as estatísticas.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [user?.id]);
+
+    useFocusEffect(
+        useCallback(() => {
+            carregarDados();
+        }, [carregarDados])
+    );
 
     const chartConfig = {
         backgroundGradientFrom: cores.branco,
         backgroundGradientTo: cores.branco,
-        color: (opacity = 1) => `rgba(155, 89, 182, ${opacity})`, // Roxo para insumos
+        color: (opacity = 1) => `rgba(155, 89, 182, ${opacity})`,
         strokeWidth: 2,
         barPercentage: 0.6,
         decimalPlaces: 0,
@@ -104,44 +65,37 @@ export default function DashboardInsumos() {
         fillShadowGradientOpacity: 1,
     };
 
+    if (isLoading) {
+        return (
+            <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={cores.primaria[100]} />
+            </View>
+        );
+    }
+
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
-            <Subtexto style={styles.subtexto}>Dashboard de Insumos</Subtexto>
+            <Stack.Screen options={{ title: 'Estatísticas de Insumos' }} />
+            <Subtexto style={styles.subtexto}>Estatísticas de Insumos</Subtexto>
 
-            {/* --- Filtros --- */}
-            <View style={styles.filtroContainer}>
-                 <View style={styles.linhaFiltro}>
-                    <Selector 
-                        label="Ano Entrada" 
-                        options={anoOptions} 
-                        onSelect={setAno} 
-                        placeholder="Todos" 
-                        style={styles.filtroPequeno} 
-                    />
-                    <Selector 
-                        label="Tipo Material" 
-                        options={tipoOptions} 
-                        onSelect={setTipo} 
-                        placeholder="Todos" 
-                        style={styles.filtroPequeno} 
-                    />
-                </View>
-            </View>
-
-            {/* --- KPIs e Gráficos --- */}
             <GraficoCard
-                subtexto={`Panorama do Estoque: ${ano === '' ? 'Geral' : ano}`}
-                kpis={kpisCalculados}
+                subtexto="Visão Geral do Almoxarifado"
+                kpis={kpis}
                 showSideBar={true}
             >
-                {/* Gráfico de Pizza */}
+                {/* Gráfico de Pizza (Categorias) */}
                 <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Categorias em Estoque</Text>
-                    {dataPizza.length > 0 ? (
+                    <Text style={styles.chartTitle}>Categorias</Text>
+                    {graficos?.porTipo && graficos.porTipo.length > 0 ? (
                         <PieChart
-                            data={dataPizza}
-                            width={screenWidth - 20}
+                            data={graficos.porTipo.map((t, index) => ({
+                                name: t.name,
+                                population: t.value,
+                                color: ['#3498db', '#e67e22', '#2ecc71', '#95a5a6', '#f1c40f'][index % 5],
+                                legendFontColor: '#7F7F7F',
+                                legendFontSize: 12
+                            }))}
+                            width={screenWidth - 40}
                             height={220}
                             chartConfig={chartConfig}
                             accessor={"population"}
@@ -149,26 +103,34 @@ export default function DashboardInsumos() {
                             paddingLeft={"15"}
                             center={[10, 0]}
                             absolute
+                            style={styles.chartStyle}
                         />
                     ) : (
-                        <Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>Sem dados.</Text>
+                        <Text style={styles.emptyText}>Sem dados categorizados.</Text>
                     )}
                 </View>
 
-                {/* Gráfico de Barras */}
+                {/* Gráfico de Barras (Status) */}
                 <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Situação dos Itens</Text>
-                    <BarChart
-                        data={dataBarra}
-                        width={screenWidth - 60}
-                        height={220}
-                        yAxisLabel=""
-                        yAxisSuffix=""
-                        chartConfig={chartConfig}
-                        style={styles.chartStyle}
-                        showValuesOnTopOfBars
-                        fromZero
-                    />
+                    <Text style={styles.chartTitle}>Situação por Status</Text>
+                    {graficos?.porStatus && graficos.porStatus.length > 0 ? (
+                        <BarChart
+                            data={{
+                                labels: graficos.porStatus.map(s => s.name),
+                                datasets: [{ data: graficos.porStatus.map(s => s.value) }]
+                            }}
+                            width={screenWidth - 80}
+                            height={220}
+                            yAxisLabel=""
+                            yAxisSuffix=""
+                            chartConfig={chartConfig}
+                            style={styles.chartStyle}
+                            showValuesOnTopOfBars
+                            fromZero
+                        />
+                    ) : (
+                        <Text style={styles.emptyText}>Nenhum status para exibir.</Text>
+                    )}
                 </View>
             </GraficoCard>
         </ScrollView>
@@ -177,12 +139,11 @@ export default function DashboardInsumos() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, overflow: 'visible' },
+    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, paddingBottom: 50 },
     subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto },
-    filtroContainer: { marginBottom: layout.espacamento.amigavel, zIndex: 100, elevation: 10 },
-    linhaFiltro: { flexDirection: 'row', justifyContent: 'space-between', gap: layout.espacamento.texto, zIndex: 200, elevation: 20 },
-    filtroPequeno: { flex: 1, backgroundColor: cores.branco },
-    chartContainer: { marginTop: layout.espacamento.amigavel, alignItems: 'center', zIndex: -1 },
+    chartContainer: { marginTop: layout.espacamento.amigavel, alignItems: 'center' },
     chartTitle: { fontSize: 16, fontWeight: 'bold', color: cores.texto, marginBottom: 10 },
     chartStyle: { borderRadius: 16 },
+    emptyText: { textAlign: 'center', marginTop: 20, color: '#999', fontStyle: 'italic' },
 });

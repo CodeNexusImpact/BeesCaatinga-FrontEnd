@@ -1,0 +1,13 @@
+{
+  "/login": "/login",
+  "/apiarios/:produtorId": "/apiarios?produtorId=:produtorId",
+  "/apiarios/:apiarioId/produtor/:produtorId": "/apiarios/:apiarioId",
+  "/colmeias/produtor/:produtorId/apiario/:apiarioId": "/colmeias?produtorId=:produtorId&apiarioId=:apiarioId",
+  "/colmeias/produtor/:produtorId/apiario/:apiarioId/ativas": "/colmeias?produtorId=:produtorId&apiarioId=:apiarioId&ativa=true",
+  "/colmeias/produtor/:produtorId/apiario/:apiarioId/inativas": "/colmeias?produtorId=:produtorId&apiarioId=:apiarioId&ativa=false",
+  "/produtores/:id": "/produtores/:id",
+  "/insumos/p/:produtorId": "/insumos?produtorId=:produtorId",
+  "/producoes/p/:produtorId": "/producoes?produtorId=:produtorId",
+  "/lotes/p/:produtorId": "/lotes?produtorId=:produtorId",
+  "/vistorias/c/:colmeiaId": "/vistorias?colmeiaId=:colmeiaId"
+}

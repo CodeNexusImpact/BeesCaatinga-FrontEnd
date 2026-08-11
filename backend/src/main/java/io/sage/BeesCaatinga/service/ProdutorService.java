@@ -27,7 +27,6 @@ import io.sage.BeesCaatinga.model.*;
 import io.sage.BeesCaatinga.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -40,60 +39,72 @@ public class ProdutorService {
     // OBS: quando ativar a segurança lembrar de adicionar o encoder,
     // criptografar as senhas antes de salvar no banco de dados
 
-    public ProdutorRetornoDTO salvar(ProdutorCriadoDTO dto){
+    public ProdutorRetornoDTO salvar(ProdutorCriadoDTO dto) {
         var produtor = mapper.toEntityFromCriado(dto);
         repository.save(produtor);
         return mapper.toRetornoDTO(produtor);
     }
 
-    public ProdutorRetornoDTO buscarPorId(Long id){
+    public ProdutorRetornoDTO buscarPorId(Long id) {
         var produtor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
         return mapper.toRetornoDTO(produtor);
     }
 
-    public List<ProdutorRetornoDTO> listar(){
+    public List<ProdutorRetornoDTO> listar() {
         var lista = repository.findAll();
         return lista.stream()
                 .map(mapper::toRetornoDTO)
                 .toList();
     }
 
-    public ProdutorRetornoDTO atualizar(Long id, ProdutorAtualizadoDTO dto){
+    public ProdutorRetornoDTO atualizar(Long id, ProdutorAtualizadoDTO dto) {
         var produtor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
 
-        if (dto.caminhoDaFoto() != null) produtor.setCaminhoDaFoto(dto.caminhoDaFoto());
-        if (dto.nomeCompleto() != null) produtor.setNomeCompleto(dto.nomeCompleto());
-        if (dto.genero() != null) produtor.setGenero(dto.genero());
-        if (dto.nomeDaEmpresa() != null) produtor.setNomeDaEmpresa(dto.nomeDaEmpresa());
-        if (dto.telefone() != null) produtor.setTelefone(dto.telefone());
-        if (dto.endereco() != null) produtor.setEndereco(dto.endereco());
+        if (dto.caminhoDaFoto() != null)
+            produtor.setCaminhoDaFoto(dto.caminhoDaFoto());
+        if (dto.nomeCompleto() != null)
+            produtor.setNomeCompleto(dto.nomeCompleto());
+        if (dto.genero() != null)
+            produtor.setGenero(dto.genero());
+        if (dto.nomeDaEmpresa() != null)
+            produtor.setNomeDaEmpresa(dto.nomeDaEmpresa());
+        if (dto.telefone() != null)
+            produtor.setTelefone(dto.telefone());
+        if (dto.endereco() != null)
+            produtor.setEndereco(dto.endereco());
 
         repository.save(produtor);
         return mapper.toRetornoDTO(produtor);
     }
 
-    public void deletar(Long id){
+    public ProdutorRetornoDTO atualizarFoto(Long id, String caminhoFoto) {
+        var produtor = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
+        produtor.setCaminhoDaFoto(caminhoFoto);
+        repository.save(produtor);
+        return mapper.toRetornoDTO(produtor);
+    }
+
+    public void deletar(Long id) {
         var produtor = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produtor não encontrado!"));
         repository.delete(produtor);
     }
 
-    /*
-    private Long getProdutorIdLogado() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    // private Long getProdutorIdLogado() {
+    // Authentication authentication =
+    // SecurityContextHolder.getContext().getAuthentication();
 
-    //     if (authentication == null || !authentication.isAuthenticated()) {
-    //         throw new RuntimeException("Usuário não autenticado");
-    //     }
-
-    //     // Aqui você terá seu UserDetails implementado pelo Produtor (ou Usuario)
-    //     var usuarioLogado = (UserDetailsImpl) authentication.getPrincipal();
-
-    //     return usuarioLogado.getId(); // retornar o ID do produtor
+    // if (authentication == null || !authentication.isAuthenticated()) {
+    // throw new RuntimeException("Usuário não autenticado");
     // }
 
-     */
+    // // Aqui você terá seu UserDetails implementado pelo Produtor (ou Usuario)
+    // var usuarioLogado = (UserDetailsImpl) authentication.getPrincipal();
+
+    // return usuarioLogado.getId(); // retornar o ID do produtor
+    // }
 
 }

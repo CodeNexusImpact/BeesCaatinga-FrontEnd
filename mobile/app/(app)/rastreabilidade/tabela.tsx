@@ -1,72 +1,92 @@
-import Botao from '@/components/botao';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
-import TabelaGenerica, { TabelaColuna } from '@/components/tabelaGenerica';
+import Tabela, { TabelaColuna } from '@/components/tabela';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-
-// --- Interfaces ---
-interface DadosRastreabilidade {
-    id: string;
-    ano: string;
-    mes: string;
-    dataProducao: string;
-    quantidadeProduzida: string;
-    tratamento: string;
-    localidade: string;
-    tipoAbelhas: string;
-}
-
-// --- BANCO DE DADOS MOCKADO ---
-const MASTER_TABLE_DATA: DadosRastreabilidade[] = [
-    { id: 'LT-01', ano: '2025', mes: '08', dataProducao: '15/08/2025', quantidadeProduzida: '15 kg', tratamento: 'Orgânico', localidade: 'Sitio A', tipoAbelhas: 'Nativa' },
-    { id: 'LT-02', ano: '2025', mes: '08', dataProducao: '18/08/2025', quantidadeProduzida: '12 kg', tratamento: 'Convencional', localidade: 'Sitio B', tipoAbelhas: 'Africanizada' },
-    { id: 'LT-03', ano: '2025', mes: '08', dataProducao: '20/08/2025', quantidadeProduzida: '18 kg', tratamento: 'Orgânico', localidade: 'Sitio A', tipoAbelhas: 'Nativa' },
-    { id: 'LT-04', ano: '2025', mes: '09', dataProducao: '05/09/2025', quantidadeProduzida: '22 kg', tratamento: 'Sem Químico', localidade: 'Apiário C', tipoAbelhas: 'Italiana' },
-    { id: 'LT-05', ano: '2025', mes: '09', dataProducao: '10/09/2025', quantidadeProduzida: '30 kg', tratamento: 'Orgânico', localidade: 'Sitio A', tipoAbelhas: 'Nativa' },
-
-    { id: 'LT-06', ano: '2024', mes: '08', dataProducao: '12/08/2024', quantidadeProduzida: '14 kg', tratamento: 'Convencional', localidade: 'Sitio B', tipoAbelhas: 'Africanizada' },
-    { id: 'LT-07', ano: '2024', mes: '09', dataProducao: '01/09/2024', quantidadeProduzida: '25 kg', tratamento: 'Orgânico', localidade: 'Sitio A', tipoAbelhas: 'Nativa' },
-];
-
-const colunasDoRelatorio: TabelaColuna<DadosRastreabilidade>[] = [
-    { label: 'Lote ID', dataKey: 'id', sortable: true, flex: 1 },
-    { label: 'Data', dataKey: 'dataProducao', sortable: true, flex: 2 },
-    { label: 'Qtd (kg)', dataKey: 'quantidadeProduzida', sortable: true, flex: 1 },
-    { label: 'Tratamento', dataKey: 'tratamento', sortable: true, flex: 2 },
-    { label: 'Local', dataKey: 'localidade', sortable: true, flex: 2 },
-    { label: 'Espécie', dataKey: 'tipoAbelhas', sortable: true, flex: 2 },
-];
-
-// --- Opções de Filtro ---
-const anoOptions = [{ label: 'Todos os Anos', value: '' }, { label: '2025', value: '2025' }, { label: '2024', value: '2024' }];
-const mesOptions = [{ label: 'Todos os Meses', value: '' }, { label: 'Agosto', value: '08' }, { label: 'Setembro', value: '09' }];
+import React, { useCallback, useState, useMemo } from 'react';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
+import { useFocusEffect } from 'expo-router';
 
 export default function RelatorioRastreabilidadeTabela() {
+    const { user } = useAuth();
+    const [lotes, setLotes] = useState<RastreabilidadeDTO[]>([]);
+    const [loading, setLoading] = useState(true);
     const [ano, setAno] = useState('');
     const [mes, setMes] = useState('');
 
-    const handleExportar = () => {
-        alert(`Exportando ${dadosFiltrados.length} registros...`);
-    };
+    const carregarDados = useCallback(async () => {
+        if (!user?.id) return;
+        try {
+            setLoading(true);
+            const data = await getRastreabilidade(user.id);
+            setLotes(data);
+        } catch (error) {
+            console.error('❌ Erro ao carregar rastreabilidade:', error);
+            Alert.alert('Erro', 'Não foi possível carregar os dados de rastreabilidade.');
+        } finally {
+            setLoading(false);
+        }
+    }, [user?.id]);
 
-    // --- FILTRAGEM DINÂMICA ---
+    useFocusEffect(
+        useCallback(() => {
+            carregarDados();
+        }, [carregarDados])
+    );
+
+    const colunasDoRelatorio: TabelaColuna<RastreabilidadeDTO>[] = [
+        { label: 'Lote ID', dataKey: 'id', sortable: true, flex: 1 },
+        { label: 'Data', dataKey: 'dataProducao', sortable: true, flex: 2 },
+        { label: 'Qtd (kg)', dataKey: 'quantidadeProduzida', sortable: true, flex: 1 },
+        { label: 'Florada', dataKey: 'tipoFlorada', sortable: true, flex: 2 },
+        { label: 'Abelha', dataKey: 'tipoAbelha', sortable: true, flex: 2 },
+        { label: 'Status', dataKey: 'vendido', sortable: true, flex: 1, render: (val) => val ? 'Vendido' : 'Estoque' },
+    ];
+
+    const anoOptions = [
+        { label: 'Todos os Anos', value: '' },
+        { label: '2026', value: '2026' },
+        { label: '2025', value: '2025' }
+    ];
+
+    const mesOptions = [
+        { label: 'Todos os Meses', value: '' },
+        { label: 'Janeiro', value: '01' },
+        { label: 'Fevereiro', value: '02' },
+        { label: 'Maio', value: '05' }
+    ];
+
     const dadosFiltrados = useMemo(() => {
-        return MASTER_TABLE_DATA.filter(item => {
-            const filtroAno = ano === '' ? true : item.ano === ano;
-            const filtroMes = mes === '' ? true : item.mes === mes;
+        return lotes.filter(item => {
+            if (!item.dataProducao) return true;
+            const [dia, mesProd, anoProd] = item.dataProducao.split('/');
+            const filtroAno = ano === '' ? true : anoProd === ano;
+            const filtroMes = mes === '' ? true : mesProd === mes;
             return filtroAno && filtroMes;
         });
-    }, [ano, mes]);
+    }, [lotes, ano, mes]);
+
+    const handleExportar = () => {
+        Alert.alert('Sucesso', `Exportando ${dadosFiltrados.length} registros para CSV.`);
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.centered}>
+                <ActivityIndicator size="large" color={cores.primaria[100]} />
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Tabela' }} />
+            <Stack.Screen options={{ title: 'Tabela de Rastreabilidade' }} />
 
-            <Subtexto style={styles.subtexto}>Rastreabilidade Detalhada</Subtexto>
+            <Subtexto style={styles.subtexto}>Dados Reais de Produção</Subtexto>
 
             <View style={styles.filtroWrapper}>
                 <View style={styles.linhaFiltro}>
@@ -87,21 +107,19 @@ export default function RelatorioRastreabilidadeTabela() {
                 </View>
             </View>
 
-            {/* Informação sobre resultados */}
             <Text style={styles.resultadosTexto}>
                 Encontrados: {dadosFiltrados.length} registros
             </Text>
 
-            {/* --- TABELA COM SCROLL HORIZONTAL --- */}
             <View style={styles.tabelaContainer}>
                 <ScrollView
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContentTabela}
                 >
-                    <View style={{ minWidth: 800 }}>
-                        <TabelaGenerica
-                            colunas={colunasDoRelatorio}
+                    <View style={{ minWidth: 600 }}>
+                        <Tabela
+                            colunas={colunasDoRelatorio as any}
                             data={dadosFiltrados}
                         />
                     </View>
@@ -123,10 +141,14 @@ const styles = StyleSheet.create({
         flex: 1, 
         backgroundColor: cores.fundo 
     },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     contentContainer: {
         padding: layout.espacamento.amigavel,
         gap: layout.espacamento.colega,
-        overflow: 'visible', // ⚠️ IMPORTANTE: evita cortar dropdowns
     },
     subtexto: {
         width: '100%',
@@ -136,43 +158,32 @@ const styles = StyleSheet.create({
         color: cores.texto,
         marginBottom: layout.espacamento.texto
     },
-
     filtroWrapper: {
-        position: 'relative', // necessário para zIndex funcionar
-        zIndex: 999, // força estar acima de tudo
+        zIndex: 999,
         marginBottom: layout.espacamento.texto,
-        paddingHorizontal: layout.espacamento.amigavel, // opcional: alinha com o conteúdo
     },
     linhaFiltro: {
         flexDirection: 'row',
         gap: layout.espacamento.texto,
-        flexWrap: 'wrap',
     },
     seletor: {
         flex: 1,
-        minWidth: 140,
     },
-
     resultadosTexto: {
         textAlign: 'center',
         color: '#666',
-        marginBottom: 5,
         fontSize: 14,
     },
-
     tabelaContainer: {
-        marginTop: layout.espacamento.texto,
         borderRadius: 8,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#eee',
-        backgroundColor: '#fff',
+        borderColor: cores.borda,
+        backgroundColor: cores.branco,
     },
-
     scrollContentTabela: {
         paddingRight: 20,
     },
-
     botaoExportar: {
         marginTop: layout.espacamento.amigavel
     },

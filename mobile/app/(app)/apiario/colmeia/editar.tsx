@@ -3,11 +3,11 @@ import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 
 // Componentes e Constantes Padronizados
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
-import ImagePickerExample from '@/components/imagemPicker';
+import ImagePickerExample from '@/components/formulario/imagemPicker';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 
@@ -142,7 +142,9 @@ export default function EditarColmeia() {
         <Subtexto>Dados Adicionais</Subtexto>
         
         <Text style={styles.labelFoto}>Foto</Text>
-        <ImagePickerExample />
+        <ImagePickerExample onImagePicked={function (uri: string | null): void {
+          throw new Error('Function not implemented.');
+        } } />
 
         <Input
           label="Observações:"

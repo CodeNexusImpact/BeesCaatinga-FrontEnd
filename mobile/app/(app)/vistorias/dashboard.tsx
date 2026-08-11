@@ -1,108 +1,103 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { LineChart, PieChart } from 'react-native-chart-kit'; 
-import Selector from '@/components/selector';
+import Selector from '@/components/formulario/selector';
 import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack } from 'expo-router';
-
-// --- DADOS MOCKADOS (Base de Dados Local) ---
-// Simulando vistorias com datas e diagnósticos
-const MASTER_DATA = [
-    { ano: '2025', mes: 'Ago', mesIndex: 7, status: 'Saudável', apiario: 'Apiário A' },
-    { ano: '2025', mes: 'Ago', mesIndex: 7, status: 'Atenção', apiario: 'Apiário A' },
-    { ano: '2025', mes: 'Set', mesIndex: 8, status: 'Saudável', apiario: 'Apiário B' },
-    { ano: '2025', mes: 'Set', mesIndex: 8, status: 'Crítica', apiario: 'Apiário A' },
-    { ano: '2025', mes: 'Out', mesIndex: 9, status: 'Saudável', apiario: 'Apiário B' },
-    { ano: '2025', mes: 'Out', mesIndex: 9, status: 'Saudável', apiario: 'Apiário A' },
-    
-    { ano: '2024', mes: 'Ago', mesIndex: 7, status: 'Atenção', apiario: 'Apiário B' },
-    { ano: '2024', mes: 'Set', mesIndex: 8, status: 'Crítica', apiario: 'Apiário A' },
-    { ano: '2024', mes: 'Out', mesIndex: 9, status: 'Saudável', apiario: 'Apiário B' },
-];
+import { Stack, useFocusEffect } from 'expo-router';
+import { getKpisVistorias, getGraficosVistorias } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
 
 const screenWidth = Dimensions.get('window').width;
 
-// --- Opções de Filtro ---
 const anoOptions = [
     { label: 'Todos os Anos', value: '' },
+    { label: '2026', value: '2026' },
     { label: '2025', value: '2025' },
     { label: '2024', value: '2024' },
 ];
 
 const statusOptions = [
     { label: 'Todos os Status', value: '' },
-    { label: 'Saudável', value: 'Saudável' },
-    { label: 'Atenção', value: 'Atenção' },
-    { label: 'Crítica', value: 'Crítica' },
+    { label: 'Saudável', value: 'saudavel' },
+    { label: 'Excelente', value: 'excelente' },
+    { label: 'Manutenção', value: 'manutencao' },
+    { label: 'Em Risco', value: 'risco' },
+    { label: 'Perdida', value: 'perdida' },
 ];
 
 export default function DashboardVistoria() {
-    const [ano, setAno] = useState(''); // '' = Todos
-    const [statusFiltro, setStatusFiltro] = useState('');
+    const { user } = useAuth();
 
-    // --- 1. Lógica de Filtragem ---
-    const dadosFiltrados = useMemo(() => {
-        return MASTER_DATA.filter(item => {
-            const filtroAno = ano === '' ? true : item.ano === ano;
-            const filtroStatus = statusFiltro === '' ? true : item.status === statusFiltro;
-            return filtroAno && filtroStatus;
-        });
-    }, [ano, statusFiltro]);
+    const [anoSelecionado, setAnoSelecionado] = useState('');
+    const [statusSelecionado, setStatusSelecionado] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [kpis, setKpis] = useState<KpiData[]>([]);
+    const [pizzaData, setPizzaData] = useState<any[]>([]);
+    const [lineData, setLineData] = useState<any>(null);
 
-    // --- 2. Cálculo dos KPIs ---
-    const kpisCalculados: KpiData[] = useMemo(() => {
-        const total = dadosFiltrados.length;
-        const saudaveis = dadosFiltrados.filter(d => d.status === 'Saudável').length;
-        const criticas = dadosFiltrados.filter(d => d.status === 'Crítica').length;
-        // Simulação de taxa de ocupação
-        const taxaOcupacao = total > 0 ? ((saudaveis / total) * 100).toFixed(0) : '0';
-
-        return [
-            { label: 'Vistorias Realizadas', value: total.toString() },
-            { label: 'Colmeias Saudáveis', value: saudaveis.toString() },
-            { label: 'Situação Crítica', value: criticas.toString() },
-            { label: 'Saúde Geral (%)', value: `${taxaOcupacao}%` },
-        ];
-    }, [dadosFiltrados]);
-
-    // --- 3. Gráfico de Pizza (Status) ---
-    const dataPizza = useMemo(() => {
-        const countStatus = (st: string) => dadosFiltrados.filter(d => d.status === st).length;
+    const carregarDados = useCallback(async () => {
+        if (!user?.id) return;
         
-        const dados = [
-            { name: 'Saudável', population: countStatus('Saudável'), color: '#2ecc71', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'Atenção', population: countStatus('Atenção'), color: '#f1c40f', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-            { name: 'Crítica', population: countStatus('Crítica'), color: '#e74c3c', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-        ];
-        
-        // Filtra para não mostrar fatias com 0
-        return dados.filter(d => d.population > 0);
-    }, [dadosFiltrados]);
+        try {
+            setLoading(true);
+            
+            const [novosKpis, vistoriasRaw] = await Promise.all([
+                getKpisVistorias(user.id),
+                getGraficosVistorias(user.id)
+            ]);
 
-    // --- 4. Gráfico de Linha (Vistorias por mês - recorte Ago/Set/Out) ---
-    const dataLinha = useMemo(() => {
-        const vistoriasPorMes = [0, 0, 0]; // Índices correspondentes a Ago, Set, Out na nossa lógica simplificada
-        
-        dadosFiltrados.forEach(item => {
-            // Mapeando mesIndex 7, 8, 9 para array 0, 1, 2
-            if (item.mesIndex >= 7 && item.mesIndex <= 9) {
-                vistoriasPorMes[item.mesIndex - 7] += 1;
-            }
-        });
+            setKpis(novosKpis);
 
-        return {
-            labels: ["Ago", "Set", "Out"],
-            datasets: [{ data: vistoriasPorMes }]
-        };
-    }, [dadosFiltrados]);
+            // Processamento Local dos Gráficos para evitar dependência de chaves inexistentes no service
+            const vistoriasArray = Array.isArray(vistoriasRaw) ? vistoriasRaw : [];
+            
+            // Exemplo de agregação para Pizza (Status)
+            const statusCount: {[key: string]: number} = {};
+            vistoriasArray.forEach(v => {
+                const s = v.condicaoVistoria || 'saudavel';
+                statusCount[s] = (statusCount[s] || 0) + 1;
+            });
+
+            const coresMap: {[key: string]: string} = {
+                saudavel: '#4CAF50', excelente: '#8BC34A', manutencao: '#FFC107', risco: '#FF9800', perdida: '#F44336'
+            };
+
+            const pizza = Object.entries(statusCount).map(([name, count]) => ({
+                name: name.toUpperCase(),
+                population: count,
+                color: coresMap[name.toLowerCase()] || '#9E9E9E',
+                legendFontColor: "#7F7F7F",
+                legendFontSize: 12
+            }));
+
+            setPizzaData(pizza);
+
+            // Placeholder para Line Data
+            setLineData({
+                labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+                datasets: [{ data: [0, 0, 0, 0, vistoriasArray.length, 0] }]
+            });
+
+        } catch (error) {
+            console.error('Erro ao carregar dashboard:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [user?.id, anoSelecionado, statusSelecionado]);
+
+    useFocusEffect(
+        useCallback(() => {
+            carregarDados();
+        }, [carregarDados])
+    );
 
     const chartConfig = {
         backgroundGradientFrom: cores.branco,
         backgroundGradientTo: cores.branco,
-        color: (opacity = 1) => `rgba(52, 152, 219, ${opacity})`, // Azul
+        color: (opacity = 1) => `rgba(52, 152, 219, ${opacity})`, 
         strokeWidth: 2,
         barPercentage: 0.5,
         decimalPlaces: 0,
@@ -114,65 +109,71 @@ export default function DashboardVistoria() {
             <Stack.Screen options={{ title: 'Dashboard' }} />
             <Subtexto style={styles.subtexto}>Dashboard de Vistorias</Subtexto>
 
-            {/* --- Filtros --- */}
             <View style={styles.filtroContainer}>
                  <View style={styles.linhaFiltro}>
                     <Selector 
                         label="Ano" 
                         options={anoOptions} 
-                        onSelect={setAno} 
-                        placeholder="Todos os Anos" 
+                        onSelect={setAnoSelecionado} 
+                        placeholder="Todos" 
                         style={styles.filtroPequeno} 
+                        value={anoSelecionado}
                     />
                     <Selector 
                         label="Status" 
                         options={statusOptions} 
-                        onSelect={setStatusFiltro} 
-                        placeholder="Todos os Status" 
+                        onSelect={setStatusSelecionado} 
+                        placeholder="Todos" 
                         style={styles.filtroPequeno} 
+                        value={statusSelecionado}
                     />
                 </View>
             </View>
 
-            {/* --- KPIs e Gráficos --- */}
-            <GraficoCard
-                subtexto={`Análise de ${ano === '' ? 'Todos os Anos' : ano}`}
-                kpis={kpisCalculados}
-                showSideBar={true}
-            >
-                {/* Gráfico de Pizza */}
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Diagnóstico das Colmeias</Text>
-                    {dataPizza.length > 0 ? (
-                        <PieChart
-                            data={dataPizza}
-                            width={screenWidth - 20}
-                            height={220}
-                            chartConfig={chartConfig}
-                            accessor={"population"}
-                            backgroundColor={"transparent"}
-                            paddingLeft={"15"}
-                            center={[10, 0]}
-                            absolute
-                        />
-                    ) : (
-                        <Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>Sem dados para este filtro.</Text>
-                    )}
-                </View>
+            {loading ? (
+                <ActivityIndicator size="large" color={cores.primaria} />
+            ) : (
+                <GraficoCard
+                    subtexto={`Análise de ${anoSelecionado === '' ? 'Todos os Anos' : anoSelecionado}`}
+                    kpis={kpis}
+                    showSideBar={true}
+                >
+                    <View style={styles.chartContainer}>
+                        <Text style={styles.chartTitle}>Diagnóstico das Colmeias</Text>
+                        {pizzaData.length > 0 ? (
+                            <PieChart
+                                data={pizzaData}
+                                width={screenWidth - 20}
+                                height={220}
+                                chartConfig={chartConfig}
+                                accessor={"population"}
+                                backgroundColor={"transparent"}
+                                paddingLeft={"15"}
+                                center={[10, 0]}
+                                absolute
+                            />
+                        ) : (
+                            <Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>Sem dados para este filtro.</Text>
+                        )}
+                    </View>
 
-                {/* Gráfico de Linha */}
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Evolução das Vistorias (Ago-Out)</Text>
-                    <LineChart
-                        data={dataLinha}
-                        width={screenWidth - 60}
-                        height={220}
-                        chartConfig={chartConfig}
-                        bezier
-                        style={styles.chartStyle}
-                    />
-                </View>
-            </GraficoCard>
+                    <View style={styles.chartContainer}>
+                        <Text style={styles.chartTitle}>Evolução das Vistorias</Text>
+                        {lineData && lineData.datasets[0].data.length > 0 && lineData.labels[0] !== 'Sem dados' ? (
+                            <LineChart
+                                data={lineData}
+                                width={screenWidth - 60}
+                                height={220}
+                                chartConfig={chartConfig}
+                                bezier
+                                style={styles.chartStyle}
+                            />
+                        ) : (
+                            <Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>Sem dados suficientes.</Text>
+                        )}
+                    </View>
+                </GraficoCard>
+            )}
         </ScrollView>
     );
 }

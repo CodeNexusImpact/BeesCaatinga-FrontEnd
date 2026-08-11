@@ -6,6 +6,7 @@ import io.sage.BeesCaatinga.model.enums.UnidadeMedida;
 import java.time.LocalDate;
 
 public record InsumoRetornoDTO(
+        Long id,
         LocalDate dataEntrada,
         String nome,
         String tipo,

@@ -1,116 +1,118 @@
-import Botao from "@/components/botao";
-import Input from "@/components/input";
+import Botao from "@/components/formulario/botao";
+import Input from "@/components/formulario/input";
 import { Image } from "expo-image";
-import { Link, useNavigation } from "expo-router";
-import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
+import { useNavigation } from "expo-router";
+import { Text, View, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useEffect, useState } from "react";
 import cores from "@/constants/cores";
-import { styles as formStyle } from "@/styles/forms.styles";
+import layout from "@/constants/layout";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
-import { listarProdutores } from "@/services/produtorService";
 
 
 function Login() {
-
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [email, setEmail] = useState(__DEV__ ? 'dev@produtor.com' : '');
+  const [senha, setSenha] = useState(__DEV__ ? 'dev123' : '');
   const [loading, setLoading] = useState(false);
 
   const { signIn } = useAuth();
+  const router = useRouter();
+  const navigation = useNavigation();
+  const { width } = useWindowDimensions();
+  const isWebPC = Platform.OS === 'web' && width > 768;
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const handleLogin = async () => {
     if (!email || !senha) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      Alert.alert("Erro", "Por favor, preencha o e-mail e a senha.");
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Pega a lista de todos os produtores da API
-      const produtores = await listarProdutores();
-
-      // 2. Procura um usuário com o email fornecido
-      const foundUser = produtores.find(p => p.email.toLowerCase() === email.toLowerCase());
-
-      // 3. Validação temporária (INSEGURA)
-      // O backend não retorna a senha, então esta validação de senha falhará.
-      // O login funcionará se o email for encontrado.
-      // Em um cenário real, o backend deve ter um endpoint /login que valide a senha.
-      if (foundUser) {
-        // A lógica de `signIn` do AuthContext será usada para criar a sessão
-        await signIn(email, senha);
-        // O Expo Router fará o redirecionamento automático
-      } else {
-        Alert.alert("Erro de Login", "Credenciais inválidas. Tente novamente.");
-      }
-
-    } catch (error) {
-      Alert.alert("Erro de Login", "Não foi possível conectar ao servidor. Tente novamente.");
-      console.error("Login falhou:", error);
+      await signIn(email, senha);
+      console.log("✅ Login realizado com sucesso para:", email);
+    } catch (error: any) {
+      console.error("❌ Erro na tentativa de login:", error);
+      Alert.alert(
+        "Erro de Autenticação", 
+        "E-mail ou senha inválidos. Verifique suas credenciais e sua conexão de rede."
+      );
     } finally {
       setLoading(false);
     }
   };
-
-  const goToRegister = () => {
-    router.push('/(auth)/cadastro'); // Navega para a tela de cadastro
-  }
-
-  const navigation = useNavigation();
-  const router = useRouter();
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={{ display: "flex", height: "100%" }}>
-        <View style={styles.conteinerLogo}>
+      <View style={[styles.mainWrapper, isWebPC && styles.mainWrapperWeb]}>
+        <View style={[styles.conteinerLogo, isWebPC && styles.conteinerLogoWeb]}>
           <Image
             style={styles.image}
             source={require("@/assets/images/LogoBeesCaatinga.png")}
             contentFit='contain'
-
           />
         </View>
-        <View
-          style={formStyle.formStyle}
+
+        <ScrollView 
+          style={[styles.scrollArea, isWebPC && styles.scrollAreaWeb]}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.textoTitulo} >Faça seu Login</Text>
-          <Input
-            iconName="email"
-            placeholder="Digite seu email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <Input
-            iconName="lock"
-            placeholder="Digite sua senha"
-            value={senha}
-            onChangeText={setSenha}
-            secureTextEntry={true}
-          />
-          <Link href="/(auth)/redefinirSenha" style={{ alignSelf: "flex-end", marginBottom: 20 }}>
-            <Text style={{ color: "blue" }}>Esqueceu a senha?</Text>
-          </Link>
+          <View style={[styles.formContainer, isWebPC && styles.formContainerWeb]}>
+            <Text style={styles.textoTitulo}>Faça seu Login</Text>
+            
+            <View style={styles.inputWrapper}>
+              <Input
+                iconName="email"
+                placeholder="E-mail"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.inputField}
+              />
+            </View>
 
-          {loading ? (
-            <ActivityIndicator size="large" color={cores.primaria} />
-          ) : (
-            <Botao title="Entrar" onPress={handleLogin} iconName="forward" />
-          )}
+            <View style={styles.inputWrapper}>
+              <Input
+                iconName="lock"
+                placeholder="Senha"
+                value={senha}
+                onChangeText={setSenha}
+                secureTextEntry={true}
+                style={styles.inputField}
+              />
+            </View>
 
-          <Text style={styles.textoSimples}>Ou</Text>
-          <Botao
-            title="Cadastrar" cor="secundaria" onPress={goToRegister}
-          />
-        </View>
+            <TouchableOpacity 
+              onPress={() => router.push("/(auth)/redefinirSenha")} 
+              style={styles.esqueceuSenha}
+            >
+              <Text style={styles.esqueceuSenhaTexto}>Esqueceu a senha?</Text>
+            </TouchableOpacity>
+
+            {loading ? (
+              <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginVertical: 20 }} />
+            ) : (
+              <Botao title="Entrar" onPress={handleLogin} iconName="forward" />
+            )}
+
+            <Text style={styles.textoSimples}>Ou</Text>
+            
+            <Botao
+              title="Cadastrar" 
+              cor="secundaria" 
+              onPress={() => router.push('/(auth)/cadastro')}
+            />
+          </View>
+        </ScrollView>
       </View>
     </KeyboardAvoidingView>
   )
@@ -119,33 +121,86 @@ function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: cores.branco,
   },
-  textoTitulo: {
-    color: '#000',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: "center"
+  mainWrapper: {
+    flex: 1,
   },
-  textoSimples: {
-    color: '#000',
-    fontSize: 16,
-    textAlign: "center",
-    marginVertical: 10,
+  mainWrapperWeb: {
+    flexDirection: 'row',
   },
   conteinerLogo: {
-    height: '30%',
+    height: 250,
     backgroundColor: cores.primaria,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  conteinerLogoWeb: {
+    flex: 1,
+    height: '100%',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   image: {
-    width: "100%",
-    height: "100%",
-    alignSelf: 'center',
+    width: "80%",
+    height: "80%",
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollAreaWeb: {
+    flex: 1.2,
+    backgroundColor: cores.branco,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  formContainer: {
+    padding: layout.espacamento.social,
+    marginTop: -20,
+    backgroundColor: cores.branco,
+    borderRadius: 30,
+  },
+  formContainerWeb: {
+    marginTop: 0,
+    borderRadius: 0,
+    padding: 50,
+  },
+  textoTitulo: {
+    color: cores.texto,
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: "center"
+  },
+  inputWrapper: {
+    marginBottom: 20,
+    height: 60,
+  },
+  inputField: {
+    height: 55,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    borderRadius: 12,
+    backgroundColor: '#F9F9F9',
+  },
+  esqueceuSenha: {
+    alignSelf: "flex-end", 
+    marginBottom: 24
+  },
+  esqueceuSenhaTexto: {
+    color: cores.primaria[100],
+    fontWeight: '600',
+  },
+  textoSimples: {
+    color: cores.texto,
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 20,
   },
 });
-
 
 export default Login;

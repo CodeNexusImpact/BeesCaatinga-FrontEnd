@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 
 import { ApiarioCriadoDTO } from '@/types/apiario/ApiarioCriadoDTO';
 import { EnderecoProps } from '@/types/common/Endereco';
 import { maskDate } from '@/utils/masks';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
-import Input from '@/components/input';
-import FormEndereco from '@/components/formEndereco';
+import Input from '@/components/formulario/input';
+import FormEndereco from '@/components/formulario/formEndereco';
 import TipoQuantidadeColmeia from '@/components/apiario/tipoQuantidadeColmeia';
-import Botao from '@/components/botao';
+import Botao from '@/components/formulario/botao';
 import Subtexto from '@/components/subTexto';
 
 import { styles as hero } from '@/styles/hero.styles';
 import { styles as formStyles } from '@/styles/forms.styles';
-import ImagemPicker from '@/components/imagemPicker';
-
-
+import ImagemPicker from '@/components/formulario/imagemPicker';
+import { useAuth } from '@/hooks/useAuth';
+import { cadastrarApiario } from '@/services/apiarioService';
 
 const CadastrarApiario = () => {
+    const router = useRouter();
+    const { user } = useAuth();
+    const [loading, setLoading] = useState(false);
 
     //dados do apiario
     const [nome, setNome] = useState('');
@@ -56,21 +59,20 @@ const CadastrarApiario = () => {
     const [colmeiasPoliestirenoInativas, setColmeiasPoliestirenoInativas] = useState(0);
 
     //dados adicionais
-    //const [foto, setFoto] = useState<string[]>([]);
     const [observacoes, setObservacoes] = useState('');
 
 
-    const handleSubmit = () => {
-        // Adaptando para o DTO do Backend (ApiarioCriadoDTO)
-        // Nota: O backend atualmente não aceita criação de colmeias aninhadas neste endpoint.
-        // As colmeias devem ser criadas posteriormente ou endpoint ajustado.
-        
+    const handleSubmit = async () => {
+        if (!nome || !registro || !user?.id) {
+            Alert.alert("Erro", "Por favor, preencha os dados obrigatórios.");
+            return;
+        }
+
+        setLoading(true);
         const apiarioData: ApiarioCriadoDTO = {
             nome,
             nRegistro: registro,
             dataDeCriacao: dataCriacao,
-            
-            // Dados de Endereço (Flat)
             cep: endereco.cep,
             nomeDaPropriedade: endereco.propriedade,
             estado: endereco.estado,
@@ -79,22 +81,21 @@ const CadastrarApiario = () => {
             rua: endereco.rua,
             numero: endereco.numero,
             complemento: endereco.complemento,
-            
-            // Coordenadas
             latitude: endereco.coordenadas.latitude,
             longitude: endereco.coordenadas.longitude,
-
-            // Campos obrigatórios temporários
-            produtor_id: 1, // TODO: Pegar do AuthContext
+            produtor_id: user.id,
         };
 
-        console.log('Payload ApiarioCriadoDTO:', JSON.stringify(apiarioData, null, 2));
-
-        // Aqui você pode fazer uma chamada à API para salvar os dados
-        // Exemplo:
-        // api.post('/apiarios', apiarioData)
-        //     .then(response => console.log('Apiário cadastrado com sucesso:', response))
-        //     .catch(error => console.error('Erro ao cadastrar apiário:', error));
+        try {
+            await cadastrarApiario(user.id, apiarioData);
+            Alert.alert("Sucesso", "Apiário cadastrado com sucesso!");
+            router.replace('/apiario/listar');
+        } catch (error) {
+            console.error('Erro ao cadastrar apiário:', error);
+            Alert.alert("Erro", "Não foi possível cadastrar o apiário.");
+        } finally {
+            setLoading(false);
+        }
     };
 
 

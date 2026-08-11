@@ -1,0 +1,5 @@
+mock-api/node_modules/
+mobile/.env
+
+# JVM crash logs
+hs_err_pid*.log

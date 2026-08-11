@@ -2,19 +2,20 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from './icon';
+import Icon from '@/components/icon';
 
 interface InputConfigProps {
     label: string;
-    value?: string;
+    value?: string | boolean; // Suporta booleano para os switches
     status?: string;
     onPress?: () => void;
+    onValueChange?: (value: boolean) => void; // Adicionado para lidar com os switches customizados
     showArrow?: boolean;
     showSwitch?: boolean;
     showButton?: boolean;
     buttonText?: string;
     onButtonPress?: () => void;
-    iconName?: string; // Nova prop para ícone
+    iconName?: string;
     style?: object;
 }
 
@@ -23,15 +24,25 @@ export default function InputConfig({
     value,
     status,
     onPress,
+    onValueChange,
     showArrow = true,
     showSwitch = false,
     showButton = false,
     buttonText = "Ação",
     onButtonPress,
-    iconName, // Nova prop
+    iconName,
     style
 }: InputConfigProps) {
     
+    // Função que gerencia o clique na linha inteira
+    const handlePress = () => {
+        if (showSwitch && onValueChange && typeof value === 'boolean') {
+            onValueChange(!value);
+        } else if (onPress) {
+            onPress();
+        }
+    };
+
     const renderRightContent = () => {
         if (showButton) {
             return (
@@ -42,15 +53,17 @@ export default function InputConfig({
         }
         
         if (showSwitch) {
+            // Usa o booleano de `value` se existir, caso contrário o texto `status` (retrocompatibilidade)
+            const isSwitchOn = typeof value === 'boolean' ? value : status === 'Ativado';
             return (
                 <View style={styles.switchContainer}>
                     <View style={[
                         styles.switch,
-                        status === 'Ativado' ? styles.switchOn : styles.switchOff
+                        isSwitchOn ? styles.switchOn : styles.switchOff
                     ]}>
                         <View style={styles.switchCircle} />
                     </View>
-                    <Text style={styles.statusText}>{status}</Text>
+                    {status && <Text style={styles.statusText}>{status}</Text>}
                 </View>
             );
         }
@@ -60,18 +73,20 @@ export default function InputConfig({
                 {iconName && (
                     <Icon name={iconName} size={20} color="#8E8E93"/>
                 )}
-                {value && <Text style={styles.valueText}>{value}</Text>}
+                {typeof value === 'string' && <Text style={styles.valueText}>{value}</Text>}
                 {showArrow && <Icon name="chevronRight" size={20} color="#C7C7CC" />}
             </View>
         );
     };
 
-    const ContainerComponent = onPress ? TouchableOpacity : View;
+    // A linha só é clicável se houver onPress OU se for um switch com onValueChange
+    const isClickable = onPress || (showSwitch && onValueChange);
+    const ContainerComponent = isClickable ? TouchableOpacity : View;
 
     return (
         <ContainerComponent 
             style={[styles.container, style]}
-            onPress={onPress}
+            onPress={isClickable ? handlePress : undefined}
             activeOpacity={0.7}
         >
             <Text style={styles.label}>{label}</Text>

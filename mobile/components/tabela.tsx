@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Icon from './icon'; 
+import Icon from '@/components/icon'; 
 
 export interface TabelaColuna<T extends object> {
     label: string;
@@ -20,7 +20,7 @@ interface TabelaGenericaProps<T extends object> {
     data: T[];
 }
 
-export default function TabelaGenerica<T extends object>({
+export default function Tabela<T extends object>({
     colunas,
     data,
 }: TabelaGenericaProps<T>) {

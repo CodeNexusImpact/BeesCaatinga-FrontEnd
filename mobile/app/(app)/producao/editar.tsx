@@ -1,131 +1,127 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Text, Alert } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import Subtexto from '@/components/subTexto';
+import { getProducaoPorId, atualizarProducao, deletarProducao } from '@/services/producaoService';
+import { UnidadeMedida } from '@/types/insumos/Enums';
 
-const mockProducoesDatabase = [
-    {
-        id: 26,
-        tipoProduto: 'jandaira',
-        quantidade: '2.0', 
-        medida: 'kg',
-        apiario: 'rosa',
-        colmeia: '1',
-        dataColeta: '18/09/2025',
-    },
-    {
-        id: 27,
-        tipoProduto: 'umbu',
-        quantidade: '15',
-        medida: 'kg',
-        apiario: 'vale',
-        colmeia: '3',
-        dataColeta: '10/04/2025',
-    },
-];
-
-// Define a "forma" de um objeto de opção
-interface Option {
-    label: string;
-    value: string;
-}
-
-// Constante para a densidade (ex: 1.4kg/L para mel)
 const DENSIDADE_MEL_KG_L = 1.4;
 
 export default function Editar() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
+    const { user } = useAuth();
+
     const [tipoProduto, setTipoProduto] = useState('');
     const [quantidade, setQuantidade] = useState('');
-    const [medida, setMedida] = useState('');
+    const [medida, setMedida] = useState<UnidadeMedida | ''>('');
     const [apiario, setApiario] = useState('');
     const [colmeia, setColmeia] = useState('');
     const [dataColeta, setDataColeta] = useState('');
-    // Estado para o campo de conversão
     const [conversao, setConversao] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
-    // Efeito para carregar os dados
     useEffect(() => {
-        if (id) {
-            const itemParaEditar = mockProducoesDatabase.find(
-                (p) => p.id.toString() === id
-            );
+        const carregarDados = async () => {
+            if (!id) return;
+            try {
+                const data = await getProducaoPorId(id as string);
+                if (!data) {
+                    Alert.alert('Erro', 'Produção não encontrada.');
+                    router.back();
+                    return;
+                }
 
-            if (itemParaEditar) {
-                setTipoProduto(itemParaEditar.tipoProduto);
-                setQuantidade(itemParaEditar.quantidade);
-                setMedida(itemParaEditar.medida);
-                setApiario(itemParaEditar.apiario);
-                setColmeia(itemParaEditar.colmeia);
-                setDataColeta(itemParaEditar.dataColeta);
+                // Preenche os estados com os dados da API
+                setTipoProduto(data.tipoProducao);
+                setQuantidade(data.quantidade.toString());
+                // Mapeamento reverso se necessário (neste caso o DTO não traz unidadeMedida, 
+                // mas vamos assumir KILOGRAMA como padrão ou buscar de onde paramos)
+                setMedida('KILOGRAMA');
+                setApiario('1'); // IDs fixos para o mock se não vierem no DTO
+                setColmeia('1');
+
+                // Formata data de YYYY-MM-DD para DD/MM/YYYY
+                if (data.dataColeta) {
+                    const [ano, mes, dia] = data.dataColeta.split('-');
+                    setDataColeta(`${dia}/${mes}/${ano}`);
+                }
+            } catch (error) {
+                Alert.alert('Erro', 'Não foi possível carregar os dados da produção.');
+                router.back();
+            } finally {
+                setIsLoading(false);
             }
-        }
+        };
+
+        carregarDados();
     }, [id]);
 
-    // Efeito para calcular a conversão
     useEffect(() => {
-        // Converte a quantidade para número (aceitando vírgula ou ponto)
         const numQuantidade = parseFloat(quantidade.replace(',', '.'));
-
         if (isNaN(numQuantidade)) {
             setConversao('N/A');
             return;
         }
 
         let litros = 0;
-        if (medida === 'kg') {
+        if (medida === 'KILOGRAMA') {
             litros = numQuantidade / DENSIDADE_MEL_KG_L;
-        } else if (medida === 'g') {
-            litros = (numQuantidade / 1000) / DENSIDADE_MEL_KG_L;
-        } else if (medida === 'l') {
+        } else if (medida === 'LITRO') {
             litros = numQuantidade;
-        } else if (medida === 'ml') {
-            litros = numQuantidade / 1000;
         } else {
             setConversao('N/A');
             return;
         }
 
-        // Formata para 1,43 L (como na imagem)
         setConversao(`${litros.toFixed(2).replace('.', ',')} L`);
+    }, [quantidade, medida]);
 
-    }, [quantidade, medida]); // Roda sempre que quantidade ou medida mudar
+    const handleSalvar = async () => {
+        if (!id) return;
+        if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta) {
+            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            return;
+        }
 
-    // ADICIONE O TIPO 
-    const tipoProdutoOptions = [
-        { label: 'Mel de Jandaíra', value: 'jandaira' },
-        { label: 'Mel de Marmeleiro', value: 'marmeleiro' },
-        { label: 'Mel de Pajeú', value: 'pajeu' },
-        { label: 'Mel de Umbu', value: 'umbu' },
-    ];
+        setIsSaving(true);
+        try {
+            const [dia, mes, ano] = dataColeta.split('/');
+            const dataFormatada = `${ano}-${mes}-${dia}`;
 
-    const medidaOptions = [
-        { label: 'Kg', value: 'kg' },
-        { label: 'g', value: 'g' },
-        { label: 'L', value: 'l' },
-        { label: 'mL', value: 'ml' },
-    ];
+            const dto = {
+                tipoProducao: tipoProduto,
+                quantidade: parseFloat(quantidade.replace(',', '.')),
+                unidadeMedida: medida,
+                apiarioId: parseInt(apiario),
+                colmeiaId: parseInt(colmeia),
+                dataColeta: dataFormatada,
+            };
 
-    const apiarioOptions = [
-        { label: 'Rosa do Sertão', value: 'rosa' },
-        { label: 'Vale das Abelhas', value: 'vale' },
-        { label: 'Serra do Mel', value: 'serra' },
-    ];
+            if (!user) {
+                Alert.alert('Erro', 'Usuário não autenticado.');
+                return;
+            }
 
-    const colmeiaOptions = [
-        { label: 'Colmeia 1', value: '1' },
-        { label: 'Colmeia 2', value: '2' },
-        { label: 'Colmeia 3', value: '3' },
-    ];
+            await atualizarProducao(id as string, user.id, dto);
+            Alert.alert('Sucesso', 'Produção atualizada com sucesso!', [
+                { text: 'OK', onPress: () => router.push('/producao/listar') }
+            ]);
+        } catch (error) {
+            Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
-    // NOVO: Função para o botão de apagar
     const handleApagar = () => {
         Alert.alert(
             "Apagar Registro",
@@ -135,19 +131,33 @@ export default function Editar() {
                 {
                     text: "Apagar",
                     style: "destructive",
-                    onPress: () => {
-                        console.log('Apagando registro ID:', id);
-                        // Lógica de apagar (simulada)
-                        if (router.canGoBack()) {
-                            router.back();
-                        } else {
-                            router.push('/producao/listar');
+                    onPress: async () => {
+                        try {
+                            if (!user) {
+                                Alert.alert('Erro', 'Usuário não autenticado.');
+                                return;
+                            }
+
+                            await deletarProducao(parseInt(id as string), user.id);
+                            Alert.alert('Sucesso', 'Registro apagado!', [
+                                { text: 'OK', onPress: () => router.push('/producao/listar') }
+                            ]);
+                        } catch (error) {
+                            Alert.alert('Erro', 'Não foi possível apagar o registro.');
                         }
                     }
                 }
             ]
         );
     };
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, styles.center]}>
+                <ActivityIndicator size="large" color={cores.primaria} />
+            </View>
+        );
+    }
 
     return (
         <ScrollView
@@ -157,14 +167,12 @@ export default function Editar() {
             <Stack.Screen options={{ title: 'Editar' }} />
             <Subtexto style={styles.subtexto}>Edite os dados da produção.</Subtexto>
 
-            {/*Campo ID não editável */}
             <Input
                 label="ID"
                 value={id ? id.toString() : ''}
                 editable={false}
                 style={styles.idInput}
-                placeholder=""
-                onChangeText={() => {}}
+                onChangeText={() => { }}
             />
 
             <Input
@@ -172,14 +180,12 @@ export default function Editar() {
                 value={conversao}
                 editable={false}
                 style={styles.conversaoInput}
-                placeholder=""
-                onChangeText={() => {}}
+                onChangeText={() => { }}
             />
 
-            {/* Quantidade + Medida */}
             <View style={styles.row}>
                 <Input
-                    label="Quantidade" 
+                    label="Quantidade"
                     value={quantidade}
                     onChangeText={setQuantidade}
                     keyboardType="decimal-pad"
@@ -188,73 +194,64 @@ export default function Editar() {
                 />
                 <Selector
                     label="Medida"
-                    options={medidaOptions}
-                    onSelect={setMedida}
-                    placeholder="Selecione a Medida" 
+                    options={[
+                        { label: 'Kg', value: 'KILOGRAMA' },
+                        { label: 'L', value: 'LITRO' },
+                    ]}
+                    onSelect={(val) => setMedida(val as UnidadeMedida)}
+                    placeholder="Selecione"
                     style={styles.inputMetade}
                     value={medida}
                 />
             </View>
-            
-            {/* Tipo de Mel */}
+
             <Selector
                 label="Tipo Produto"
-                options={tipoProdutoOptions}
+                options={[
+                    { label: 'Mel de Jandaíra', value: 'Mel de Jandaíra' },
+                    { label: 'Mel de Marmeleiro', value: 'Mel de Marmeleiro' },
+                ]}
                 onSelect={setTipoProduto}
-                placeholder="Selecione o tipo de Mel"
+                placeholder="Selecione o tipo"
                 iconName="honeycomb"
                 value={tipoProduto}
             />
 
-            {/* Apiário */}
             <Selector
                 label="Apiário"
-                options={apiarioOptions}
+                options={[
+                    { label: 'Rosa do Sertão', value: '1' },
+                    { label: 'Vale das Abelhas', value: '2' },
+                ]}
                 onSelect={setApiario}
                 placeholder="Selecione o Apiário"
                 iconName="home"
                 value={apiario}
             />
 
-            {/* Colmeia */}
             <Selector
                 label="Colmeia"
-                options={colmeiaOptions}
+                options={[
+                    { label: 'Colmeia 1', value: '1' },
+                    { label: 'Colmeia 2', value: '2' },
+                ]}
                 onSelect={setColmeia}
                 placeholder="Selecione a Colmeia"
                 iconName="beehiveOutline"
                 value={colmeia}
             />
 
-            {/* Data Coleta */}
             <Input
-                label="Data Coleta" 
+                label="Data Coleta"
                 value={dataColeta}
                 onChangeText={setDataColeta}
                 placeholder="dd/mm/aaaa"
                 iconName="calendar"
             />
 
-            {/* Botão Salvar */}
             <Botao
-                title="Salva edição" 
-                onPress={() => {
-                    console.log('Salvando alterações para ID:', id);
-                    console.log({
-                        tipoProduto,
-                        quantidade,
-                        medida,
-                        apiario,
-                        colmeia,
-                        dataColeta,
-                        conversao, 
-                    });
-                    if (router.canGoBack()) {
-                        router.back();
-                    } else {
-                        router.push('/producao/listar');
-                    }
-                }}
+                title={isSaving ? "Salvando..." : "Salvar Edição"}
+                onPress={handleSalvar}
                 cor="primaria"
                 style={styles.buttonSave}
             />
@@ -275,6 +272,10 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: cores.fundo,
     },
+    center: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     contentContainer: {
         padding: layout.espacamento.amigavel,
         gap: layout.espacamento.colega,
@@ -282,8 +283,8 @@ const styles = StyleSheet.create({
     },
     subtexto: {
         width: '100%',
-        paddingTop: layout.espacamento.amigavel, 
-        marginBottom: layout.espacamento.amigavel, 
+        paddingTop: layout.espacamento.amigavel,
+        marginBottom: layout.espacamento.amigavel,
     },
     row: {
         flexDirection: 'row',
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
     inputMetade: {
         flex: 1,
     },
-    buttonSave: { 
+    buttonSave: {
         marginTop: layout.espacamento.social,
     },
     idInput: {
@@ -303,10 +304,10 @@ const styles = StyleSheet.create({
         borderColor: '#DDDDDD',
     },
     conversaoInput: {
-        backgroundColor: '#FFF8E1', 
-        borderColor: '#FFECB3',
+        backgroundColor: cores.cores.primaria[10],
+        borderColor: cores.cores.primaria[30],
     },
     buttonDelete: {
-        marginTop: layout.espacamento.amigavel, 
+        marginTop: layout.espacamento.amigavel,
     },
 });

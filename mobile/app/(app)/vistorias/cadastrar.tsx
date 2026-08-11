@@ -1,25 +1,66 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import Checkbox from 'expo-checkbox';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert, View, Text, ActivityIndicator } from 'react-native';
+import Checkbox from 'expo-checkbox';
+import { cadastrarVistoria } from '@/services/vistoriaService';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { listarColmeiasPorApiario } from '@/services/colmeiaService';
+import ModalSucesso from '@/components/notificacao/modalSucesso';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function CadastrarVistoria() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // --- Estados da Vistoria ---
-  const [dataVistoria, setDataVistoria] = useState('18/09/2025');
+  const [dataVistoria, setDataVistoria] = useState(new Date().toLocaleDateString('pt-BR'));
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
-  const [condicao, setCondicao] = useState('manutencao');
+  const [condicao, setCondicao] = useState('saudavel');
   const [observacoes, setObservacoes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
+
+  // Opções dinâmicas
+  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+  const [colmeiaOptions, setColmeiaOptions] = useState<{label: string, value: string}[]>([]);
+
+  useEffect(() => {
+    const fetchApiarios = async () => {
+        if (!user?.id) return;
+        try {
+            const data = await listarApiariosPorProdutor(user.id);
+            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar apiários:', e);
+        }
+    };
+    fetchApiarios();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchColmeias = async () => {
+        if (!apiario || !user?.id) {
+            setColmeiaOptions([]);
+            return;
+        };
+        try {
+            const data = await listarColmeiasPorApiario(user.id, apiario);
+            setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
+        } catch (e) {
+            console.error('Erro ao buscar colmeias:', e);
+        }
+    };
+    fetchColmeias();
+  }, [apiario, user?.id]);
 
   // Estados para os checkboxes
-  const [pragas, setPragas] = useState({
+  const [pragasObj, setPragasObj] = useState({
     varroa: false,
     formiga: false,
     traca: false,
@@ -27,59 +68,61 @@ export default function CadastrarVistoria() {
     outro: false,
   });
 
-  const [perdas, setPerdas] = useState({
+  const [perdasObj, setPerdasObj] = useState({
     alimentacao: false,
     veneno: false,
     clima: false,
     outro: false,
   });
 
-  // --- Opções (mock data) ---
-  const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: 'rosa' },
-    { label: 'Vale das Abelhas', value: 'vale' },
-    { label: 'Serra do Mel', value: 'serra' },
-  ];
-
-  const colmeiaOptions = [
-    { label: 'Colmeia 1', value: '1' },
-    { label: 'Colmeia 2', value: '2' },
-    { label: 'Colmeia 3', value: '3' },
-  ];
-
+  // --- Opções fixas ---
   const condicaoOptions = [
-    { label: 'Manutenção Necessária', value: 'manutencao' },
-    { label: 'Saudável', value: 'saudavel' },
-    { label: 'Em Risco', value: 'risco' },
-    { label: 'Perdida', value: 'perdida' },
+    { label: 'Saudável', value: 'SAUDAVEL' },
+    { label: 'Manutenção Necessária', value: 'MANUTENCAO_NECESSARIA' },
+    { label: 'Agendar Colheita', value: 'AGENDAR_COLHEITA' },
   ];
 
-  // --- Funções Auxiliares ---
-  const setPraga = (key: keyof typeof pragas, value: boolean) => {
-    setPragas((prev) => ({ ...prev, [key]: value }));
+  const handleSalvar = async () => {
+    if (!apiario || !colmeia || !user?.id) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const pragas = Object.entries(pragasObj)
+        .filter(([_, checked]) => checked)
+        .map(([key]) => key.toUpperCase());
+      
+      const perdas = Object.entries(perdasObj)
+        .filter(([_, checked]) => checked)
+        .map(([key]) => key.toUpperCase());
+
+      const payload = {
+        dataVistoria: dataVistoria,
+        apiario_id: Number(apiario),
+        colmeia_id: Number(colmeia),
+        condicao: condicao,
+        observacoes,
+        pragasIdentificadas: pragas,
+        perdasIdentificadas: perdas,
+      };
+
+      await cadastrarVistoria(user.id, apiario, colmeia, payload);
+      setModalSucessoVisivel(true);
+    } catch (error) {
+      console.error('Erro ao salvar vistoria:', error);
+      Alert.alert('Erro', 'Não foi possível salvar a vistoria.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const setPerda = (key: keyof typeof perdas, value: boolean) => {
-    setPerdas((prev) => ({ ...prev, [key]: value }));
+  const aoFecharSucesso = () => {
+    setModalSucessoVisivel(false);
+    router.back();
   };
 
-  const handleSalvar = () => {
-    console.log('Dados da Vistoria:');
-    console.log({
-      dataVistoria,
-      apiario,
-      colmeia,
-      condicao,
-      pragas,
-      perdas,
-      observacoes,
-    });
-    
-    // Navega para a tela de listagem 
-    router.push('/vistorias/listar');
-  };
-
-  // Componente auxiliar para renderizar cada item de checkbox
   const CheckboxItem = ({
     label,
     value,
@@ -105,7 +148,6 @@ export default function CadastrarVistoria() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Data da Vistoria */}
       <Input
         label="Data da Vistoria:"
         value={dataVistoria}
@@ -114,25 +156,24 @@ export default function CadastrarVistoria() {
         iconName="calendar"
       />
 
-      {/* Apiário */}
       <Selector
         label="Selecione o Apiário*"
         options={apiarioOptions}
         onSelect={setApiario}
         placeholder="Selecione"
         iconName="home"
+        value={apiario}
       />
 
-      {/* Colmeia */}
       <Selector
         label="Selecione a Colmeia*"
         options={colmeiaOptions}
         onSelect={setColmeia}
         placeholder="Selecione"
         iconName="beehiveOutline"
+        value={colmeia}
       />
 
-      {/* Condição */}
       <Selector
         label="Condição:"
         options={condicaoOptions}
@@ -141,66 +182,27 @@ export default function CadastrarVistoria() {
         value={condicao}
       />
 
-      {/* Seção de Checkboxes */}
       <View style={styles.checkboxSection}>
-        {/* Coluna Pragas */}
         <View style={styles.checkboxColumn}>
           <Text style={styles.checkboxTitle}>Pragas</Text>
-          <CheckboxItem
-            label="Varroa"
-            value={pragas.varroa}
-            onValueChange={(v) => setPraga('varroa', v)}
-          />
-          <CheckboxItem
-            label="Formiga"
-            value={pragas.formiga}
-            onValueChange={(v) => setPraga('formiga', v)}
-          />
-          <CheckboxItem
-            label="Traça"
-            value={pragas.traca}
-            onValueChange={(v) => setPraga('traca', v)}
-          />
-          <CheckboxItem
-            label="Lagartixa"
-            value={pragas.lagartixa}
-            onValueChange={(v) => setPraga('lagartixa', v)}
-          />
-          <CheckboxItem
-            label="Outro"
-            value={pragas.outro}
-            onValueChange={(v) => setPraga('outro', v)}
-          />
+          <CheckboxItem label="Varroa" value={pragasObj.varroa} onValueChange={(v) => setPragasObj(p => ({...p, varroa: v}))} />
+          <CheckboxItem label="Formiga" value={pragasObj.formiga} onValueChange={(v) => setPragasObj(p => ({...p, formiga: v}))} />
+          <CheckboxItem label="Traça" value={pragasObj.traca} onValueChange={(v) => setPragasObj(p => ({...p, traca: v}))} />
+          <CheckboxItem label="Lagartixa" value={pragasObj.lagartixa} onValueChange={(v) => setPragasObj(p => ({...p, lagartixa: v}))} />
+          <CheckboxItem label="Outro" value={pragasObj.outro} onValueChange={(v) => setPragasObj(p => ({...p, outro: v}))} />
         </View>
 
-        {/* Coluna Perda por */}
         <View style={styles.checkboxColumn}>
           <Text style={styles.checkboxTitle}>Perda por</Text>
-          <CheckboxItem
-            label="Alimentação"
-            value={perdas.alimentacao}
-            onValueChange={(v) => setPerda('alimentacao', v)}
-          />
-          <CheckboxItem
-            label="Veneno"
-            value={perdas.veneno}
-            onValueChange={(v) => setPerda('veneno', v)}
-          />
-          <CheckboxItem
-            label="Clima"
-            value={perdas.clima}
-            onValueChange={(v) => setPerda('clima', v)}
-          />
-          <CheckboxItem
-            label="Outro"
-            value={perdas.outro}
-            onValueChange={(v) => setPerda('outro', v)}
-          />
+          <CheckboxItem label="Alimentação" value={perdasObj.alimentacao} onValueChange={(v) => setPerdasObj(p => ({...p, alimentacao: v}))} />
+          <CheckboxItem label="Veneno" value={perdasObj.veneno} onValueChange={(v) => setPerdasObj(p => ({...p, veneno: v}))} />
+          <CheckboxItem label="Clima" value={perdasObj.clima} onValueChange={(v) => setPerdasObj(p => ({...p, clima: v}))} />
+          <CheckboxItem label="Outro" value={perdasObj.outro} onValueChange={(v) => setPerdasObj(p => ({...p, outro: v}))} />
         </View>
       </View>
 
-      {/* Observações */}
       <Input
+        label="Observações:"
         value={observacoes}
         onChangeText={setObservacoes}
         placeholder="Observações (opcional):"
@@ -209,12 +211,17 @@ export default function CadastrarVistoria() {
         style={styles.textArea}
       />
 
-      {/* Botão */}
       <Botao
-        title="Salvar"
+        title={loading ? "Salvando..." : "Salvar"}
         onPress={handleSalvar}
         cor="primaria"
         style={styles.button}
+      />
+
+      <ModalSucesso
+        visivel={modalSucessoVisivel}
+        mensagem="Vistoria cadastrada com sucesso!"
+        aoFechar={aoFecharSucesso}
       />
     </ScrollView>
   );
@@ -235,10 +242,8 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 120,
     textAlignVertical: 'top',
-    paddingTop: layout.espacamento.amigavel,
     padding: layout.espacamento.amigavel,
   },
-  // --- Estilos dos Checkboxes ---
   checkboxSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',

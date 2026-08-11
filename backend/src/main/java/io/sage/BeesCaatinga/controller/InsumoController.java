@@ -37,6 +37,12 @@ public class InsumoController {
         return ResponseEntity.ok(insumos);
     }
 
+    @GetMapping("/{insumoId}/produtor/{produtorId}")
+    public ResponseEntity<InsumoRetornoDTO> buscarPorId(@PathVariable Long insumoId, @PathVariable Long produtorId){
+        InsumoRetornoDTO insumo = service.buscarPorId(produtorId, insumoId);
+        return ResponseEntity.ok(insumo);
+    }
+
     @PutMapping("/{insumoId}/produtor/{produtorId}")
     @Transactional
     public ResponseEntity<InsumoRetornoDTO> atualizar(@RequestBody @Valid InsumoAtualizadoDTO dto, @PathVariable Long insumoId, @PathVariable Long produtorId){

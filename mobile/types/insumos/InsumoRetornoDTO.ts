@@ -1,11 +1,14 @@
 import { StatusInsumo, UnidadeMedida } from './Enums';
 
 export interface InsumoRetornoDTO {
-    dataEntrada: string; // LocalDate
+    id: number;
+    produtorId: number;
+    dataInsumo: string; 
     nome: string;
-    tipo: string;
+    tipoInsumo: string;
     quantidade: number;
     unidadeMedida: UnidadeMedida;
+    dataValidade: string;
     statusInsumo: StatusInsumo;
     observacoes: string;
 }

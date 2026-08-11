@@ -1,41 +1,78 @@
-import Botao from '@/components/botao';
-import Input from '@/components/input';
-import Selector from '@/components/selector';
+import Botao from '@/components/formulario/botao';
+import Input from '@/components/formulario/input';
+import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { cadastrarRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
 
 export default function CadastrarLoteMel() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Estados
-  const [dataProducao, setDataProducao] = useState('');
+  const [dataProducao, setDataProducao] = useState(new Date().toLocaleDateString('pt-BR'));
   const [quantidadeProduzida, setQuantidadeProduzida] = useState('');
   const [apiario, setApiario] = useState('');
   const [nomeFlorada, setNomeFlorada] = useState('');
   const [localidadeProducao, setLocalidadeProducao] = useState('');
   const [tipoAbelhas, setTipoAbelhas] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    // Redireciona para a listagem após cadastro
-    router.push('/producao/listar');
+  // Opções dinâmicas
+  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
+
+  useEffect(() => {
+    const fetchApiarios = async () => {
+        if (!user?.id) return;
+        try {
+            const data = await listarApiariosPorProdutor(user.id);
+            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
+        } catch (e) {
+            console.error('❌ [CADASTRAR LOTE] Erro ao buscar apiários:', e);
+        }
+    };
+    fetchApiarios();
+  }, [user?.id]);
+
+  const handleSubmit = async () => {
+    if (!dataProducao || !quantidadeProduzida || !apiario || !user?.id) {
+        Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios (*).');
+        return;
+    }
+
+    setLoading(true);
+    try {
+        const payload: RastreabilidadeDTO = {
+            dataProducao,
+            quantidadeProduzida: parseFloat(quantidadeProduzida.replace(',', '.')),
+            apiarioId: parseInt(apiario),
+            tipoFlorada: nomeFlorada,
+            tipoAbelha: tipoAbelhas,
+            produtorId: user.id, // Injetado via service, mas mantido aqui para clareza
+            vendido: false,
+        };
+
+        await cadastrarRastreabilidade(user.id, payload);
+        Alert.alert('Sucesso', 'Lote cadastrado com sucesso!');
+        router.push('/rastreabilidade/listar');
+    } catch (error) {
+        console.error('❌ [CADASTRAR LOTE] Erro ao salvar:', error);
+        Alert.alert('Erro', 'Ocorreu um erro ao salvar o lote no servidor.');
+    } finally {
+        setLoading(false);
+    }
   };
 
   const handleDateChange = (text: string) => {
     setDataProducao(maskDate(text));
   };
-
-  // Opções
-  const apiarioOptions = [
-    { label: 'Apiário Norte', value: 'norte' },
-    { label: 'Apiário Sul', value: 'sul' },
-    { label: 'Apiário Leste', value: 'leste' },
-    { label: 'Apiário Oeste', value: 'oeste' },
-  ];
 
   const tipoAbelhasOptions = [
     { label: 'Apis mellifera', value: 'apis_mellifera' },
