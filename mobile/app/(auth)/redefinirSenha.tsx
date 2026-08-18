@@ -6,7 +6,7 @@ import { Text, View, StyleSheet, Platform, useWindowDimensions, ScrollView, Touc
 import Icon from '@/components/icon';
 import cores from "@/constants/cores";
 import { useNavigation } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styles as formStyle } from "@/styles/forms.styles";
 import layout from "@/constants/layout";
 
@@ -59,6 +59,7 @@ function RedefinirSenha() {
         <View style={[styles.conteinerLogo, isWebPC && styles.conteinerLogoWeb]}>
           <Image
             style={styles.image}
+            contentFit="contain"
             source={require("@/assets/images/LogoBeesCaatinga.png")}
           />
         </View>
@@ -147,7 +148,6 @@ const styles = StyleSheet.create({
   image: {
     width: "70%",
     height: Platform.OS === 'web' ? 150 : 200,
-    resizeMode: 'contain',
     alignSelf: 'center',
   },
   errorText: {
