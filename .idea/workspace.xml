@@ -5,45 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3eaa1735-60f9-43a6-993d-f19fcb650d54" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/BeesCaatinga.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/.env.exemple" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/.env.exemple" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/apiario/cadastrar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/apiario/cadastrar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/apiario/colmeia/cadastrar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/apiario/colmeia/cadastrar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/apiario/dashboardApiario.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/apiario/dashboardApiario.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/apiario/dashboardColmeia.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/apiario/dashboardColmeia.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/apiario/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/apiario/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/insumos/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/insumos/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/producao/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/producao/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/rastreabilidade/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/rastreabilidade/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/rastreabilidade/listar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/rastreabilidade/listar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/relatorio/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/relatorio/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/tutorial.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/tutorial.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(app)/vistorias/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(app)/vistorias/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(auth)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(auth)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/app/(auth)/redefinirSenha.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/app/(auth)/redefinirSenha.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/formulario/imagemPicker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/formulario/imagemPicker.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/formulario/input.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/formulario/input.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/formulario/inputConfig.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/formulario/inputConfig.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/formulario/selector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/formulario/selector.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/genericCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/genericCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/graficoCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/graficoCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/home/itensHome.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/home/itensHome.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/kpiCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/kpiCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/mapa/mapa.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/mapa/mapa.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile/components/mapa/mapa.web.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/mapa/mapa.web.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/notificacao/cardNotificacao.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/notificacao/cardNotificacao.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/components/notificacao/modalSucesso.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/components/notificacao/modalSucesso.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mock-api/db.json" beforeDir="false" afterPath="$PROJECT_DIR$/mock-api/db.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mock-api/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mock-api/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mock-api/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mock-api/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mock-api/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/mock-api/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

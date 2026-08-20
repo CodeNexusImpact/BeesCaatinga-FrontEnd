@@ -47,6 +47,15 @@ export default function MapaWeb({
         link.crossOrigin = '';
         document.head.appendChild(link);
       }
+
+      const jsId = 'leaflet-cdn-js';
+      if (!document.getElementById(jsId)) {
+        const script = document.createElement('script');
+        script.id = jsId;
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.crossOrigin = '';
+        document.head.appendChild(script);
+      }
     }
   }, []);
 
@@ -58,8 +67,19 @@ export default function MapaWeb({
 
     const initMap = async () => {
       try {
-        const leafletModule = await import('leaflet');
-        const L = (leafletModule.default || leafletModule) as typeof Leaflet;
+        // Wait for Leaflet to load from CDN
+        let attempts = 0;
+        while (!(window as any).L && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if (!(window as any).L) {
+          console.error("Leaflet failed to load from CDN");
+          return;
+        }
+
+        const L = (window as any).L as typeof Leaflet;
 
         if (!isMounted || !containerRef.current) return;
 
