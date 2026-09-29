@@ -38,6 +38,7 @@ export default function Cadastrar() {
     const [ativo, setAtivo] = useState('sim');
     const [observacoes, setObservacoes] = useState('');
     const [loading, setLoading] = useState(false);
+    const [foto, setFoto] = useState(''); // Armazena a URL da imagem upada
 
     // Opções dinâmicas
     const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
@@ -84,7 +85,7 @@ export default function Cadastrar() {
                 latitude: -8.0, // Default para evitar erro de nulo no backend se não vier do mapa
                 longitude: -36.0,
                 detalhesDaLocalizacao: "",
-                caminhoDaFoto: ""
+                caminhoDaFoto: foto
             };
 
             await cadastrarColmeia(user.id, parseInt(apiario), payload);
@@ -197,8 +198,7 @@ export default function Cadastrar() {
                         label='Foto'
                         useImagePicker={true}
                         onImagePicked={(uri) => {
-                            // Aqui você pode gerenciar a URI da imagem selecionada
-                            console.log('Imagem selecionada:', uri);
+                            setFoto(uri || '');
                         }}
                     />
                     <Input

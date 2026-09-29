@@ -115,10 +115,7 @@ const styles = StyleSheet.create({
         // --- NOVO ESTILO: SHADOW ---
         ...Platform.select({
             ios: {
-                shadowColor: cores.secundaria, 
-                shadowOffset: { width: 1, height: 2 }, 
-                shadowRadius: 2, 
-                shadowOpacity: 0.4, 
+                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)', 
             },
             android: {
                 elevation: 2,                 

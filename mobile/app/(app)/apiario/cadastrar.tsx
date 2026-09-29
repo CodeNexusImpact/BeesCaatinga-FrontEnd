@@ -22,6 +22,7 @@ const CadastrarApiario = () => {
     const router = useRouter();
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [foto, setFoto] = useState(''); // Armazena a URL da imagem upada
 
     //dados do apiario
     const [nome, setNome] = useState('');
@@ -84,7 +85,8 @@ const CadastrarApiario = () => {
             latitude: endereco.coordenadas.latitude,
             longitude: endereco.coordenadas.longitude,
             produtor_id: user.id,
-        };
+            caminhoDaFoto: foto, // Inclui a URL da foto no payload
+        } as any; // Type as any to bypass temporary missing props in DTO if needed
 
         try {
             await cadastrarApiario(user.id, apiarioData);
@@ -187,8 +189,7 @@ const CadastrarApiario = () => {
                             label='Foto'
                             useImagePicker={true}
                             onImagePicked={(uri) => {
-                                // Aqui você pode gerenciar a URI da imagem selecionada
-                                console.log('Imagem selecionada:', uri);
+                                setFoto(uri || '');
                             }}
                         />
                         <Input

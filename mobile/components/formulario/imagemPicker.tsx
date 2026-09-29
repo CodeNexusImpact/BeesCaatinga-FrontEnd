@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from '@/components/icon';
 import temaCores from '@/constants/cores';
 import layout from '@/constants/layout';
 import ModalSelecaoImagem from '@/components/formulario/modalSelecaoImagem'; // Importe o novo modal
+import api from '@/services/api';
 
 interface ImagemPickerProps {
   onImagePicked: (uri: string | null) => void;
@@ -23,6 +24,7 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
 }) => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [modalVisivel, setModalVisivel] = useState(false); // Estado para controlar a visibilidade do modal
+  const [loading, setLoading] = useState(false); // Estado de loading para o upload
 
   // Lógica de dimensionamento
   const defaultSize = 160;
@@ -43,15 +45,44 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
     overflow: 'hidden',
   };
 
-  const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
+  const handleImageResult = async (result: ImagePicker.ImagePickerResult) => {
+    setModalVisivel(false); // Fechar o modal após a seleção
+    
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
-      setImageUri(uri);
-      onImagePicked(uri);
+      const localUri = result.assets[0].uri;
+      setImageUri(localUri); // Mostrar imediatamente para feedback visual
+      setLoading(true);
+
+      try {
+        const formData = new FormData();
+        formData.append('foto', {
+          uri: localUri,
+          name: `photo_${Date.now()}.jpg`,
+          type: 'image/jpeg',
+        } as any);
+
+        const response = await api.post('/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (response.data && response.data.url) {
+          const baseURL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.18.5:3000';
+          const fullUrl = `${baseURL}${response.data.url}`;
+          onImagePicked(fullUrl);
+        }
+      } catch (error) {
+        console.error('Erro no upload da imagem:', error);
+        Alert.alert('Erro', 'Não foi possível fazer o upload da imagem.');
+        setImageUri(null); // Reseta a imagem em caso de erro
+        onImagePicked(null);
+      } finally {
+        setLoading(false);
+      }
     } else {
       onImagePicked(null);
     }
-    setModalVisivel(false); // Fechar o modal após a seleção
   };
 
   const takePhoto = async () => {
@@ -92,8 +123,10 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
 
   return (
     <>
-      <TouchableOpacity onPress={selectImage} style={[containerStyle, style]}>
-        {imageUri ? (
+      <TouchableOpacity onPress={selectImage} style={[containerStyle, style]} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator size="large" color={temaCores.primaria[100]} />
+        ) : imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
           <View style={styles.placeholder}>

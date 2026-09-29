@@ -21,7 +21,7 @@ const ItemHome: React.FC<ItemHomeProps> = ({ title, iconName, imageSource, onPre
       activeOpacity={0.85}
     >
       {imageSource ? (
-        <Image source={imageSource} style={styles.customImage} />
+        <Image source={imageSource} resizeMode="contain" style={styles.customImage} />
       ) : iconName ? (
         <Icon name={iconName} size={60} color={cores.primaria} />
       ) : null}
@@ -41,9 +41,7 @@ const styles = StyleSheet.create({
     borderRadius: layout.borderRadius.r25,
     borderWidth: 0.2,
     borderColor: cores.borda,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.8)',
     elevation: 3,
     padding: layout.espacamento.texto,
     margin: layout.espacamento.amigavel,
@@ -52,7 +50,6 @@ const styles = StyleSheet.create({
   customImage: {
     width: 60,
     height: 60,
-    resizeMode: 'contain',
   },
   
   text: {

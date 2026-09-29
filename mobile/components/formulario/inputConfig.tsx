@@ -160,10 +160,7 @@ const styles = StyleSheet.create({
         height: 27,
         borderRadius: 13.5,
         backgroundColor: '#ffffff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
         elevation: 1,
     },
     button: {

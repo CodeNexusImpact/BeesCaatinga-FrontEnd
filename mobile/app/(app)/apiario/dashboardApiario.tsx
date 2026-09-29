@@ -175,8 +175,7 @@ const styles = StyleSheet.create({
         borderRadius: 12, 
         padding: 10,
         elevation: 3,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
         width: Platform.OS === 'web' ? '45%' : '100%' 
     },
     chartTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 10, color: cores.texto },

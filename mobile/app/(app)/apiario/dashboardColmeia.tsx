@@ -184,9 +184,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 10,
         elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     },
     chartTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: cores.texto },
     emptyText: { textAlign: 'center', padding: 20, color: '#888' }
