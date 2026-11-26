@@ -8,6 +8,7 @@ import cores from "@/constants/cores";
 import layout from "@/constants/layout";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
+import { alerta } from '@/utils/alerta';
 
 
 function Login() {
@@ -27,7 +28,7 @@ function Login() {
 
   const handleLogin = async () => {
     if (!email || !senha) {
-      Alert.alert("Erro", "Por favor, preencha o e-mail e a senha.");
+      alerta("Erro", "Por favor, preencha o e-mail e a senha.");
       return;
     }
 
@@ -35,7 +36,7 @@ function Login() {
     try {
       await signIn(email, senha);
     } catch (error: any) {
-      Alert.alert(
+      alerta(
         "Erro de Autenticação",
         error?.message || "E-mail ou senha inválidos. Verifique suas credenciais e sua conexão de rede."
       );
@@ -97,7 +98,10 @@ function Login() {
             </TouchableOpacity>
 
             {loading ? (
-              <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginVertical: 20 }} />
+              <View>
+                <ActivityIndicator size="large" color={cores.primaria[100]} style={{ marginVertical: 20 }} />
+                <Text style={styles.textoSimples}>Conectando ao servidor... na primeira vez pode levar até 1 minuto.</Text>
+              </View>
             ) : (
               <Botao title="Entrar" onPress={handleLogin} iconName="forward" />
             )}

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import * as Location from 'expo-location';
 import Input from '@/components/formulario/input';
 import { EnderecoProps } from '@/types/common/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
 import { maskCEP } from '@/utils/masks';
 import Botao from '@/components/formulario/botao';
+import { alerta } from '@/utils/alerta';
 
 interface FormEnderecoProps {
     enderecoInicial: EnderecoProps;
@@ -39,7 +40,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+                alerta('Permissão negada', 'Não foi possível acessar a localização.');
                 return;
             }
             const pos = await Location.getCurrentPositionAsync({});
@@ -50,7 +51,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
             setEndereco(updatedEndereco);
             onEnderecoChange(updatedEndereco);
         } catch {
-            Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+            alerta('Erro', 'Não foi possível obter a localização atual.');
         }
     }
 

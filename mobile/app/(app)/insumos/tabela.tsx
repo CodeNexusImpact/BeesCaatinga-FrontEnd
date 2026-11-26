@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/formulario/selector';
 import Botao from '@/components/formulario/botao';
 import Tabela, { TabelaColuna } from '@/components/tabela';
@@ -10,6 +10,7 @@ import { useFocusEffect, Stack } from 'expo-router';
 import { getInsumos } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
 import { InsumoRetornoDTO } from '@/types/insumos';
+import { alerta } from '@/utils/alerta';
 
 export default function RelatorioInsumosTabela() {
     const { user } = useAuth();
@@ -36,7 +37,7 @@ export default function RelatorioInsumosTabela() {
             setInsumos(dadosFormatados);
         } catch (error) {
             console.error('❌ [RELATORIO INSUMOS] Erro:', error);
-            Alert.alert('Erro', 'Não foi possível carregar os dados do relatório.');
+            alerta('Erro', 'Não foi possível carregar os dados do relatório.');
         } finally {
             setIsLoading(false);
         }
@@ -50,7 +51,7 @@ export default function RelatorioInsumosTabela() {
 
     const handleExportar = () => {
         if (!insumos || insumos.length === 0) {
-            Alert.alert('Aviso', 'Não há dados para exportar.');
+            alerta('Aviso', 'Não há dados para exportar.');
             return;
         }
 
@@ -66,7 +67,7 @@ export default function RelatorioInsumosTabela() {
         console.log(csvString);
         console.log('--------------------------------');
 
-        Alert.alert('Sucesso', `Relatório com ${insumos.length} registros gerado no console com sucesso!`);
+        alerta('Sucesso', `Relatório com ${insumos.length} registros gerado no console com sucesso!`);
     };
 
     // Colunas mapeadas com as chaves reais e formatadas

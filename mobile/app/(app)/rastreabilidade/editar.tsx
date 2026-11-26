@@ -6,8 +6,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { getRastreabilidadeById, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 const formatarData = (iso?: string) => {
   if (!iso) return '';
@@ -34,7 +35,7 @@ export default function DetalheLote() {
       .then((dados) => {
         if (!ativo) return;
         if (!dados) {
-          Alert.alert('Erro', 'Lote não encontrado.');
+          alerta('Erro', 'Lote não encontrado.');
           voltar(router);
           return;
         }
@@ -42,7 +43,7 @@ export default function DetalheLote() {
       })
       .catch(() => {
         if (ativo) {
-          Alert.alert('Erro', 'Não foi possível carregar o lote.');
+          alerta('Erro', 'Não foi possível carregar o lote.');
           voltar(router);
         }
       })

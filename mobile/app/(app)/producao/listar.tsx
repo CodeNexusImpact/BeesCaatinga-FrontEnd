@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import GenericCard, { CardField } from '@/components/genericCard';
 import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
 import ModalSucesso from '@/components/notificacao/modalSucesso';
@@ -10,6 +10,7 @@ import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { getProducoes, deletarProducao } from '@/services/producaoService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
+import { alerta } from '@/utils/alerta';
 
 const getStatusColor = (status: string) => {
   if (status === 'EM_ESTOQUE') return cores.sucesso;
@@ -82,7 +83,7 @@ export default function Visualizar() {
           setModalSucessoVisivel(true);
         }, 350);
       } catch (error) {
-        Alert.alert('Erro', 'Não foi possível excluir a produção.');
+        alerta('Erro', 'Não foi possível excluir a produção.');
         console.error(error);
         setModalConfirmacaoVisivel(false);
       }

@@ -7,13 +7,14 @@ import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { maskDate } from '@/utils/masks';
-import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, View, ActivityIndicator } from 'react-native';
 import Subtexto from '@/components/subTexto';
 import { getProducaoPorId, atualizarProducao, deletarProducao } from '@/services/producaoService';
 import { UnidadeMedida } from '@/types/insumos/Enums';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 type Opcao = { label: string; value: string };
 
@@ -46,7 +47,7 @@ export default function Editar() {
                     listarApiariosPorProdutor(user.id),
                 ]);
                 if (!data) {
-                    Alert.alert('Erro', 'Produção não encontrada.');
+                    alerta('Erro', 'Produção não encontrada.');
                     voltar(router);
                     return;
                 }
@@ -66,7 +67,7 @@ export default function Editar() {
                     setDataColeta(`${dia}/${mes}/${ano}`);
                 }
             } catch {
-                Alert.alert('Erro', 'Não foi possível carregar os dados da produção.');
+                alerta('Erro', 'Não foi possível carregar os dados da produção.');
                 voltar(router);
             } finally {
                 setIsLoading(false);
@@ -104,7 +105,7 @@ export default function Editar() {
     const handleSalvar = async () => {
         if (!id) return;
         if (!quantidade || !tipoProduto || !dataColeta) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            alerta('Erro', 'Por favor, preencha todos os campos.');
             return;
         }
 
@@ -124,23 +125,23 @@ export default function Editar() {
             };
 
             if (!user) {
-                Alert.alert('Erro', 'Usuário não autenticado.');
+                alerta('Erro', 'Usuário não autenticado.');
                 return;
             }
 
             await atualizarProducao(id as string, user.id, dto);
-            Alert.alert('Sucesso', 'Produção atualizada com sucesso!', [
+            alerta('Sucesso', 'Produção atualizada com sucesso!', [
                 { text: 'OK', onPress: () => router.push('/producao/listar') }
             ]);
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+            alerta('Erro', 'Não foi possível salvar as alterações.');
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleApagar = () => {
-        Alert.alert(
+        alerta(
             "Apagar Registro",
             `Tem certeza que deseja apagar o registro ID: ${id}? Esta ação não pode ser desfeita.`,
             [
@@ -151,16 +152,16 @@ export default function Editar() {
                     onPress: async () => {
                         try {
                             if (!user) {
-                                Alert.alert('Erro', 'Usuário não autenticado.');
+                                alerta('Erro', 'Usuário não autenticado.');
                                 return;
                             }
 
                             await deletarProducao(parseInt(id as string), user.id);
-                            Alert.alert('Sucesso', 'Registro apagado!', [
+                            alerta('Sucesso', 'Registro apagado!', [
                                 { text: 'OK', onPress: () => router.push('/producao/listar') }
                             ]);
                         } catch (error) {
-                            Alert.alert('Erro', 'Não foi possível apagar o registro.');
+                            alerta('Erro', 'Não foi possível apagar o registro.');
                         }
                     }
                 }

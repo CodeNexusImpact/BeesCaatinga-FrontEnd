@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Text } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { InsumoRetornoDTO } from '@/types/insumos';
 import Subtexto from '@/components/subTexto';
 import Icon from '@/components/icon';
+import { alerta } from '@/utils/alerta';
 
 export default function ListarInsumos() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function ListarInsumos() {
       setInsumos(data as unknown as InsumoRetornoDTO[]);
     } catch (error) {
       console.error('❌ [LISTAR INSUMOS] Erro:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os insumos.');
+      alerta('Erro', 'Não foi possível carregar os insumos.');
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +53,7 @@ export default function ListarInsumos() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert(
+    alerta(
       'Confirmar Exclusão',
       'Tem certeza que deseja excluir este insumo?',
       [
@@ -64,13 +65,13 @@ export default function ListarInsumos() {
             try {
               if (userId) {
                 await deletarInsumo(id, userId);
-                Alert.alert('Sucesso', 'Insumo excluído com sucesso.');
+                alerta('Sucesso', 'Insumo excluído com sucesso.');
                 carregarInsumos();
               } else {
-                Alert.alert('Erro', 'Usuário não autenticado.');
+                alerta('Erro', 'Usuário não autenticado.');
               }
             } catch (error) {
-              Alert.alert('Erro', 'Não foi possível excluir o insumo.');
+              alerta('Erro', 'Não foi possível excluir o insumo.');
             }
           }
 

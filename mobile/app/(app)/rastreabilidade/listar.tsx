@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal, ActivityIndicator } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
+import { alerta } from '@/utils/alerta';
 
 export default function ListarLotesMel() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function ListarLotesMel() {
       setLotes(data);
     } catch (error) {
       console.error('❌ [LISTAR LOTES] Erro ao carregar:', error);
-      Alert.alert('Erro', 'Não foi possível carregar a lista de lotes.');
+      alerta('Erro', 'Não foi possível carregar a lista de lotes.');
       setLotes([]); // Garante lista vazia em caso de falha
     } finally {
       setIsLoading(false);
@@ -65,7 +66,7 @@ export default function ListarLotesMel() {
 
   const handleExportar = () => {
     if (lotesFiltrados.length === 0) {
-      Alert.alert('Aviso', 'Não há dados para exportar.');
+      alerta('Aviso', 'Não há dados para exportar.');
       return;
     }
 
@@ -78,7 +79,7 @@ export default function ListarLotesMel() {
     console.log(cabecalho + linhas);
     console.log('----------------------------------------');
 
-    Alert.alert('Sucesso', 'Relatório de rastreabilidade gerado no console!');
+    alerta('Sucesso', 'Relatório de rastreabilidade gerado no console!');
   };
 
   // Texto exibido no seletor

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,6 +9,7 @@ import layout from '@/constants/layout';
 import InputConfig from '@/components/formulario/inputConfig';
 import Icon from '@/components/icon';
 import Botao from '@/components/formulario/botao';
+import { alerta } from '@/utils/alerta';
 
 const CONFIG_KEYS = {
     NOTIFICACOES: '@config_notificacoes',
@@ -59,14 +60,14 @@ export default function Index() {
             await AsyncStorage.setItem(CONFIG_KEYS.TEMA, JSON.stringify(temaEscuro));
             await AsyncStorage.setItem(CONFIG_KEYS.FONTE, tamanhoFonte.toString());
             
-            Alert.alert('Sucesso', 'Configurações salvas localmente!');
+            alerta('Sucesso', 'Configurações salvas localmente!');
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível salvar as configurações.');
+            alerta('Erro', 'Não foi possível salvar as configurações.');
         }
     };
 
     const handleLimparCachePress = () => {
-        Alert.alert(
+        alerta(
             'Limpar Cache',
             'Isso limpará dados temporários (exceto seu login). Deseja continuar?',
             [
@@ -81,9 +82,9 @@ export default function Index() {
                             setLocalizacaoAtivada(true);
                             setTemaEscuro(false);
                             setTamanhoFonte(16);
-                            Alert.alert('Sucesso', 'Cache limpo com sucesso.');
+                            alerta('Sucesso', 'Cache limpo com sucesso.');
                         } catch (error) {
-                            Alert.alert('Erro', 'Ocorreu um erro ao limpar o cache.');
+                            alerta('Erro', 'Ocorreu um erro ao limpar o cache.');
                         }
                     } 
                 }
@@ -93,11 +94,11 @@ export default function Index() {
 
     const handleExcluirPerfilPress = () => {
         if (!user?.id) {
-            Alert.alert('Erro', 'Usuário não identificado.');
+            alerta('Erro', 'Usuário não identificado.');
             return;
         }
 
-        Alert.alert(
+        alerta(
             'Atenção Crítica!',
             'Tem certeza? Esta ação é irreversível e apagará TODOS os seus dados permanentemente.',
             [
@@ -108,11 +109,11 @@ export default function Index() {
                     onPress: async () => {
                         try {
                             await deletarProdutor(user.id);
-                            Alert.alert('Despedida', 'Seu perfil foi excluído com sucesso.');
+                            alerta('Despedida', 'Seu perfil foi excluído com sucesso.');
                             await signOut();
                             router.replace('/login');
                         } catch (error) {
-                            Alert.alert('Erro', 'Não foi possível excluir o perfil.');
+                            alerta('Erro', 'Não foi possível excluir o perfil.');
                         }
                     }
                 }
@@ -168,7 +169,7 @@ export default function Index() {
                         label="Sincronização de Dados"
                         showButton={true}
                         buttonText="Sincronizar"
-                        onButtonPress={() => Alert.alert('Sincronização', 'Sincronização manual será implementada em breve.')}
+                        onButtonPress={() => alerta('Sincronização', 'Sincronização manual será implementada em breve.')}
                         showArrow={false}
                     />
                     <InputConfig

@@ -18,7 +18,8 @@ export const BASE_URL = resolveBaseUrl();
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  // 60s: o backend de homologação (Render gratuito) pode levar ~1 min para "acordar".
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

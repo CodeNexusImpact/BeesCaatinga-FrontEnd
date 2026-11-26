@@ -5,12 +5,13 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Icon from '@/components/icon';
 import { useAuth } from '@/hooks/useAuth';
 import { atualizarProdutor } from '@/services/produtorService';
 import { maskPhone } from '@/utils/masks';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 export default function Index() {
   const router = useRouter();
@@ -35,12 +36,12 @@ export default function Index() {
   const handleSalvar = async () => {
     if (!user?.id || salvando) return;
     if (!nome.trim()) {
-      Alert.alert('Erro', 'O nome é obrigatório.');
+      alerta('Erro', 'O nome é obrigatório.');
       return;
     }
     const digitos = telefone.replace(/\D/g, '');
     if (digitos && digitos.length < 10) {
-      Alert.alert('Erro', 'Telefone inválido.');
+      alerta('Erro', 'Telefone inválido.');
       return;
     }
     setSalvando(true);
@@ -53,10 +54,10 @@ export default function Index() {
         endereco: endereco.trim(),
       });
       await atualizarUsuario({ ...user, ...atualizado });
-      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+      alerta('Sucesso', 'Perfil atualizado com sucesso!');
       voltar(router);
     } catch (error: any) {
-      Alert.alert('Erro', error?.response?.data?.message || 'Não foi possível salvar o perfil.');
+      alerta('Erro', error?.response?.data?.message || 'Não foi possível salvar o perfil.');
     } finally {
       setSalvando(false);
     }

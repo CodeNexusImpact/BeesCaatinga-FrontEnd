@@ -5,7 +5,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Alert, View, Text, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { cadastrarVistoria } from '@/services/vistoriaService';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
@@ -14,6 +14,7 @@ import ModalSucesso from '@/components/notificacao/modalSucesso';
 import { maskDate } from '@/utils/masks';
 import { useAuth } from '@/hooks/useAuth';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 const CheckboxItem = ({
   label,
@@ -106,11 +107,11 @@ export default function CadastrarVistoria() {
 
   const handleSalvar = async () => {
     if (!apiario || !colmeia || !user?.id) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
+      alerta('Erro', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
     if (dataVistoria.length !== 10) {
-      Alert.alert('Erro', 'Informe a data da vistoria no formato dd/mm/aaaa.');
+      alerta('Erro', 'Informe a data da vistoria no formato dd/mm/aaaa.');
       return;
     }
 
@@ -138,7 +139,7 @@ export default function CadastrarVistoria() {
       setModalSucessoVisivel(true);
     } catch (error) {
       console.error('Erro ao salvar vistoria:', error);
-      Alert.alert('Erro', 'Não foi possível salvar a vistoria.');
+      alerta('Erro', 'Não foi possível salvar a vistoria.');
     } finally {
       setLoading(false);
     }

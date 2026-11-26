@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Icon from '@/components/icon';
 import { useRouter } from 'expo-router';
 import {temaCores} from '@/constants/cores';
 import { useAuth } from '@/hooks/useAuth';
+import { alerta } from '@/utils/alerta';
 
 const BottomMenu = () => {
     const router = useRouter();
@@ -16,7 +17,7 @@ const BottomMenu = () => {
                 signOut();
             }
         } else {
-            Alert.alert(
+            alerta(
                 "Sair",
                 "Deseja realmente sair do sistema?",
                 [

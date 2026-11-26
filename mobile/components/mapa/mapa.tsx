@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import MapView, { Marker, Circle } from 'react-native-maps';
-import { StyleSheet, View, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import * as Location from 'expo-location';
 import cores from '@/constants/cores';
 import { LocalizacaoMapa, RegiaoDeMapa } from '@/types/mapa/mapaLocalizacao';
+import { alerta } from '@/utils/alerta';
 
 interface MapaProps {
   localizacoes?: LocalizacaoMapa[];
@@ -64,7 +65,7 @@ export default function Mapa({
         setLoading(false);
       } catch (error) {
         console.error('Erro ao obter localização:', error);
-        Alert.alert('Erro', 'Não foi possível obter sua localização');
+        alerta('Erro', 'Não foi possível obter sua localização');
         // Fallback: região padrão
         setInitialRegion({
           latitude: -5.0917,

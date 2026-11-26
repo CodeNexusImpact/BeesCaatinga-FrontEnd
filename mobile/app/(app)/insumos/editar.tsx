@@ -6,12 +6,13 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { buscarInsumoPorId, atualizarInsumo } from '@/services/insumoService';
 import { maskDate } from '@/utils/masks';
 import { useAuth } from '@/hooks/useAuth';
 import Checkbox from 'expo-checkbox';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 const isoParaBr = (iso?: string | null) => {
     if (!iso) return '';
@@ -81,7 +82,7 @@ export default function EditarInsumo() {
             .catch((error) => {
                 if (!ativo) return;
                 console.error('❌ [EDITAR INSUMO] Erro:', error);
-                Alert.alert('Erro', 'Não foi possível carregar os dados para edição.');
+                alerta('Erro', 'Não foi possível carregar os dados para edição.');
                 voltar(router);
             })
             .finally(() => ativo && setIsLoading(false));
@@ -94,7 +95,7 @@ export default function EditarInsumo() {
         if (isSaving || !user?.id) return;
 
         if (!nome || !quantidade || !tipoInsumo) {
-            Alert.alert('Erro', 'Preencha os campos obrigatórios (*)');
+            alerta('Erro', 'Preencha os campos obrigatórios (*)');
             return;
         }
 
@@ -117,7 +118,7 @@ export default function EditarInsumo() {
             setModalSucessoVisivel(true);
         } catch (error) {
             console.error('❌ [EDITAR INSUMO] Erro ao salvar:', error);
-            Alert.alert('Erro', 'Ocorreu um erro ao salvar as alterações no servidor.');
+            alerta('Erro', 'Ocorreu um erro ao salvar as alterações no servidor.');
         } finally {
             setIsSaving(false);
         }

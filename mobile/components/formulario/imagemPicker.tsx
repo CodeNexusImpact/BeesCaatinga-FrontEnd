@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from '@/components/icon';
 import temaCores from '@/constants/cores';
 import layout from '@/constants/layout';
 import ModalSelecaoImagem from '@/components/formulario/modalSelecaoImagem'; // Importe o novo modal
 import api, { BASE_URL } from '@/services/api';
+import { alerta } from '@/utils/alerta';
 
 interface ImagemPickerProps {
   onImagePicked: (uri: string | null) => void;
@@ -74,7 +75,7 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
         }
       } catch (error) {
         console.error('Erro no upload da imagem:', error);
-        Alert.alert('Erro', 'Não foi possível fazer o upload da imagem.');
+        alerta('Erro', 'Não foi possível fazer o upload da imagem.');
         setImageUri(null); // Reseta a imagem em caso de erro
         onImagePicked(null);
       } finally {

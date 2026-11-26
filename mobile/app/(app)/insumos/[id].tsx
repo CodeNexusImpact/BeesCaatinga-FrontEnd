@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
 import GenericCard, { CardField } from '@/components/genericCard';
 import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
@@ -10,6 +10,7 @@ import layout from '@/constants/layout';
 import { buscarInsumoPorId, deletarInsumo, Insumo } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 export default function InsumoDetalhe() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +33,7 @@ export default function InsumoDetalhe() {
       setInsumo(data);
     } catch (error) {
       console.error('❌ [DETALHE INSUMO] Erro ao carregar:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os detalhes do registro.');
+      alerta('Erro', 'Não foi possível carregar os detalhes do registro.');
       voltar(router);
     } finally {
       setIsLoading(false);
@@ -61,7 +62,7 @@ export default function InsumoDetalhe() {
       setModalSucessoVisivel(true);
     } catch (error) {
       console.error('❌ [DETALHE INSUMO] Erro ao excluir:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao excluir o registro do banco.');
+      alerta('Erro', 'Ocorreu um erro ao excluir o registro do banco.');
     }
   };
 

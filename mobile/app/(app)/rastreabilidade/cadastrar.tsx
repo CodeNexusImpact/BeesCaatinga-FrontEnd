@@ -7,11 +7,12 @@ import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Alert, ActivityIndicator, Text } from 'react-native';
+import { ScrollView, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import * as Location from 'expo-location';
 import { useAuth } from '@/hooks/useAuth';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { cadastrarRastreabilidade } from '@/services/rastreabilidadeService';
+import { alerta } from '@/utils/alerta';
 
 export default function CadastrarLoteMel() {
   const router = useRouter();
@@ -44,11 +45,11 @@ export default function CadastrarLoteMel() {
 
   const handleSubmit = async () => {
     if (!dataProducao || !quantidadeProduzida || !apiario || !tipoAbelhas || !user?.id) {
-        Alert.alert('Erro', 'Preencha data, quantidade, apiário e tipo de abelha.');
+        alerta('Erro', 'Preencha data, quantidade, apiário e tipo de abelha.');
         return;
     }
     if (!coordenadas) {
-        Alert.alert('Erro', 'Registre a localização da produção ("Usar localização atual").');
+        alerta('Erro', 'Registre a localização da produção ("Usar localização atual").');
         return;
     }
 
@@ -67,11 +68,11 @@ export default function CadastrarLoteMel() {
         };
 
         await cadastrarRastreabilidade(user.id, payload);
-        Alert.alert('Sucesso', 'Lote cadastrado com sucesso!');
+        alerta('Sucesso', 'Lote cadastrado com sucesso!');
         router.push('/rastreabilidade/listar');
     } catch (error) {
         console.error('❌ [CADASTRAR LOTE] Erro ao salvar:', error);
-        Alert.alert('Erro', 'Ocorreu um erro ao salvar o lote no servidor.');
+        alerta('Erro', 'Ocorreu um erro ao salvar o lote no servidor.');
     } finally {
         setLoading(false);
     }
@@ -85,13 +86,13 @@ export default function CadastrarLoteMel() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+        alerta('Permissão negada', 'Não foi possível acessar a localização.');
         return;
       }
       const pos = await Location.getCurrentPositionAsync({});
       setCoordenadas({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
     } catch {
-      Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+      alerta('Erro', 'Não foi possível obter a localização atual.');
     }
   };
 

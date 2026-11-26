@@ -12,12 +12,12 @@ import {
   StyleSheet,
   Text,
   View,
-  Alert,
-} from 'react-native';
+  } from 'react-native';
 import { getVistoriaById, atualizarVistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
 import { maskDate } from '@/utils/masks';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 const CheckboxItem = ({ label, value, onValueChange }: {
   label: string; value: boolean; onValueChange: (value: boolean) => void;
@@ -84,7 +84,7 @@ export default function EditarVistoria() {
       .then((dados) => {
         if (!ativo) return;
         if (!dados) {
-          Alert.alert('Erro', 'Vistoria não encontrada!');
+          alerta('Erro', 'Vistoria não encontrada!');
           voltar(router);
           return;
         }
@@ -98,7 +98,7 @@ export default function EditarVistoria() {
       })
       .catch(() => {
         if (!ativo) return;
-        Alert.alert('Erro', 'Vistoria não encontrada!');
+        alerta('Erro', 'Vistoria não encontrada!');
         voltar(router);
       })
       .finally(() => ativo && setIsLoading(false));
@@ -110,7 +110,7 @@ export default function EditarVistoria() {
   const handleSalvar = async () => {
     if (!id || !userId || isSaving) return;
     if (dataVistoria.length !== 10 || !condicao) {
-      Alert.alert('Erro', 'Informe a data (dd/mm/aaaa) e a condição.');
+      alerta('Erro', 'Informe a data (dd/mm/aaaa) e a condição.');
       return;
     }
     setIsSaving(true);
@@ -122,11 +122,11 @@ export default function EditarVistoria() {
         pragasIdentificadas: paraLista(pragasObj),
         perdasIdentificadas: paraLista(perdasObj),
       });
-      Alert.alert('Sucesso', 'Vistoria atualizada com sucesso!');
+      alerta('Sucesso', 'Vistoria atualizada com sucesso!');
       router.push('/vistorias/listar');
     } catch (error) {
       console.error('Erro ao atualizar vistoria:', error);
-      Alert.alert('Erro', 'Não foi possível atualizar a vistoria.');
+      alerta('Erro', 'Não foi possível atualizar a vistoria.');
     } finally {
       setIsSaving(false);
     }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -8,6 +8,7 @@ import { getVistoriaById, deletarVistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
 import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 type Vistoria = Awaited<ReturnType<typeof getVistoriaById>>;
 
@@ -35,7 +36,7 @@ export default function DetalhesVistoria() {
         setVistoria(dados);
       } catch (error) {
         console.error('Erro ao carregar detalhes:', error);
-        Alert.alert('Erro', 'Vistoria não encontrada.');
+        alerta('Erro', 'Vistoria não encontrada.');
         voltar(router);
       } finally {
         setLoading(false);
@@ -66,7 +67,7 @@ export default function DetalhesVistoria() {
         router.push('/vistorias/listar');
       } catch (error) {
         console.error('Erro ao excluir:', error);
-        Alert.alert('Erro', 'Não foi possível excluir a vistoria.');
+        alerta('Erro', 'Não foi possível excluir a vistoria.');
       }
     }
   };

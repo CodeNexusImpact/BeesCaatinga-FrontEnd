@@ -27,6 +27,7 @@ import { cadastrarColmeia } from '@/services/colmeiaService';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 export default function Cadastrar() {
     const router = useRouter();
@@ -73,11 +74,11 @@ export default function Cadastrar() {
 
     const handleSubmit = async () => {
         if (!identificador || !apiario || !tipo || !userId) {
-            Alert.alert('Erro', 'Por favor, selecione um apiário válido e preencha os campos obrigatórios.');
+            alerta('Erro', 'Por favor, selecione um apiário válido e preencha os campos obrigatórios.');
             return;
         }
         if (!coordenadas) {
-            Alert.alert('Erro', 'Registre a localização da colmeia ("Usar localização atual").');
+            alerta('Erro', 'Registre a localização da colmeia ("Usar localização atual").');
             return;
         }
 
@@ -96,11 +97,11 @@ export default function Cadastrar() {
             };
 
             await cadastrarColmeia(userId, parseInt(apiario), payload);
-            Alert.alert('Sucesso', 'Colmeia cadastrada com sucesso!');
+            alerta('Sucesso', 'Colmeia cadastrada com sucesso!');
             voltar(router);
         } catch (error) {
             console.error('Erro ao cadastrar colmeia:', error);
-            Alert.alert('Erro', 'Não foi possível cadastrar a colmeia.');
+            alerta('Erro', 'Não foi possível cadastrar a colmeia.');
         } finally {
             setLoading(false);
         }
@@ -110,13 +111,13 @@ export default function Cadastrar() {
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+                alerta('Permissão negada', 'Não foi possível acessar a localização.');
                 return;
             }
             const pos = await Location.getCurrentPositionAsync({});
             setCoordenadas({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
         } catch {
-            Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+            alerta('Erro', 'Não foi possível obter a localização atual.');
         }
     };
 

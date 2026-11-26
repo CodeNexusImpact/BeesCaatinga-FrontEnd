@@ -12,8 +12,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Alert,
-} from 'react-native';
+  } from 'react-native';
 import { getVistorias, deletarVistoria, Vistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,6 +22,7 @@ import ModalSucesso from '@/components/notificacao/modalSucesso';
 
 import GenericCard from '@/components/genericCard';
 import type { CardField } from '@/components/genericCard';
+import { alerta } from '@/utils/alerta';
 
 export default function ListarVistorias() {
   const router = useRouter();
@@ -67,7 +67,7 @@ export default function ListarVistorias() {
       setVistorias(dados);
     } catch (error) {
       console.error('Erro ao carregar vistorias:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as vistorias.');
+      alerta('Erro', 'Não foi possível carregar as vistorias.');
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ export default function ListarVistorias() {
         carregarVistorias(); // Recarrega a lista
       } catch (error) {
         console.error('Erro ao excluir vistoria:', error);
-        Alert.alert('Erro', 'Não foi possível excluir a vistoria.');
+        alerta('Erro', 'Não foi possível excluir a vistoria.');
         setModalConfirmacaoVisivel(false);
       }
     }

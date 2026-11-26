@@ -86,13 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const signIn = async (email: string, senha: string) => {
         let resposta: Produtor & { token?: string };
         try {
-            const response = await api.post<Produtor & { token?: string }>('/login', { email, senha });
+            const response = await api.post<Produtor & { token?: string }>('/login', { email: email.trim().toLowerCase(), senha });
             resposta = response.data;
         } catch (error: any) {
             // Backend responde 401 com ErrorResponse { status, error, message, timestamp }.
             const status = error?.response?.status;
             const mensagem: string | undefined = error?.response?.data?.message;
             if (status === 401) throw new Error(mensagem || 'E-mail ou senha inválidos');
+            if (error?.code === 'ECONNABORTED') throw new Error('O servidor demorou para responder (ele pode estar iniciando). Aguarde alguns segundos e tente novamente.');
             if (!error?.response) throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão.');
             throw new Error(mensagem || 'Erro ao efetuar login. Tente novamente.');
         }

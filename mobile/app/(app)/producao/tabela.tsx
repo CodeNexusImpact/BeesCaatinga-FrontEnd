@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/formulario/selector';
 import Botao from '@/components/formulario/botao';
 import Tabela, { TabelaColuna } from '@/components/tabela';
@@ -10,6 +10,7 @@ import { Stack, useFocusEffect } from 'expo-router';
 import { getProducoes } from '@/services/producaoService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
+import { alerta } from '@/utils/alerta';
 
 // --- Interfaces ---
 interface DadosProducao {
@@ -91,7 +92,7 @@ export default function RelatorioProducaoTabela() {
             setProducoes(formatados);
         } catch (error) {
             console.error('Erro ao carregar dados da tabela:', error);
-            Alert.alert('Erro', 'Não foi possível carregar os dados de produção.');
+            alerta('Erro', 'Não foi possível carregar os dados de produção.');
         } finally {
             setIsLoading(false);
         }
@@ -105,7 +106,7 @@ export default function RelatorioProducaoTabela() {
 
     const handleExportar = () => {
         if (!producoes || producoes.length === 0) {
-            Alert.alert('Aviso', 'Não há dados para exportar.');
+            alerta('Aviso', 'Não há dados para exportar.');
             return;
         }
 
@@ -121,7 +122,7 @@ export default function RelatorioProducaoTabela() {
         console.log(csvString);
         console.log('--------------------------------');
 
-        Alert.alert(
+        alerta(
             'Sucesso', 
             `Relatório com ${producoes.length} registros gerado no console com sucesso!`
         );

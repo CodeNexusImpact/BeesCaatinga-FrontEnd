@@ -7,10 +7,11 @@ import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, Alert } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { cadastrarInsumo } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
 import Checkbox from 'expo-checkbox';
+import { alerta } from '@/utils/alerta';
 
 export default function CadastrarInsumo() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function CadastrarInsumo() {
     if (isSubmitting || !user?.id) return;
     
     if (!nome || !quantidade || !tipoInsumo) {
-      Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios (*)');
+      alerta('Erro', 'Por favor, preencha os campos obrigatórios (*)');
       return;
     }
 
@@ -55,7 +56,7 @@ export default function CadastrarInsumo() {
       setModalSucessoVisivel(true);
     } catch (error) {
       console.error('❌ [CADASTRAR INSUMO] Erro:', error);
-      Alert.alert('Erro', 'Não foi possível realizar o cadastro no servidor.');
+      alerta('Erro', 'Não foi possível realizar o cadastro no servidor.');
     } finally {
       setIsSubmitting(false);
     }

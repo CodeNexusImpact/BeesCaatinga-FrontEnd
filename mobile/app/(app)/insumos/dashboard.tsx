@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit'; 
 import GraficoCard, { KpiData } from '@/components/graficoCard';
 import Subtexto from '@/components/subTexto';
@@ -8,6 +8,7 @@ import layout from '@/constants/layout';
 import { Stack, useFocusEffect } from 'expo-router';
 import { getKpisInsumos, getGraficosInsumos } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
+import { alerta } from '@/utils/alerta';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -42,7 +43,7 @@ export default function DashboardInsumos() {
             setGraficos(chartData);
         } catch (error) {
             console.error('❌ [DASHBOARD INSUMOS] Erro:', error);
-            Alert.alert('Erro', 'Não foi possível carregar as estatísticas.');
+            alerta('Erro', 'Não foi possível carregar as estatísticas.');
         } finally {
             setIsLoading(false);
         }

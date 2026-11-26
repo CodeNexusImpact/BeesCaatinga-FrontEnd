@@ -5,9 +5,10 @@ import { Text, ActivityIndicator, View } from 'react-native';
 import temaCores from "@/constants/cores";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { instalarAlertWeb } from '@/utils/alertWeb';
+import api from '@/services/api';
 
-instalarAlertWeb();
+// "Acorda" o backend de homologação (Render gratuito hiberna após 15 min sem uso).
+api.get('/actuator/health').catch(() => {});
 
 function RootLayout() {
   const { session, isLoading } = useAuth();

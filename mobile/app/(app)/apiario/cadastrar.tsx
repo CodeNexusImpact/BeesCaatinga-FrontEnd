@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 
 import { ApiarioCriadoDTO } from '@/types/apiario/ApiarioCriadoDTO';
 import { EnderecoProps } from '@/types/common/Endereco';
@@ -17,6 +17,7 @@ import ImagemPicker from '@/components/formulario/imagemPicker';
 import { useAuth } from '@/hooks/useAuth';
 import { atualizarApiario, cadastrarApiario, listarApiariosPorProdutor } from '@/services/apiarioService';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 const isoParaBr = (iso?: string | null) => {
     if (!iso) return '';
@@ -72,7 +73,7 @@ const CadastrarApiario = () => {
                 const a = (lista ?? []).find((x) => String(x.id) === String(apiarioId));
                 if (!ativo) return;
                 if (!a) {
-                    Alert.alert('Erro', 'Apiário não encontrado.');
+                    alerta('Erro', 'Apiário não encontrado.');
                     voltar(router);
                     return;
                 }
@@ -93,7 +94,7 @@ const CadastrarApiario = () => {
                     coordenadas: { latitude: Number(a.latitude ?? 0), longitude: Number(a.longitude ?? 0) },
                 });
             })
-            .catch(() => ativo && Alert.alert('Erro', 'Não foi possível carregar o apiário.'));
+            .catch(() => ativo && alerta('Erro', 'Não foi possível carregar o apiário.'));
         return () => {
             ativo = false;
         };
@@ -103,7 +104,7 @@ const CadastrarApiario = () => {
     const handleSubmit = async () => {
         const obrigatorios = [nome, registro, endereco.cep, endereco.rua, endereco.bairro, endereco.cidade, endereco.estado, endereco.propriedade];
         if (obrigatorios.some((v) => !v?.trim()) || !user?.id) {
-            Alert.alert("Erro", "Preencha nome, registro e endereço (CEP, rua, bairro, cidade, estado e propriedade).");
+            alerta("Erro", "Preencha nome, registro e endereço (CEP, rua, bairro, cidade, estado e propriedade).");
             return;
         }
 
@@ -131,17 +132,17 @@ const CadastrarApiario = () => {
             if (editando) {
                 const { produtor_id: _ignorado, ...dadosAtualizacao } = apiarioData;
                 await atualizarApiario(Number(apiarioId), user.id, dadosAtualizacao);
-                Alert.alert("Sucesso", "Apiário atualizado com sucesso!");
+                alerta("Sucesso", "Apiário atualizado com sucesso!");
                 voltar(router);
                 return;
             }
             await cadastrarApiario(user.id, apiarioData);
-            Alert.alert("Sucesso", "Apiário cadastrado com sucesso!");
+            alerta("Sucesso", "Apiário cadastrado com sucesso!");
             router.replace('/apiario/listar');
         } catch (error: any) {
             console.error('Erro ao salvar apiário:', error);
             const msg = error?.response?.data?.message;
-            Alert.alert("Erro", msg || `Não foi possível ${editando ? 'atualizar' : 'cadastrar'} o apiário.`);
+            alerta("Erro", msg || `Não foi possível ${editando ? 'atualizar' : 'cadastrar'} o apiário.`);
         } finally {
             setLoading(false);
         }

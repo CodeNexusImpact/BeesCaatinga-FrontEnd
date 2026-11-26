@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 
@@ -15,6 +15,7 @@ import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { atualizarColmeia, buscarColmeiaPorId } from '@/services/colmeiaService';
 import type { ColmeiaAtualizadaDTO, TipoColmeia } from '@/types/apiario/colmeia';
 import { voltar } from '@/utils/navegacao';
+import { alerta } from '@/utils/alerta';
 
 const tipoOptions = [
   { label: 'Madeira', value: 'MADEIRA' },
@@ -58,7 +59,7 @@ export default function EditarColmeia() {
         ]);
         if (!ativoEfeito) return;
         if (!colmeia) {
-          Alert.alert('Erro', 'Colmeia não encontrada.');
+          alerta('Erro', 'Colmeia não encontrada.');
           voltar(router);
           return;
         }
@@ -75,7 +76,7 @@ export default function EditarColmeia() {
         setApiarioId((atual) => atual || String(colmeia.apiarioId ?? apiarios?.find((a) => a.nome === colmeia.nomeApiario)?.id ?? ''));
       } catch {
         if (ativoEfeito) {
-          Alert.alert('Erro', 'Não foi possível carregar a colmeia.');
+          alerta('Erro', 'Não foi possível carregar a colmeia.');
           voltar(router);
         }
       } finally {
@@ -90,7 +91,7 @@ export default function EditarColmeia() {
   const usarLocalizacaoAtual = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+      alerta('Permissão negada', 'Não foi possível acessar a localização.');
       return;
     }
     const pos = await Location.getCurrentPositionAsync({});
@@ -100,7 +101,7 @@ export default function EditarColmeia() {
 
   const handleSalvar = async () => {
     if (!user?.id || !colmeiaId || !apiarioId) {
-      Alert.alert('Erro', 'Dados da colmeia incompletos.');
+      alerta('Erro', 'Dados da colmeia incompletos.');
       return;
     }
     setSalvando(true);
@@ -116,10 +117,10 @@ export default function EditarColmeia() {
         longitude,
       };
       await atualizarColmeia(user.id, apiarioId, colmeiaId, dto);
-      Alert.alert('Sucesso', 'Colmeia atualizada com sucesso!');
+      alerta('Sucesso', 'Colmeia atualizada com sucesso!');
       voltar(router);
     } catch {
-      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+      alerta('Erro', 'Não foi possível salvar as alterações.');
     } finally {
       setSalvando(false);
     }

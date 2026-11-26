@@ -6,13 +6,14 @@ import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { cadastrarProducao } from '@/services/producaoService';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoCriadaDTO } from '@/types/producao';
 import { UnidadeMedida } from '@/types/insumos/Enums';
+import { alerta } from '@/utils/alerta';
 
 export default function CadastrarProducao() {
   const router = useRouter();
@@ -67,13 +68,13 @@ export default function CadastrarProducao() {
   const handleSubmit = async () => {
     // Validação de campos vazios
     if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta || !user?.id) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      alerta('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
     // Validação básica de formato de data (DD/MM/YYYY)
     if (dataColeta.length < 10) {
-      Alert.alert('Erro', 'Por favor, insira uma data válida (dd/mm/aaaa).');
+      alerta('Erro', 'Por favor, insira uma data válida (dd/mm/aaaa).');
       return;
     }
 
@@ -90,11 +91,11 @@ export default function CadastrarProducao() {
 
       await cadastrarProducao(user.id, dto);
       
-      Alert.alert('Sucesso', 'Produção cadastrada com sucesso!', [
+      alerta('Sucesso', 'Produção cadastrada com sucesso!', [
         { text: 'OK', onPress: () => router.push('/producao/listar') }
       ]);
     } catch (error: any) {
-      Alert.alert('Erro', error?.response?.data?.message || 'Não foi possível cadastrar a produção.');
+      alerta('Erro', error?.response?.data?.message || 'Não foi possível cadastrar a produção.');
       console.error(error);
     } finally {
       setIsSubmitting(false);

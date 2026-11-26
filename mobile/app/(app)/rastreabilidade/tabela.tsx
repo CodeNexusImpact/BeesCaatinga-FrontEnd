@@ -6,10 +6,11 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { Stack } from 'expo-router';
 import React, { useCallback, useState, useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
 import { useFocusEffect } from 'expo-router';
+import { alerta } from '@/utils/alerta';
 
 export default function RelatorioRastreabilidadeTabela() {
     const { user } = useAuth();
@@ -27,7 +28,7 @@ export default function RelatorioRastreabilidadeTabela() {
             setLotes(data);
         } catch (error) {
             console.error('❌ Erro ao carregar rastreabilidade:', error);
-            Alert.alert('Erro', 'Não foi possível carregar os dados de rastreabilidade.');
+            alerta('Erro', 'Não foi possível carregar os dados de rastreabilidade.');
         } finally {
             setLoading(false);
         }
@@ -76,7 +77,7 @@ export default function RelatorioRastreabilidadeTabela() {
     }, [lotes, ano, mes]);
 
     const handleExportar = () => {
-        Alert.alert('Sucesso', `Exportando ${dadosFiltrados.length} registros para CSV.`);
+        alerta('Sucesso', `Exportando ${dadosFiltrados.length} registros para CSV.`);
     };
 
     if (loading) {

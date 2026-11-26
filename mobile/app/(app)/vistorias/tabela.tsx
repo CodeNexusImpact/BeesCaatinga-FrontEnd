@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/formulario/selector';
 import Botao from '@/components/formulario/botao';
 import Tabela, { TabelaColuna } from '@/components/tabela';
@@ -9,6 +9,7 @@ import layout from '@/constants/layout';
 import { Stack, useFocusEffect } from 'expo-router';
 import { getVistorias, Vistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
+import { alerta } from '@/utils/alerta';
 
 const colunasDoRelatorio: TabelaColuna<any>[] = [
     { label: 'Data', dataKey: 'data', sortable: true, flex: 2 },
@@ -76,7 +77,7 @@ export default function RelatorioVistoriaTabela() {
 
     const handleExportar = () => {
         if (dadosFiltrados.length === 0) {
-            Alert.alert('Aviso', 'Não há dados para exportar.');
+            alerta('Aviso', 'Não há dados para exportar.');
             return;
         }
 
@@ -92,7 +93,7 @@ export default function RelatorioVistoriaTabela() {
         console.log(csvContent);
         console.log('----------------------------------');
 
-        Alert.alert(
+        alerta(
             'Sucesso',
             `O relatório com ${dadosFiltrados.length} registros foi gerado no console com sucesso!`,
             [{ text: 'OK' }]

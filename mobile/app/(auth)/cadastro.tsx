@@ -12,6 +12,7 @@ import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, Platform, useWindowDimensions } from "react-native";
 import layout from "@/constants/layout";
+import { alerta } from '@/utils/alerta';
 
 interface ValidationErrors {
   nomeCompleto?: string;
@@ -112,7 +113,7 @@ function Cadastro() {
       } catch (error: any) {
         console.error("❌ Erro no cadastro:", error.response?.data || error.message);
         const backendMsg = error.response?.data?.message || "Não foi possível realizar o cadastro.";
-        Alert.alert("Erro no Cadastro", backendMsg);
+        alerta("Erro no Cadastro", backendMsg);
       } finally {
         setLoading(false);
       }
