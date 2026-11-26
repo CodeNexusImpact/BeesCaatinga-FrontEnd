@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import type * as Leaflet from 'leaflet';
 import cores from '@/constants/cores';
@@ -14,6 +14,8 @@ interface MapaWebProps {
   style?: any;
 }
 
+const noopSubscribe = () => () => {};
+
 export default function MapaWeb({
   localizacoes = [],
   regiaoPadrao = {
@@ -28,15 +30,14 @@ export default function MapaWeb({
   onMapClick,
   style,
 }: MapaWebProps) {
-  const [isClient, setIsClient] = useState(false);
+  // true no navegador, false na renderização estática (sem mismatch de hidratação)
+  const isClient = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
   const markersRef = useRef<Leaflet.Marker[]>([]);
 
   // Garantir injeção do CSS do Leaflet no head do documento
   useEffect(() => {
-    setIsClient(true);
-
     if (typeof document !== 'undefined') {
       const cssId = 'leaflet-cdn-css';
       if (!document.getElementById(cssId)) {

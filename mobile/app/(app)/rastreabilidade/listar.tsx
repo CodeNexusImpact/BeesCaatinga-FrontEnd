@@ -9,6 +9,7 @@ import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilida
 export default function ListarLotesMel() {
   const router = useRouter();
   const { user } = useAuth();
+  const userId = user?.id;
 
   // Estados para dados reais
   const [lotes, setLotes] = useState<RastreabilidadeDTO[]>([]);
@@ -18,11 +19,11 @@ export default function ListarLotesMel() {
   const [modalVisivel, setModalVisivel] = useState(false);
 
   const carregarLotes = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     try {
       setIsLoading(true);
-      const data = await getRastreabilidade(user.id);
+      const data = await getRastreabilidade(userId);
       setLotes(data);
     } catch (error) {
       console.error('❌ [LISTAR LOTES] Erro ao carregar:', error);
@@ -31,7 +32,7 @@ export default function ListarLotesMel() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {

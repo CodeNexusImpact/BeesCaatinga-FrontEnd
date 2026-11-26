@@ -13,16 +13,17 @@ import { useFocusEffect } from 'expo-router';
 
 export default function RelatorioRastreabilidadeTabela() {
     const { user } = useAuth();
+    const userId = user?.id;
     const [lotes, setLotes] = useState<RastreabilidadeDTO[]>([]);
     const [loading, setLoading] = useState(true);
     const [ano, setAno] = useState('');
     const [mes, setMes] = useState('');
 
     const carregarDados = useCallback(async () => {
-        if (!user?.id) return;
+        if (!userId) return;
         try {
             setLoading(true);
-            const data = await getRastreabilidade(user.id);
+            const data = await getRastreabilidade(userId);
             setLotes(data);
         } catch (error) {
             console.error('❌ Erro ao carregar rastreabilidade:', error);
@@ -30,7 +31,7 @@ export default function RelatorioRastreabilidadeTabela() {
         } finally {
             setLoading(false);
         }
-    }, [user?.id]);
+    }, [userId]);
 
     useFocusEffect(
         useCallback(() => {

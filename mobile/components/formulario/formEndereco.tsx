@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, GestureResponderEvent } from 'react-native';
 import Input from '@/components/formulario/input';
 import { EnderecoProps } from '@/types/common/Endereco';
@@ -14,10 +14,13 @@ interface FormEnderecoProps {
 const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEnderecoChange }) => {
     const [endereco, setEndereco] = useState<EnderecoProps>(enderecoInicial);
 
+    const [enderecoAnterior, setEnderecoAnterior] = useState<EnderecoProps>(enderecoInicial);
+
     // Sincroniza o estado interno se o endereço inicial mudar (ex: carregamento via API)
-    useEffect(() => {
+    if (enderecoInicial !== enderecoAnterior) {
+        setEnderecoAnterior(enderecoInicial);
         setEndereco(enderecoInicial);
-    }, [enderecoInicial]);
+    }
 
     const handleChange = (field: string, value: string) => {
         let formattedValue = value;

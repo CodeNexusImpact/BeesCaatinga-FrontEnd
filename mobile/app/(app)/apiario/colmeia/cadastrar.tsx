@@ -30,6 +30,7 @@ import layout from '@/constants/layout';
 export default function Cadastrar() {
     const router = useRouter();
     const { user } = useAuth();
+    const userId = user?.id;
 
     const [identificador, setIdentificador] = useState('');
     const [dataCriacao, setDataCriacao] = useState(new Date().toLocaleDateString('pt-BR'));
@@ -47,9 +48,9 @@ export default function Cadastrar() {
      * Busca dinâmica de Apiários com useFocusEffect para garantir dados atualizados
      */
     const carregarApiarios = useCallback(async () => {
-        if (!user?.id) return;
+        if (!userId) return;
         try {
-            const data = await listarApiariosPorProdutor(user.id);
+            const data = await listarApiariosPorProdutor(userId);
             if (Array.isArray(data)) {
                 const options = data.map(a => ({ 
                     label: a.nome || `Apiário ${a.id}`, 
@@ -60,7 +61,7 @@ export default function Cadastrar() {
         } catch (e) {
             console.error('Erro ao buscar apiários para o select:', e);
         }
-    }, [user?.id]);
+    }, [userId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -69,7 +70,7 @@ export default function Cadastrar() {
     );
 
     const handleSubmit = async () => {
-        if (!identificador || !apiario || !tipo || !user?.id) {
+        if (!identificador || !apiario || !tipo || !userId) {
             Alert.alert('Erro', 'Por favor, selecione um apiário válido e preencha os campos obrigatórios.');
             return;
         }
@@ -88,7 +89,7 @@ export default function Cadastrar() {
                 caminhoDaFoto: foto
             };
 
-            await cadastrarColmeia(user.id, parseInt(apiario), payload);
+            await cadastrarColmeia(userId, parseInt(apiario), payload);
             Alert.alert('Sucesso', 'Colmeia cadastrada com sucesso!');
             router.back();
         } catch (error) {

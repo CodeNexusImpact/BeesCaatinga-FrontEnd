@@ -1,6 +1,6 @@
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import React, { useState, useEffect } from 'react'; 
+import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
 import Icon from '@/components/icon';
 import { Typography } from '@/styles/fonts.styles';
@@ -29,24 +29,20 @@ const Selector: React.FC<SelectorProps> = ({
     style,
     value, 
 }) => {
-    const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    useEffect(() => {
-        if (value) {
-            const selectedOption = options.find(opt => opt.value === value);
-            setSelectedLabel(selectedOption ? selectedOption.label : null);
-        } else {
-            setSelectedLabel(null);
-        }
-    }, [value, options]); 
+    // Controlado quando `value` é passado; caso contrário mantém o rótulo internamente.
+    const [labelInterno, setLabelInterno] = useState<string | null>(null);
+    const selectedLabel = value !== undefined
+        ? (value ? options.find(opt => opt.value === value)?.label ?? null : null)
+        : labelInterno;
 
    
     const handleSelect = (selectedValue: string) => {
         const selectedOption = options.find(opt => opt.value === selectedValue);
 
         if (selectedOption) {
-            setSelectedLabel(selectedOption.label); 
+            setLabelInterno(selectedOption.label);
             onSelect(selectedOption.value);       
         }
         setIsOpen(false);

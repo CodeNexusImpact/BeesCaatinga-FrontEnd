@@ -34,6 +34,7 @@ const formatDate = (dateStr: string) => {
 export default function Visualizar() {
   const router = useRouter();
   const { user } = useAuth();
+  const userId = user?.id;
 
   const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,18 +43,18 @@ export default function Visualizar() {
   const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
 
   const carregarProducoes = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     setIsLoading(true);
     try {
-      const data = await getProducoes(user.id);
+      const data = await getProducoes(userId);
       setProducoes(data);
     } catch (error) {
       console.error('Erro ao carregar produções:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,9 +72,9 @@ export default function Visualizar() {
   };
 
   const confirmarExclusao = async () => {
-    if (idParaExcluir !== null && user?.id) {
+    if (idParaExcluir !== null && userId) {
       try {
-        await deletarProducao(idParaExcluir, user.id);
+        await deletarProducao(idParaExcluir, userId);
         setProducoes(prev => prev.filter(p => p.id !== idParaExcluir));
         setModalConfirmacaoVisivel(false);
 

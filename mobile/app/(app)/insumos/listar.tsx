@@ -12,6 +12,7 @@ import Icon from '@/components/icon';
 export default function ListarInsumos() {
   const router = useRouter();
   const { user } = useAuth();
+  const userId = user?.id;
 
   const [insumos, setInsumos] = useState<InsumoRetornoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,10 +22,10 @@ export default function ListarInsumos() {
    * Ciclo de Vida: Recarrega sempre que focar na tela.
    */
   const carregarInsumos = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     setIsLoading(true);
     try {
-      const data = await getInsumos(user.id);
+      const data = await getInsumos(userId);
       setInsumos(data as InsumoRetornoDTO[]);
     } catch (error) {
       console.error('❌ [LISTAR INSUMOS] Erro:', error);
@@ -32,7 +33,7 @@ export default function ListarInsumos() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,8 +62,8 @@ export default function ListarInsumos() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (user?.id) {
-                await deletarInsumo(id, user.id);
+              if (userId) {
+                await deletarInsumo(id, userId);
                 Alert.alert('Sucesso', 'Insumo excluído com sucesso.');
                 carregarInsumos();
               } else {

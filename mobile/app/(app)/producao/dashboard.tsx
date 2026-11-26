@@ -42,16 +42,17 @@ const getEstacao = (dataStr: string) => {
 
 export default function Dashboard() {
     const { user } = useAuth();
+    const userId = user?.id;
     const [ano, setAno] = useState('');
     const [estacao, setEstacao] = useState('');
     const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const carregarDados = useCallback(async () => {
-        if (!user?.id) return;
+        if (!userId) return;
         setIsLoading(true);
         try {
-            const data = await getProducoes(user.id);
+            const data = await getProducoes(userId);
             // Filtro por ano aplicado localmente conforme o estado da tela
             const dataFiltradaAno = ano ? data.filter(p => p.dataColeta.includes(ano)) : data;
             setProducoes(dataFiltradaAno);
@@ -60,7 +61,7 @@ export default function Dashboard() {
         } finally {
             setIsLoading(false);
         }
-    }, [user?.id, ano]);
+    }, [userId, ano]);
 
     useFocusEffect(
         useCallback(() => {

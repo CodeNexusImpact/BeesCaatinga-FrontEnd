@@ -102,23 +102,6 @@ const CadastrarApiario = () => {
 
 
 
-    React.useEffect(() => {
-        // Example: Pre-fill address with default values or fetch from an API
-        setEndereco({
-            cep: '00000-000',
-            propriedade: 'Propriedade Exemplo',
-            estado: 'Estado Exemplo',
-            cidade: 'Cidade Exemplo',
-            bairro: 'Bairro Exemplo',
-            rua: 'Rua Exemplo',
-            numero: '123',
-            complemento: 'Complemento Exemplo',
-            coordenadas: {
-                latitude: -10.123456,
-                longitude: -50.123456,
-            },
-        });
-    }, []);
 
     const windowWidth = Dimensions.get('window').width;
     const windowHeight = Dimensions.get('window').height;

@@ -27,6 +27,7 @@ import type { CardField } from '@/components/genericCard';
 export default function ListarVistorias() {
   const router = useRouter();
   const { user } = useAuth();
+  const userId = user?.id;
 
   // Estados de Dados ---
   const [vistorias, setVistorias] = useState<Vistoria[]>([]);
@@ -58,11 +59,11 @@ export default function ListarVistorias() {
   ];
 
   const carregarVistorias = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     
     try {
       setLoading(true);
-      const dados = await getVistorias(user.id);
+      const dados = await getVistorias(userId);
       setVistorias(dados);
     } catch (error) {
       console.error('Erro ao carregar vistorias:', error);
@@ -70,7 +71,7 @@ export default function ListarVistorias() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,9 +109,9 @@ export default function ListarVistorias() {
   };
 
   const confirmarExclusao = async () => {
-    if (idParaExcluir !== null && user?.id) {
+    if (idParaExcluir !== null && userId) {
       try {
-        await deletarVistoria(idParaExcluir, user.id);
+        await deletarVistoria(idParaExcluir, userId);
         setModalConfirmacaoVisivel(false);
         setModalSucessoVisivel(true);
         carregarVistorias(); // Recarrega a lista

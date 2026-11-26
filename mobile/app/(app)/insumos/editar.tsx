@@ -54,33 +54,34 @@ export default function EditarInsumo() {
         { label: 'Estoque Baixo', value: 'ESTOQUE_BAIXO' },
     ];
 
-    const carregarDados = async () => {
-        if (!user?.id) return;
-        try {
-            setIsLoading(true);
-            const data = await buscarInsumoPorId(id!, user.id);
-
-            // MAPEMAENTO DE CHAVES REAIS (db.json)
-            setDataInsumo(data.dataInsumo || '');
-            setNome(data.nome || '');
-            setTipoInsumo(data.tipoInsumo || '');
-            setQuantidade(data.quantidade?.toString() || '');
-            setUnidadeMedida(data.unidadeMedida || '');
-            setDataValidade(data.dataValidade === 'N/A' ? '' : (data.dataValidade || ''));
-            setSemValidade(data.dataValidade === 'N/A');
-            setStatusInsumo(data.statusInsumo || 'DISPONIVEL');
-            setObservacoes(data.observacoes || '');
-        } catch (error) {
-            console.error('❌ [EDITAR INSUMO] Erro:', error);
-            Alert.alert('Erro', 'Não foi possível carregar os dados para edição.');
-            router.back();
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { if (id && user?.id) carregarDados(); }, [id, user?.id]);
+    const userId = user?.id;
+    useEffect(() => {
+        if (!id || !userId) return;
+        let ativo = true;
+        buscarInsumoPorId(id, userId)
+            .then((data) => {
+                if (!ativo) return;
+                setDataInsumo(data.dataInsumo || '');
+                setNome(data.nome || '');
+                setTipoInsumo(data.tipoInsumo || '');
+                setQuantidade(data.quantidade?.toString() || '');
+                setUnidadeMedida(data.unidadeMedida || '');
+                setDataValidade(data.dataValidade === 'N/A' ? '' : (data.dataValidade || ''));
+                setSemValidade(data.dataValidade === 'N/A');
+                setStatusInsumo(data.statusInsumo || 'DISPONIVEL');
+                setObservacoes(data.observacoes || '');
+            })
+            .catch((error) => {
+                if (!ativo) return;
+                console.error('❌ [EDITAR INSUMO] Erro:', error);
+                Alert.alert('Erro', 'Não foi possível carregar os dados para edição.');
+                router.back();
+            })
+            .finally(() => ativo && setIsLoading(false));
+        return () => {
+            ativo = false;
+        };
+    }, [id, userId, router]);
 
     const handleSalvar = async () => {
         if (isSaving || !user?.id) return;

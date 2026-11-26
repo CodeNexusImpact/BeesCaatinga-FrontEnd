@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useEffectEvent } from 'react';
 import { Text, Animated, StyleSheet } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -16,11 +16,13 @@ export default function ModalSucesso({
   duracao = 3000,
   aoFechar,
 }: ModalSucessoProps) {
-  const animacaoOpacidade = React.useRef(new Animated.Value(0)).current;
+  // Valor animado estável entre renders (useState com inicialização preguiçosa).
+  const [animacaoOpacidade] = React.useState(() => new Animated.Value(0));
+
+  // Mantém o callback mais recente sem reiniciar o temporizador a cada render do pai.
+  const fechar = useEffectEvent(() => aoFechar());
 
   useEffect(() => {
-    console.log('ModalSucesso - visivel:', visivel); 
-
     if (visivel) {
       Animated.timing(animacaoOpacidade, {
         toValue: 1,
@@ -33,12 +35,12 @@ export default function ModalSucesso({
           toValue: 0,
           duration: 300,
           useNativeDriver: false,
-        }).start(() => aoFechar());
+        }).start(() => fechar());
       }, duracao);
 
       return () => clearTimeout(temporizador);
     }
-  }, [visivel]);
+  }, [visivel, animacaoOpacidade, duracao]);
 
   if (!visivel) return null;
 
