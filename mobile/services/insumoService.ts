@@ -1,15 +1,15 @@
 import api from './api';
 import type { InsumoRetornoDTO } from '@/types/insumos';
 
+// Espelha InsumoRetornoDTO do backend (datas em ISO yyyy-MM-dd).
 export interface Insumo {
   id: number;
-  produtorId: number;
-  dataInsumo: string;
+  dataEntrada: string;
   nome: string;
-  tipoInsumo: string;
+  tipo: string;
   quantidade: number;
   unidadeMedida: string;
-  dataValidade: string;
+  dataValidade?: string | null;
   statusInsumo: string;
   observacoes: string;
 }
@@ -95,7 +95,7 @@ export const getGraficosInsumos = async (produtorId: string | number) => {
   // Agrupamento por tipoInsumo
   const tipoCount: { [key: string]: number } = {};
   insumos.forEach(i => {
-    const tipo = i.tipoInsumo || 'Outros';
+    const tipo = i.tipo || 'Outros';
     tipoCount[tipo] = (tipoCount[tipo] || 0) + 1;
   });
 

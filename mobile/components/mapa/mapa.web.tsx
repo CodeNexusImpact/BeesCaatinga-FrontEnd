@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import type * as Leaflet from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import cores from '@/constants/cores';
 import { LocalizacaoMapa, RegiaoDeMapa } from '@/types/mapa/mapaLocalizacao';
 
@@ -36,29 +37,6 @@ export default function MapaWeb({
   const mapRef = useRef<Leaflet.Map | null>(null);
   const markersRef = useRef<Leaflet.Marker[]>([]);
 
-  // Garantir injeção do CSS do Leaflet no head do documento
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      const cssId = 'leaflet-cdn-css';
-      if (!document.getElementById(cssId)) {
-        const link = document.createElement('link');
-        link.id = cssId;
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        link.crossOrigin = '';
-        document.head.appendChild(link);
-      }
-
-      const jsId = 'leaflet-cdn-js';
-      if (!document.getElementById(jsId)) {
-        const script = document.createElement('script');
-        script.id = jsId;
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.crossOrigin = '';
-        document.head.appendChild(script);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (!isClient || typeof window === 'undefined' || !containerRef.current) return;
@@ -68,19 +46,8 @@ export default function MapaWeb({
 
     const initMap = async () => {
       try {
-        // Wait for Leaflet to load from CDN
-        let attempts = 0;
-        while (!(window as any).L && attempts < 50) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (!(window as any).L) {
-          console.error("Leaflet failed to load from CDN");
-          return;
-        }
-
-        const L = (window as any).L as typeof Leaflet;
+        // Leaflet empacotado no bundle (sem dependência de CDN externo); carregado só no navegador.
+        const L = (await import('leaflet')).default as typeof Leaflet;
 
         if (!isMounted || !containerRef.current) return;
 
@@ -95,12 +62,13 @@ export default function MapaWeb({
           (containerRef.current as any)._leaflet_id = null;
         }
 
-        // Definir ícones padrão do Leaflet com URLs seguras
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        // Ícone de marcador em CSS (evita imagens externas do Leaflet).
+        L.Marker.prototype.options.icon = L.divIcon({
+          className: 'bees-marker',
+          html: '<span></span>',
+          iconSize: [22, 22],
+          iconAnchor: [11, 22],
+          popupAnchor: [0, -20],
         });
 
         // Criar novo mapa
@@ -302,6 +270,17 @@ const mapContainerStyle = `
     min-height: 350px !important;
     font-family: 'Roboto', sans-serif;
     z-index: 1;
+  }
+
+  .bees-marker span {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50% 50% 50% 0;
+    background: #E0A100;
+    border: 2px solid #ffffff;
+    transform: rotate(-45deg);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   }
 
   .leaflet-popup-content {

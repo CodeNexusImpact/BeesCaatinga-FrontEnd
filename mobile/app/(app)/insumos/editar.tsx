@@ -11,6 +11,13 @@ import { buscarInsumoPorId, atualizarInsumo } from '@/services/insumoService';
 import { maskDate } from '@/utils/masks';
 import { useAuth } from '@/hooks/useAuth';
 import Checkbox from 'expo-checkbox';
+import { voltar } from '@/utils/navegacao';
+
+const isoParaBr = (iso?: string | null) => {
+    if (!iso) return '';
+    const [a, m, d] = iso.split('-');
+    return d && m && a ? `${d}/${m}/${a}` : iso;
+};
 
 export default function EditarInsumo() {
     const router = useRouter();
@@ -41,11 +48,11 @@ export default function EditarInsumo() {
     ];
 
     const unidadeMedidaOptions = [
-        { label: 'Kg', value: 'KG' },
-        { label: 'g', value: 'G' },
-        { label: 'L', value: 'L' },
-        { label: 'mL', value: 'ML' },
-        { label: 'Unidade(s)', value: 'UN' },
+        { label: 'Kg', value: 'KILOGRAMA' },
+        { label: 'g', value: 'GRAMA' },
+        { label: 'L', value: 'LITRO' },
+        { label: 'mL', value: 'MILILITRO' },
+        { label: 'Unidade(s)', value: 'UNIDADE' },
     ];
 
     const statusOptions = [
@@ -61,13 +68,13 @@ export default function EditarInsumo() {
         buscarInsumoPorId(id, userId)
             .then((data) => {
                 if (!ativo) return;
-                setDataInsumo(data.dataInsumo || '');
+                setDataInsumo(isoParaBr(data.dataEntrada));
                 setNome(data.nome || '');
-                setTipoInsumo(data.tipoInsumo || '');
+                setTipoInsumo(data.tipo || '');
                 setQuantidade(data.quantidade?.toString() || '');
                 setUnidadeMedida(data.unidadeMedida || '');
-                setDataValidade(data.dataValidade === 'N/A' ? '' : (data.dataValidade || ''));
-                setSemValidade(data.dataValidade === 'N/A');
+                setDataValidade(isoParaBr(data.dataValidade));
+                setSemValidade(!data.dataValidade);
                 setStatusInsumo(data.statusInsumo || 'DISPONIVEL');
                 setObservacoes(data.observacoes || '');
             })
@@ -75,7 +82,7 @@ export default function EditarInsumo() {
                 if (!ativo) return;
                 console.error('❌ [EDITAR INSUMO] Erro:', error);
                 Alert.alert('Erro', 'Não foi possível carregar os dados para edição.');
-                router.back();
+                voltar(router);
             })
             .finally(() => ativo && setIsLoading(false));
         return () => {
@@ -92,13 +99,14 @@ export default function EditarInsumo() {
         }
 
         // Payload sem o campo ID (id vai apenas na URL do PUT)
+        // Espelha InsumoAtualizadoDTO do backend (datas dd/MM/yyyy).
         const payload = {
-            dataInsumo,
+            dataEntrada: dataInsumo,
             nome,
-            tipoInsumo,
+            tipo: tipoInsumo,
             quantidade: parseFloat(quantidade.replace(',', '.')),
-            unidadeMedida,
-            dataValidade: semValidade ? 'N/A' : dataValidade,
+            unidadeMedida: unidadeMedida || undefined,
+            dataValidade: semValidade || !dataValidade ? undefined : dataValidade,
             statusInsumo,
             observacoes
         };
@@ -220,7 +228,7 @@ export default function EditarInsumo() {
 
             <Botao
                 title="Cancelar"
-                onPress={() => router.back()}
+                onPress={() => voltar(router)}
                 cor="secundaria"
                 style={styles.buttonCancel}
             />
@@ -230,7 +238,7 @@ export default function EditarInsumo() {
                 mensagem="Insumo atualizado com sucesso!"
                 aoFechar={() => {
                     setModalSucessoVisivel(false);
-                    router.back();
+                    voltar(router);
                 }}
             />
         </ScrollView>
@@ -241,8 +249,9 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.fundo },
     centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, paddingBottom: 50 },
-    row: { flexDirection: 'row', justifyContent: 'space-between', gap: layout.espacamento.amigavel },
-    inputMetade: { flex: 1 },
+    // flexWrap: empilha os campos em telas estreitas (celular)
+    row: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: layout.espacamento.amigavel },
+    inputMetade: { flexGrow: 1, flexBasis: 240 },
     textArea: { minHeight: 100, textAlignVertical: 'top' },
     inputDisabled: { backgroundColor: '#f0f0f0' },
     checkboxContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -8 },

@@ -14,7 +14,7 @@ const colunasDoRelatorio: TabelaColuna<any>[] = [
     { label: 'Data', dataKey: 'data', sortable: true, flex: 2 },
     { label: 'Apiário', dataKey: 'apiarioId', sortable: true, flex: 2 },
     { label: 'Colmeia', dataKey: 'colmeiaId', sortable: true, flex: 2 },
-    { label: 'Condição', dataKey: 'condicaoVistoria', sortable: true, flex: 3 },
+    { label: 'Condição', dataKey: 'condicao', sortable: true, flex: 3 },
     { label: 'Pragas', dataKey: 'pragasTexto', sortable: true, flex: 3 },
     { label: 'Perdas', dataKey: 'perdasTexto', sortable: true, flex: 3 },
     { label: 'Obs.', dataKey: 'observacoes', sortable: false, flex: 4 },
@@ -29,16 +29,14 @@ const anoOptions = [
 
 const statusOptions = [
     { label: 'Todos os Status', value: '' },
-    { label: 'Saudável', value: 'saudavel' },
-    { label: 'Excelente', value: 'excelente' },
-    { label: 'Manutenção', value: 'manutencao' },
-    { label: 'Em Risco', value: 'risco' },
-    { label: 'Perdida', value: 'perdida' },
+    { label: 'Saudável', value: 'SAUDAVEL' },
+    { label: 'Manutenção Necessária', value: 'MANUTENCAO_NECESSARIA' },
+    { label: 'Agendar Colheita', value: 'AGENDAR_COLHEITA' },
 ];
 
 export default function RelatorioVistoriaTabela() {
-    const { session } = useAuth();
-    const produtorId = session || 1;
+    const { user } = useAuth();
+    const produtorId = user?.id;
 
     const [vistorias, setVistorias] = useState<Vistoria[]>([]);
     const [loading, setLoading] = useState(true);
@@ -46,6 +44,7 @@ export default function RelatorioVistoriaTabela() {
     const [statusSelecionado, setStatusSelecionado] = useState('');
 
     const carregarVistorias = useCallback(async () => {
+        if (!produtorId) return;
         try {
             setLoading(true);
             const dados = await getVistorias(produtorId);
@@ -65,13 +64,13 @@ export default function RelatorioVistoriaTabela() {
 
     const dadosFiltrados = useMemo(() => {
         return vistorias.filter(item => {
-            const filtroAno = anoSelecionado === '' ? true : item.data.includes(anoSelecionado);
-            const filtroStatus = statusSelecionado === '' ? true : item.condicaoVistoria?.toLowerCase() === statusSelecionado.toLowerCase();
+            const filtroAno = anoSelecionado === '' ? true : item.dataVistoria.includes(anoSelecionado);
+            const filtroStatus = statusSelecionado === '' ? true : item.condicao?.toLowerCase() === statusSelecionado.toLowerCase();
             return filtroAno && filtroStatus;
         }).map(item => ({
             ...item,
-            pragasTexto: item.pragas?.length ? item.pragas.join(', ') : 'Nenhuma',
-            perdasTexto: item.perdas?.length ? item.perdas.join(', ') : 'Nenhuma',
+            pragasTexto: item.pragasIdentificadas?.length ? item.pragasIdentificadas.join(', ') : 'Nenhuma',
+            perdasTexto: item.perdasIdentificadas?.length ? item.perdasIdentificadas.join(', ') : 'Nenhuma',
         }));
     }, [vistorias, anoSelecionado, statusSelecionado]);
 
@@ -84,7 +83,7 @@ export default function RelatorioVistoriaTabela() {
         // Geração do CSV
         const cabecalho = 'Data,Apiario,Colmeia,Condicao,Pragas,Perdas,Observacoes\n';
         const linhas = dadosFiltrados.map(v => 
-            `${v.data},${v.apiarioId},${v.colmeiaId},${v.condicaoVistoria},"${v.pragasTexto}","${v.perdasTexto}","${(v.observacoes ?? '').replace(/"/g, '""')}"`
+            `${v.dataVistoria},${v.nomeApiario ?? ''},${v.nomeColmeia ?? ''},${v.condicao},"${v.pragasTexto}","${v.perdasTexto}","${(v.observacoes ?? '').replace(/"/g, '""')}"`
         ).join('\n');
         
         const csvContent = cabecalho + linhas;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, GestureResponderEvent } from 'react-native';
+import { View, Text, Alert, StyleSheet } from 'react-native';
+import * as Location from 'expo-location';
 import Input from '@/components/formulario/input';
 import { EnderecoProps } from '@/types/common/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
@@ -33,18 +34,34 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
         onEnderecoChange(updatedEndereco);
     };
 
-    function handleUseCurrentLocation(event: GestureResponderEvent) {
-        // Aqui você pode implementar a lógica para obter a localização atual do usuário
-        // e atualizar o estado do endereço com as coordenadas e, se possível, preencher os campos de endereço.
-        // Exemplo (usando expo-location):
-        /*
-        import * as Location from 'expo-location';
-        */
+    // Preenche as coordenadas com a posição atual do dispositivo.
+    async function handleUseCurrentLocation() {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+                return;
+            }
+            const pos = await Location.getCurrentPositionAsync({});
+            const updatedEndereco = {
+                ...endereco,
+                coordenadas: { latitude: pos.coords.latitude, longitude: pos.coords.longitude },
+            };
+            setEndereco(updatedEndereco);
+            onEnderecoChange(updatedEndereco);
+        } catch {
+            Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+        }
     }
+
+    const { latitude, longitude } = endereco.coordenadas ?? { latitude: 0, longitude: 0 };
 
     return (
         <View style={formStyles.formStyle}>
         <Botao title={'Usar localização atual'} iconName='location' textStyle={{ color: '#000000' }} onPress={handleUseCurrentLocation}></Botao>
+            {latitude !== 0 || longitude !== 0 ? (
+                <Text>{`Coordenadas: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`}</Text>
+            ) : null}
 
             <Input
                 label="CEP"

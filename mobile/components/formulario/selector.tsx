@@ -56,7 +56,7 @@ const Selector: React.FC<SelectorProps> = ({
                 </View>
             )}
             
-            {label && <Text style={[styles.label, Typography.Negrito]}>{label}:</Text>}
+            {label && <Text style={[styles.label, Typography.Negrito]}>{label.replace(/:\s*$/, "")}:</Text>}
 
             <View style={styles.inputWrapper}>
                 <TouchableOpacity 

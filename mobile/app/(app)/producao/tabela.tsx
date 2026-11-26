@@ -61,16 +61,17 @@ const formatQualidade = (qualidade: string) => {
 };
 
 export default function RelatorioProducaoTabela() {
-    const { session } = useAuth();
+    const { user } = useAuth();
+    const userId = user?.id;
     const [ano, setAno] = useState('');
     const [producoes, setProducoes] = useState<DadosProducao[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const carregarDados = useCallback(async () => {
+        if (!userId) return;
         setIsLoading(true);
         try {
-            const produtorId = session || '1';
-            const data = await getProducoes(produtorId);
+            const data = await getProducoes(userId);
 
             // Filtragem por ano (se selecionado)
             const filtrados = ano 
@@ -94,7 +95,7 @@ export default function RelatorioProducaoTabela() {
         } finally {
             setIsLoading(false);
         }
-    }, [session, ano]);
+    }, [userId, ano]);
 
     useFocusEffect(
         useCallback(() => {

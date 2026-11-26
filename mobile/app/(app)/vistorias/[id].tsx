@@ -5,13 +5,16 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Botao from '@/components/formulario/botao';
 import { getVistoriaById, deletarVistoria } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
 import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
+import { voltar } from '@/utils/navegacao';
 
 type Vistoria = Awaited<ReturnType<typeof getVistoriaById>>;
 
 export default function DetalhesVistoria() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [vistoria, setVistoria] = useState<Vistoria | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
@@ -27,17 +30,18 @@ export default function DetalhesVistoria() {
 
       try {
         setLoading(true);
-        const dados = await getVistoriaById(vistoriaId);
+        if (!user?.id) return;
+        const dados = await getVistoriaById(user.id, vistoriaId);
         setVistoria(dados);
       } catch (error) {
         console.error('Erro ao carregar detalhes:', error);
         Alert.alert('Erro', 'Vistoria não encontrada.');
-        router.back();
+        voltar(router);
       } finally {
         setLoading(false);
       }
     }
-  }, [id]);
+  }, [id, user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,7 +61,8 @@ export default function DetalhesVistoria() {
     if (id && vistoria) {
       try {
         const vistoriaId = Array.isArray(id) ? id[0] : id;
-        await deletarVistoria(vistoriaId, vistoria.apiarioId);
+        if (!user?.id) return;
+        await deletarVistoria(vistoriaId, user.id);
         router.push('/vistorias/listar');
       } catch (error) {
         console.error('Erro ao excluir:', error);
@@ -82,21 +87,21 @@ export default function DetalhesVistoria() {
       
       <View style={styles.card}>
         <Text style={styles.label}>Data:</Text>
-        <Text style={styles.value}>{vistoria.data}</Text>
+        <Text style={styles.value}>{vistoria.dataVistoria}</Text>
 
         <Text style={styles.label}>Condição:</Text>
-        <Text style={[styles.value, { color: (vistoria.condicaoVistoria?.toLowerCase() === 'saudavel' || vistoria.condicaoVistoria?.toLowerCase() === 'excelente') ? cores.sucesso : cores.alerta }]}>
-            {vistoria.condicaoVistoria?.toUpperCase()}
+        <Text style={[styles.value, { color: (vistoria.condicao?.toLowerCase() === 'saudavel' || vistoria.condicao?.toLowerCase() === 'excelente') ? cores.sucesso : cores.alerta }]}>
+            {vistoria.condicao?.toUpperCase()}
         </Text>
 
         <Text style={styles.label}>Pragas Identificadas:</Text>
         <Text style={styles.value}>
-            {vistoria.pragas && vistoria.pragas.length > 0 ? vistoria.pragas.join(', ') : 'Nenhuma'}
+            {vistoria.pragasIdentificadas && vistoria.pragasIdentificadas.length > 0 ? vistoria.pragasIdentificadas.join(', ') : 'Nenhuma'}
         </Text>
 
         <Text style={styles.label}>Perdas Registradas:</Text>
         <Text style={styles.value}>
-            {vistoria.perdas && vistoria.perdas.length > 0 ? vistoria.perdas.join(', ') : 'Nenhuma'}
+            {vistoria.perdasIdentificadas && vistoria.perdasIdentificadas.length > 0 ? vistoria.perdasIdentificadas.join(', ') : 'Nenhuma'}
         </Text>
 
         <Text style={styles.label}>Apiário ID:</Text>

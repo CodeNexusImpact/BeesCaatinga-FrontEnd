@@ -15,5 +15,7 @@ export interface ApiarioRetornoDTO {
     rua: string;
     numero: string;
     complemento: string;
+    latitude?: number;
+    longitude?: number;
     colmeias: ColmeiaRetornoEmApiarioDTO[];
 }

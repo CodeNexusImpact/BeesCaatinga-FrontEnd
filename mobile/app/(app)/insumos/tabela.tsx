@@ -57,7 +57,7 @@ export default function RelatorioInsumosTabela() {
         // Geração do CSV real
         const cabecalho = 'Data,Insumo,Tipo,Quantidade,Unidade,Status,Observacoes\n';
         const linhas = insumos.map(i => 
-            `${i.dataInsumo},${i.nome},${i.tipoInsumo},${i.quantidade},${i.unidadeMedida},${i.statusFormatado},"${(i.observacoes || '').replace(/"/g, '""')}"`
+            `${i.dataEntrada},${i.nome},${i.tipo},${i.quantidade},${i.unidadeMedida},${i.statusFormatado},"${(i.observacoes || '').replace(/"/g, '""')}"`
         ).join('\n');
 
         const csvString = cabecalho + linhas;
@@ -71,9 +71,9 @@ export default function RelatorioInsumosTabela() {
 
     // Colunas mapeadas com as chaves reais e formatadas
     const colunasDoRelatorio: TabelaColuna<any>[] = [
-        { label: 'Data', dataKey: 'dataInsumo', sortable: true, flex: 2 },
+        { label: 'Data', dataKey: 'dataEntrada', sortable: true, flex: 2 },
         { label: 'Insumo', dataKey: 'nome', sortable: true, flex: 3 },
-        { label: 'Tipo', dataKey: 'tipoInsumo', sortable: true, flex: 2 },
+        { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
         { label: 'Volume', dataKey: 'volumeFormatado', sortable: true, flex: 2 },
         { label: 'Status', dataKey: 'statusFormatado', sortable: true, flex: 2 },
     ];

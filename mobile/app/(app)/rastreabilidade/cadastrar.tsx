@@ -7,10 +7,11 @@ import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Alert, ActivityIndicator, Text } from 'react-native';
+import * as Location from 'expo-location';
 import { useAuth } from '@/hooks/useAuth';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
-import { cadastrarRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
+import { cadastrarRastreabilidade } from '@/services/rastreabilidadeService';
 
 export default function CadastrarLoteMel() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function CadastrarLoteMel() {
   const [quantidadeProduzida, setQuantidadeProduzida] = useState('');
   const [apiario, setApiario] = useState('');
   const [nomeFlorada, setNomeFlorada] = useState('');
-  const [localidadeProducao, setLocalidadeProducao] = useState('');
+  const [coordenadas, setCoordenadas] = useState<{ latitude: number; longitude: number } | null>(null);
   const [tipoAbelhas, setTipoAbelhas] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,20 +43,26 @@ export default function CadastrarLoteMel() {
   }, [user?.id]);
 
   const handleSubmit = async () => {
-    if (!dataProducao || !quantidadeProduzida || !apiario || !user?.id) {
-        Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios (*).');
+    if (!dataProducao || !quantidadeProduzida || !apiario || !tipoAbelhas || !user?.id) {
+        Alert.alert('Erro', 'Preencha data, quantidade, apiário e tipo de abelha.');
+        return;
+    }
+    if (!coordenadas) {
+        Alert.alert('Erro', 'Registre a localização da produção ("Usar localização atual").');
         return;
     }
 
     setLoading(true);
     try {
-        const payload: RastreabilidadeDTO = {
+        // Espelha LoteCriadoDTO do backend (apiário é identificado pelo nome).
+        const payload = {
             dataProducao,
             quantidadeProduzida: parseFloat(quantidadeProduzida.replace(',', '.')),
-            apiarioId: parseInt(apiario),
-            tipoFlorada: nomeFlorada,
+            nomeApiario: apiarioOptions.find((a) => a.value === apiario)?.label ?? '',
+            tipoFlorada: nomeFlorada || undefined,
             tipoAbelha: tipoAbelhas,
-            produtorId: user.id, // Injetado via service, mas mantido aqui para clareza
+            latitude: coordenadas.latitude,
+            longitude: coordenadas.longitude,
             vendido: false,
         };
 
@@ -74,18 +81,44 @@ export default function CadastrarLoteMel() {
     setDataProducao(maskDate(text));
   };
 
+  const usarLocalizacaoAtual = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({});
+      setCoordenadas({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+    } catch {
+      Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+    }
+  };
+
+  // Valores alinhados aos enums TipoAbelha / TipoFlorada do backend.
   const tipoAbelhasOptions = [
-    { label: 'Apis mellifera', value: 'apis_mellifera' },
-    { label: 'Abelhas Jataí', value: 'jatai' },
-    { label: 'Abelhas Mandaçaia', value: 'mandacaia' },
-    { label: 'Abelhas Uruçu', value: 'urucu' },
+    { label: 'Jandaíra', value: 'JANDAIRA' },
+    { label: 'Uruçu Nordestina', value: 'URUCU_NORDESTINA' },
+    { label: 'Africanizada', value: 'AFRICANIZADA' },
+    { label: 'Apis mellifera', value: 'APIS_MELLIFERA' },
   ];
 
   const floradaOptions = [
-    { label: 'Eucalipto', value: 'eucalipto' },
-    { label: 'Laranjeira', value: 'laranjeira' },
-    { label: 'Assa-peixe', value: 'assa_peixe' },
-    { label: 'Silvestre', value: 'silvestre' },
+    { label: 'Silvestre', value: 'SILVESTRE' },
+    { label: 'Polifloral', value: 'POLIFLORAL' },
+    { label: 'Monofloral', value: 'MONOFLORAL' },
+    { label: 'Marmeleiro', value: 'MARMELEIRO' },
+    { label: 'Jitirana', value: 'JITIRANA' },
+    { label: 'Angico', value: 'ANGICO' },
+    { label: 'Aroeira', value: 'AROEIRA' },
+    { label: 'Cipó-uva', value: 'CIPO_UVA' },
+    { label: 'Quitoco', value: 'QUITOCO' },
+    { label: 'Eucalipto', value: 'EUCALIPTO' },
+    { label: 'Laranjeira', value: 'LARANJEIRA' },
+    { label: 'Assa-peixe', value: 'ASSA_PEIXE' },
+    { label: 'Acácia', value: 'ACACIA' },
+    { label: 'Café', value: 'CAFE' },
+    { label: 'Uva-japonesa', value: 'UVA_JAPONESA' },
   ];
 
   return (
@@ -137,13 +170,12 @@ export default function CadastrarLoteMel() {
       />
 
       {/* Localidade da Produção */}
-      <Input
-        label="Localidade da produção"
-        value={localidadeProducao}
-        onChangeText={setLocalidadeProducao}
-        placeholder="Digite a localidade"
-        iconName="map"
-      />
+      <Botao title="📍 Usar localização atual" onPress={usarLocalizacaoAtual} cor="secundaria" />
+      <Text style={styles.subtitulo}>
+        {coordenadas
+          ? `Localização: ${coordenadas.latitude.toFixed(5)}, ${coordenadas.longitude.toFixed(5)}`
+          : 'Localização da produção não registrada'}
+      </Text>
 
       {/* Tipo de Abelhas */}
       <Selector
@@ -156,8 +188,8 @@ export default function CadastrarLoteMel() {
 
       {/* Botão Cadastrar */}
       <Botao
-        title="Cadastrar"
-        onPress={handleSubmit}
+        title={loading ? 'Salvando...' : 'Cadastrar'}
+        onPress={loading ? () => {} : handleSubmit}
         cor="primaria"
         style={styles.button}
       />

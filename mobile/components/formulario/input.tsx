@@ -60,7 +60,7 @@ const Input = React.forwardRef<InputRef, InputProps>(({
                     <Icon name={iconName}/>
                 </View>
             )}
-            {label && <Text style={[styles.label, Typography.Negrito]}>{label}:</Text>}
+            {label && <Text style={[styles.label, Typography.Negrito]}>{label.replace(/:\s*$/, "")}:</Text>}
 
             {useImagePicker ? (
                 <View style={styles.imagePickerWrapper}>

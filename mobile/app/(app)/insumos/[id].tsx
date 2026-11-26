@@ -9,6 +9,7 @@ import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { buscarInsumoPorId, deletarInsumo, Insumo } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
+import { voltar } from '@/utils/navegacao';
 
 export default function InsumoDetalhe() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +33,7 @@ export default function InsumoDetalhe() {
     } catch (error) {
       console.error('❌ [DETALHE INSUMO] Erro ao carregar:', error);
       Alert.alert('Erro', 'Não foi possível carregar os detalhes do registro.');
-      router.back();
+      voltar(router);
     } finally {
       setIsLoading(false);
     }
@@ -87,9 +88,9 @@ export default function InsumoDetalhe() {
    * dataInsumo, nome, tipoInsumo, quantidade, unidadeMedida, dataValidade, observacoes
    */
   const fields: CardField[] = [
-    { label: 'Data de Entrada', value: insumo.dataInsumo || '—' },
+    { label: 'Data de Entrada', value: insumo.dataEntrada || '—' },
     { label: 'Nome do Insumo', value: insumo.nome || '—' },
-    { label: 'Tipo do Insumo', value: insumo.tipoInsumo || '—' },
+    { label: 'Tipo do Insumo', value: insumo.tipo || '—' },
     {
       label: 'Quantidade em Estoque',
       value: `${insumo.quantidade ?? 0} ${insumo.unidadeMedida ?? ''}`.trim() || '0'
@@ -134,7 +135,7 @@ export default function InsumoDetalhe() {
         mensagem="Registro excluído com sucesso!"
         aoFechar={() => {
           setModalSucessoVisivel(false);
-          router.back();
+          voltar(router);
         }}
       />
     </ScrollView>

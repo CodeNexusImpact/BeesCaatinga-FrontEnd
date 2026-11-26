@@ -1,3 +1,2 @@
-export default function EditarApiario() {
-    return null;
-}
+// Edição reutiliza o formulário de cadastro (modo edição via `?id=`).
+export { default } from './cadastrar';

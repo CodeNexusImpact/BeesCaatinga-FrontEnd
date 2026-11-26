@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { atualizarColmeia, buscarColmeiaPorId } from '@/services/colmeiaService';
 import type { ColmeiaAtualizadaDTO, TipoColmeia } from '@/types/apiario/colmeia';
+import { voltar } from '@/utils/navegacao';
 
 const tipoOptions = [
   { label: 'Madeira', value: 'MADEIRA' },
@@ -58,24 +59,24 @@ export default function EditarColmeia() {
         if (!ativoEfeito) return;
         if (!colmeia) {
           Alert.alert('Erro', 'Colmeia não encontrada.');
-          router.back();
+          voltar(router);
           return;
         }
         setIdentificador(colmeia.identificador ?? '');
         setNomeApiario(colmeia.nomeApiario ?? '');
         setTipo(colmeia.tipo ?? '');
-        setAtivo(colmeia.statusColmeia === 'INATIVO' ? 'nao' : 'sim');
+        setAtivo(colmeia.ativa === false || colmeia.statusColmeia === 'INATIVO' ? 'nao' : 'sim');
         setObservacoes(colmeia.observacoes ?? '');
         setDetalhesDaLocalizacao(colmeia.detalhesDaLocalizacao ?? '');
         setLatitude(colmeia.latitude ?? undefined);
         setLongitude(colmeia.longitude ?? undefined);
         setFoto(colmeia.caminhoDaFoto || undefined);
         // O DTO de retorno não traz apiarioId: resolve pelo nome, se não veio na rota.
-        setApiarioId((atual) => atual || String(apiarios?.find((a) => a.nome === colmeia.nomeApiario)?.id ?? ''));
+        setApiarioId((atual) => atual || String(colmeia.apiarioId ?? apiarios?.find((a) => a.nome === colmeia.nomeApiario)?.id ?? ''));
       } catch {
         if (ativoEfeito) {
           Alert.alert('Erro', 'Não foi possível carregar a colmeia.');
-          router.back();
+          voltar(router);
         }
       } finally {
         if (ativoEfeito) setCarregando(false);
@@ -116,7 +117,7 @@ export default function EditarColmeia() {
       };
       await atualizarColmeia(user.id, apiarioId, colmeiaId, dto);
       Alert.alert('Sucesso', 'Colmeia atualizada com sucesso!');
-      router.back();
+      voltar(router);
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar as alterações.');
     } finally {
@@ -136,15 +137,20 @@ export default function EditarColmeia() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Stack.Screen options={{ title: 'Editar Colmeia' }} />
 
-      <View style={styles.secao}>
+      {/* zIndex decrescente: o dropdown de um Selector precisa ficar acima das seções seguintes. */}
+      <View style={[styles.secao, { zIndex: 100 }]}>
         <Subtexto>Dados</Subtexto>
         <Input label="Identificador" placeholder="Ex: Colmeia C-001" value={identificador} onChangeText={setIdentificador} />
         <Input label="Apiário" value={nomeApiario} onChangeText={() => {}} editable={false} />
-        <Selector label="Tipo:" options={tipoOptions} value={tipo} onSelect={setTipo} placeholder="Selecione o tipo" iconName="beehiveOutline" />
-        <Selector label="Ativo:" options={ativoOptions} value={ativo} onSelect={setAtivo} placeholder="Selecione" />
+        <View style={{ zIndex: 20 }}>
+          <Selector label="Tipo" options={tipoOptions} value={tipo} onSelect={setTipo} placeholder="Selecione o tipo" iconName="beehiveOutline" />
+        </View>
+        <View style={{ zIndex: 10 }}>
+          <Selector label="Ativo" options={ativoOptions} value={ativo} onSelect={setAtivo} placeholder="Selecione" />
+        </View>
       </View>
 
-      <View style={styles.secao}>
+      <View style={[styles.secao, { zIndex: 1 }]}>
         <Subtexto>Localização</Subtexto>
         <Text style={styles.instrucaoMapa}>
           {latitude !== undefined && longitude !== undefined
@@ -152,7 +158,7 @@ export default function EditarColmeia() {
             : 'Localização não definida'}
         </Text>
         <Botao title="📍 Usar localização atual" onPress={usarLocalizacaoAtual} cor="secundaria" style={styles.buttonLocalizacao} />
-        <Input label="Detalhes da localização:" value={detalhesDaLocalizacao} onChangeText={setDetalhesDaLocalizacao} placeholder="---" />
+        <Input label="Detalhes da localização" value={detalhesDaLocalizacao} onChangeText={setDetalhesDaLocalizacao} placeholder="Ex.: perto do açude" />
       </View>
 
       <View style={styles.secao}>

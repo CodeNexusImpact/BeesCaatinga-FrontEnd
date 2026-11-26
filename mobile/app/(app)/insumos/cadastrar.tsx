@@ -38,15 +38,15 @@ export default function CadastrarInsumo() {
     }
 
     // PAYLOAD
+    // Espelha InsumoCriadoDTO do backend (datas dd/MM/yyyy; sem validade = null).
     const payload = {
-      dataInsumo,
+      dataEntrada: dataInsumo,
       nome,
-      tipoInsumo,
+      tipo: tipoInsumo,
       quantidade: parseFloat(quantidade.replace(',', '.')),
-      unidadeMedida,
-      dataValidade: semValidade ? 'N/A' : dataValidade,
+      unidadeMedida: unidadeMedida || undefined,
+      dataValidade: semValidade || !dataValidade ? undefined : dataValidade,
       observacoes,
-      statusInsumo: 'DISPONIVEL'
     };
 
     try {
@@ -78,11 +78,11 @@ export default function CadastrarInsumo() {
   ];
 
   const unidadeMedidaOptions = [
-    { label: 'Kg', value: 'KG' },
-    { label: 'g', value: 'G' },
-    { label: 'L', value: 'L' },
-    { label: 'mL', value: 'ML' },
-    { label: 'Unidade(s)', value: 'UN' },
+    { label: 'Kg', value: 'KILOGRAMA' },
+    { label: 'g', value: 'GRAMA' },
+    { label: 'L', value: 'LITRO' },
+    { label: 'mL', value: 'MILILITRO' },
+    { label: 'Unidade(s)', value: 'UNIDADE' },
   ];
 
   return (
@@ -198,13 +198,11 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: 'row', flexWrap: 'wrap', // empilha em telas estreitas (celular)
     justifyContent: 'space-between',
     gap: layout.espacamento.amigavel,
   },
-  inputMetade: {
-    flex: 1,
-  },
+  inputMetade: { flexGrow: 1, flexBasis: 240 },
   button: {
     marginTop: layout.espacamento.social,
   },

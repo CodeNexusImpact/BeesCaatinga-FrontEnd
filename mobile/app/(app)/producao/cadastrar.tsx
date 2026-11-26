@@ -56,7 +56,7 @@ export default function CadastrarProducao() {
         };
         try {
             const data = await listarColmeiasPorApiario(user.id, apiario);
-            setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
+            setColmeiaOptions(data.map((c: any) => ({ label: c.identificador || `Colmeia ${c.id}`, value: c.id.toString() })));
         } catch (e) {
             console.error('Erro ao buscar colmeias:', e);
         }
@@ -93,8 +93,8 @@ export default function CadastrarProducao() {
       Alert.alert('Sucesso', 'Produção cadastrada com sucesso!', [
         { text: 'OK', onPress: () => router.push('/producao/listar') }
       ]);
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível cadastrar a produção.');
+    } catch (error: any) {
+      Alert.alert('Erro', error?.response?.data?.message || 'Não foi possível cadastrar a produção.');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -117,7 +117,13 @@ export default function CadastrarProducao() {
   ];
 
   // Conversão fixa só para exibição (pode ser calculada depois)
-  const conversao = '1,43 L';
+  // Conversão automática kg → L (densidade média do mel ≈ 1,4 kg/L).
+  const conversao = (() => {
+    const n = parseFloat(quantidade.replace(',', '.'));
+    if (isNaN(n)) return '';
+    const litros = medida === 'KILOGRAMA' ? n / 1.4 : medida === 'LITRO' ? n : NaN;
+    return isNaN(litros) ? '' : `${litros.toFixed(2).replace('.', ',')} L`;
+  })();
 
   return (
     <ScrollView
@@ -220,15 +226,13 @@ const styles = StyleSheet.create({
     gap: layout.espacamento.colega,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: 'row', flexWrap: 'wrap', // empilha em telas estreitas (celular)
     justifyContent: 'space-between',
     gap: layout.espacamento.amigavel,
     zIndex: 10,
     position: 'relative',
   },
-  inputMetade: {
-    flex: 1,
-  },
+  inputMetade: { flexGrow: 1, flexBasis: 240 },
   conversaoInput: {
     backgroundColor: cores.cores.primaria[10], 
     borderColor: cores.cores.primaria[30], 

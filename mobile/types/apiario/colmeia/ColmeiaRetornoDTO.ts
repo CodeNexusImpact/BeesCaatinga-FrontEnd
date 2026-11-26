@@ -5,6 +5,8 @@ export interface ColmeiaRetornoDTO {
     identificador: string;
     caminhoDaFoto: string;
     nomeApiario: string;
+    apiarioId?: number;
+    ativa?: boolean;
     tipo: TipoColmeia;
     statusColmeia: StatusColmeia;
     ultimaVistoria: string; // LocalDate

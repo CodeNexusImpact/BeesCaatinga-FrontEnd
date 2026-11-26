@@ -7,6 +7,7 @@ import { LocalizacaoMapa, RegiaoDeMapa } from '@/types/mapa/mapaLocalizacao';
 
 interface MapaProps {
   localizacoes?: LocalizacaoMapa[];
+  regiaoPadrao?: RegiaoDeMapa; // usado na versão web; no nativo a região vem da localização do usuário
   permiteEdicao?: boolean;
   onMarkerPress?: (localizacao: LocalizacaoMapa) => void;
   onMapPress?: (latitude: number, longitude: number) => void;

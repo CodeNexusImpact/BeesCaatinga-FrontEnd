@@ -26,7 +26,7 @@ export default function ListarInsumos() {
     setIsLoading(true);
     try {
       const data = await getInsumos(userId);
-      setInsumos(data as InsumoRetornoDTO[]);
+      setInsumos(data as unknown as InsumoRetornoDTO[]);
     } catch (error) {
       console.error('❌ [LISTAR INSUMOS] Erro:', error);
       Alert.alert('Erro', 'Não foi possível carregar os insumos.');
@@ -133,7 +133,7 @@ export default function ListarInsumos() {
                   <View style={styles.statusRow}>
                     <View style={styles.infoCol}>
                       <Text style={styles.label}>Tipo:</Text>
-                      <Text style={styles.value}>{insumo.tipoInsumo}</Text>
+                      <Text style={styles.value}>{insumo.tipo}</Text>
                     </View>
                     <View style={styles.infoCol}>
                       <Text style={styles.label}>Quantidade:</Text>

@@ -2,14 +2,17 @@ import api from './api';
 
 const BASE_URL = '/vistorias';
 
+// Espelha VistoriaRetornoDTO do backend.
 export interface Vistoria {
   id: number;
-  data: string;
-  condicaoVistoria: string;
-  apiarioId: number;
-  colmeiaId: number;
-  pragas?: string[];
-  perdas?: string[];
+  dataVistoria: string; // ISO yyyy-MM-dd
+  condicao: string;
+  nomeApiario?: string;
+  nomeColmeia?: string;
+  apiarioId?: number;
+  colmeiaId?: number;
+  pragasIdentificadas?: string[];
+  perdasIdentificadas?: string[];
   observacoes?: string;
 }
 
@@ -33,10 +36,11 @@ export const listarPorColmeia = async (colmeiaId: number | string): Promise<Vist
   }
 };
 
-export const getVistoriaById = async (id: string | number): Promise<Vistoria> => {
+// A API não expõe GET por id: busca na listagem do produtor.
+export const getVistoriaById = async (produtorId: string | number, id: string | number): Promise<Vistoria | null> => {
   try {
-    const response = await api.get(`${BASE_URL}/${id}`);
-    return response.data;
+    const lista = await listarVistoriasPorProdutor(produtorId);
+    return lista.find((v) => String(v.id) === String(id)) ?? null;
   } catch (error) {
     console.error(`Erro ao buscar vistoria ${id}:`, error);
     throw error;
@@ -77,8 +81,8 @@ export const getKpisVistorias = async (produtorId: string | number) => {
   try {
     const dados = await listarVistoriasPorProdutor(produtorId);
     const total = dados.length;
-    const saudaveis = dados.filter((v: any) => ['saudavel', 'excelente', 'saudável'].includes(v.condicao?.toLowerCase())).length;
-    const criticas = dados.filter((v: any) => ['risco', 'perdida', 'alerta'].includes(v.condicao?.toLowerCase())).length;
+    const saudaveis = dados.filter((v: any) => v.condicao === 'SAUDAVEL').length;
+    const criticas = dados.filter((v: any) => v.condicao === 'MANUTENCAO_NECESSARIA').length;
     const taxa = total > 0 ? ((saudaveis / total) * 100).toFixed(0) : '0';
 
     return [

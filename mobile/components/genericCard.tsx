@@ -24,6 +24,9 @@ interface GenericCardProps {
   containerStyle?: object;
 }
 
+// Rótulos acessíveis (leitores de tela e testes) para os ícones de ação.
+const ROTULOS_ACAO: Record<string, string> = { edit: 'Editar', delete: 'Excluir', view: 'Visualizar' };
+
 export default function GenericCard({
   id,
   fields,
@@ -50,6 +53,8 @@ export default function GenericCard({
         <View style={styles.actions}>
           {actions.map((action, index) => (
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={ROTULOS_ACAO[action.iconName] ?? action.iconName}
               key={index}
               style={styles.actionButton}
               onPress={action.onPress}

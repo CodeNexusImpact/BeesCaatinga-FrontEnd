@@ -9,6 +9,7 @@ import { useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { styles as formStyle } from "@/styles/forms.styles";
 import layout from "@/constants/layout";
+import { voltar } from '@/utils/navegacao';
 
 interface RedefinirErrors {
   senha?: string;
@@ -69,7 +70,7 @@ function RedefinirSenha() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={[formStyle.formStyle, isWebPC && styles.formContainerWeb]}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => voltar(router)} style={styles.backButton}>
               <Icon name="back" size={30} color={cores.primaria[100]} />
             </TouchableOpacity>
             <Text style={styles.textoTitulo}>Recuperar Senha</Text>

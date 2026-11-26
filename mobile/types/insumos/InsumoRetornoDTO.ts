@@ -1,14 +1,14 @@
 import { StatusInsumo, UnidadeMedida } from './Enums';
 
+// Espelha io.sage.BeesCaatinga.controller.dto.insumo.InsumoRetornoDTO (datas ISO yyyy-MM-dd).
 export interface InsumoRetornoDTO {
     id: number;
-    produtorId: number;
-    dataInsumo: string; 
+    dataEntrada: string;
     nome: string;
-    tipoInsumo: string;
+    tipo: string;
     quantidade: number;
     unidadeMedida: UnidadeMedida;
-    dataValidade: string;
     statusInsumo: StatusInsumo;
+    dataValidade?: string | null;
     observacoes: string;
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator, useWindowDimensions, FlatList } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
@@ -10,6 +10,7 @@ import Mapa from '@/components/mapa/mapa';
 import ApiarioList from '@/components/apiario/apiarioList';
 
 import { useApiarios } from '@/hooks/useApiarios';
+import type { LocalizacaoMapa } from '@/types/mapa/mapaLocalizacao';
 
 
 export default function Index() {
@@ -17,6 +18,25 @@ export default function Index() {
   const { width, height } = useWindowDimensions();
 
   const { apiarios, loading } = useApiarios();
+
+  // Marcadores dos apiários com coordenadas registradas.
+  const localizacoes = useMemo<LocalizacaoMapa[]>(
+    () =>
+      (apiarios ?? [])
+        .filter((a) => Number(a.latitude) || Number(a.longitude))
+        .map((a) => ({
+          id: a.id,
+          latitude: Number(a.latitude),
+          longitude: Number(a.longitude),
+          nome: a.nome,
+          descricao: [a.cidade, a.estado].filter(Boolean).join(' - '),
+          tipo: 'apiario',
+        })),
+    [apiarios],
+  );
+  const regiao = localizacoes.length
+    ? { latitude: localizacoes[0].latitude, longitude: localizacoes[0].longitude, latitudeDelta: 0.2, longitudeDelta: 0.2 }
+    : undefined;
 
   if (loading) {
     return (
@@ -39,7 +59,7 @@ export default function Index() {
         alignItems: 'center',
       }}>
 
-        <Mapa />
+        <Mapa localizacoes={localizacoes} regiaoPadrao={regiao} />
         <View style={{
           flex: 1,
           height: width > 600 ? '90%' : '30%',

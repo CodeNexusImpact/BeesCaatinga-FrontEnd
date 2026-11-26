@@ -7,6 +7,7 @@ import { getRastreabilidadeById, RastreabilidadeDTO } from '@/services/rastreabi
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { voltar } from '@/utils/navegacao';
 
 const formatarData = (iso?: string) => {
   if (!iso) return '';
@@ -34,7 +35,7 @@ export default function DetalheLote() {
         if (!ativo) return;
         if (!dados) {
           Alert.alert('Erro', 'Lote não encontrado.');
-          router.back();
+          voltar(router);
           return;
         }
         setLote(dados);
@@ -42,7 +43,7 @@ export default function DetalheLote() {
       .catch(() => {
         if (ativo) {
           Alert.alert('Erro', 'Não foi possível carregar o lote.');
-          router.back();
+          voltar(router);
         }
       })
       .finally(() => ativo && setCarregando(false));

@@ -87,8 +87,8 @@ export default function ListarVistorias() {
             if (d.includes('/')) return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
             return new Date(d).getTime();
         };
-        const dataA = parseDate(a.data);
-        const dataB = parseDate(b.data);
+        const dataA = parseDate(a.dataVistoria);
+        const dataB = parseDate(b.dataVistoria);
         return ordemCrescente ? dataA - dataB : dataB - dataA;
     });
   }, [vistorias, ordemCrescente]);
@@ -134,11 +134,9 @@ export default function ListarVistorias() {
 
   const getCorStatus = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'saudavel':
-      case 'excelente': return cores.sucesso;
-      case 'manutencao': return cores.alerta;
-      case 'risco': return cores.perigo;
-      case 'perdida': return cores.preto;
+      case 'saudavel': return cores.sucesso;
+      case 'manutencao_necessaria': return cores.alerta;
+      case 'agendar_colheita': return cores.secundaria;
       default: return cores.secundaria;
     }
   };
@@ -146,10 +144,8 @@ export default function ListarVistorias() {
   const getLabelStatus = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'saudavel': return 'Saudável';
-      case 'excelente': return 'Excelente';
-      case 'manutencao': return 'Manutenção';
-      case 'risco': return 'Em Risco';
-      case 'perdida': return 'Perdida';
+      case 'manutencao_necessaria': return 'Manutenção Necessária';
+      case 'agendar_colheita': return 'Agendar Colheita';
       default: return status;
     }
   };
@@ -217,21 +213,21 @@ export default function ListarVistorias() {
                 const fields: CardField[] = [
                   {
                     label: 'Status',
-                    value: getLabelStatus(vistoria.condicaoVistoria),
-                    valueStyle: { color: getCorStatus(vistoria.condicaoVistoria) },
+                    value: getLabelStatus(vistoria.condicao),
+                    valueStyle: { color: getCorStatus(vistoria.condicao) },
                   },
                   {
                     label: 'Local',
-                    value: `Apiário ${vistoria.apiarioId} | Colmeia ${vistoria.colmeiaId}`,
+                    value: `${vistoria.nomeApiario ?? ''} | ${vistoria.nomeColmeia ?? ''}`,
                   },
-                  { label: 'Data', value: vistoria.data },
+                  { label: 'Data', value: vistoria.dataVistoria },
                   {
                     label: 'Pragas',
-                    value: vistoria.pragas?.length ? vistoria.pragas.join(', ') : 'Nenhuma',
+                    value: vistoria.pragasIdentificadas?.length ? vistoria.pragasIdentificadas.join(', ') : 'Nenhuma',
                   },
                   {
                     label: 'Perdas',
-                    value: vistoria.perdas?.length ? vistoria.perdas.join(', ') : 'Nenhuma',
+                    value: vistoria.perdasIdentificadas?.length ? vistoria.perdasIdentificadas.join(', ') : 'Nenhuma',
                   },
                   {
                     label: 'Obs',

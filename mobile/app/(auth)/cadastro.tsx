@@ -99,7 +99,7 @@ function Cadastro() {
       
       const produtorData: ProdutorCriado = {
         nomeCompleto,
-        telefone,
+        telefone: telefone.replace(/\D/g, ''),
         email,
         dataDeNascimento, 
         genero: genero as Genero,

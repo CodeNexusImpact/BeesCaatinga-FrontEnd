@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 // Importe o React Native como um objeto completo
 import * as RN from 'react-native';
-import { maskDate } from '@/utils/masks';
+import * as Location from 'expo-location';
 const {
     ScrollView,
     StyleSheet,
@@ -26,6 +26,7 @@ import { cadastrarColmeia } from '@/services/colmeiaService';
 // Constantes
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
+import { voltar } from '@/utils/navegacao';
 
 export default function Cadastrar() {
     const router = useRouter();
@@ -33,7 +34,8 @@ export default function Cadastrar() {
     const userId = user?.id;
 
     const [identificador, setIdentificador] = useState('');
-    const [dataCriacao, setDataCriacao] = useState(new Date().toLocaleDateString('pt-BR'));
+    const [coordenadas, setCoordenadas] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [detalhesDaLocalizacao, setDetalhesDaLocalizacao] = useState('');
     const [apiario, setApiario] = useState('');
     const [tipo, setTipo] = useState('');
     const [ativo, setAtivo] = useState('sim');
@@ -74,6 +76,10 @@ export default function Cadastrar() {
             Alert.alert('Erro', 'Por favor, selecione um apiário válido e preencha os campos obrigatórios.');
             return;
         }
+        if (!coordenadas) {
+            Alert.alert('Erro', 'Registre a localização da colmeia ("Usar localização atual").');
+            return;
+        }
 
         setLoading(true);
         try {
@@ -83,15 +89,15 @@ export default function Cadastrar() {
                 tipo: tipo.toUpperCase(),
                 ativa: ativo === 'sim',
                 observacoes,
-                latitude: -8.0, // Default para evitar erro de nulo no backend se não vier do mapa
-                longitude: -36.0,
-                detalhesDaLocalizacao: "",
-                caminhoDaFoto: foto
+                latitude: coordenadas.latitude,
+                longitude: coordenadas.longitude,
+                detalhesDaLocalizacao,
+                caminhoDaFoto: foto || undefined
             };
 
             await cadastrarColmeia(userId, parseInt(apiario), payload);
             Alert.alert('Sucesso', 'Colmeia cadastrada com sucesso!');
-            router.back();
+            voltar(router);
         } catch (error) {
             console.error('Erro ao cadastrar colmeia:', error);
             Alert.alert('Erro', 'Não foi possível cadastrar a colmeia.');
@@ -100,8 +106,18 @@ export default function Cadastrar() {
         }
     };
 
-    const handleDateChange = (text: string) => {
-        setDataCriacao(maskDate(text));
+    const usarLocalizacaoAtual = async () => {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permissão negada', 'Não foi possível acessar a localização.');
+                return;
+            }
+            const pos = await Location.getCurrentPositionAsync({});
+            setCoordenadas({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        } catch {
+            Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+        }
     };
 
 
@@ -136,18 +152,6 @@ export default function Cadastrar() {
                         iconName="tag"
                     />
 
-                    {/* Campo de Data com correção para a mensagem preta de preenchimento */}
-                    <Input
-                        label="Data de Criação:"
-                        placeholder="DD/MM/AAAA"
-                        value={dataCriacao}
-                        onChangeText={handleDateChange}
-                        iconName="calendar"
-                        autoComplete="off"
-                        importantForAutofill="no"
-                        textContentType="none"
-                        maxLength={10}
-                    />
 
                     <View style={{ zIndex: 30 }}>
                         <Selector
@@ -185,10 +189,18 @@ export default function Cadastrar() {
                 {/* SEÇÃO LOCALIZAÇÃO */}
                 <View style={[styles.secao, { zIndex: 1, marginTop: 10 }]}>
                     <Subtexto>Localização</Subtexto>
-                    <View style={styles.mapaPlaceholder}>
-                        <Text style={{ color: cores.cores.base[40] }}>Mapa Interativo</Text>
-                    </View>
-                    <Botao title="📍 Usar localização atual" onPress={() => { }} cor="secundaria" />
+                    <Text style={{ color: cores.texto }}>
+                        {coordenadas
+                            ? `Localização: ${coordenadas.latitude.toFixed(5)}, ${coordenadas.longitude.toFixed(5)}`
+                            : 'Localização não registrada'}
+                    </Text>
+                    <Botao title="📍 Usar localização atual" onPress={usarLocalizacaoAtual} cor="secundaria" />
+                    <Input
+                        label="Detalhes da localização:"
+                        placeholder="Ex.: perto do açude"
+                        value={detalhesDaLocalizacao}
+                        onChangeText={setDetalhesDaLocalizacao}
+                    />
                 </View>
 
                 {/* SEÇÃO DADOS ADICIONAIS */}

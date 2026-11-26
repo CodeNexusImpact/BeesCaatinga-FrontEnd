@@ -16,6 +16,8 @@ import {
 } from 'react-native';
 import { getVistoriaById, atualizarVistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
+import { maskDate } from '@/utils/masks';
+import { voltar } from '@/utils/navegacao';
 
 const CheckboxItem = ({ label, value, onValueChange }: {
   label: string; value: boolean; onValueChange: (value: boolean) => void;
@@ -31,117 +33,95 @@ const CheckboxItem = ({ label, value, onValueChange }: {
   </View>
 );
 
+const condicaoOptions = [
+  { label: 'Saudável', value: 'SAUDAVEL' },
+  { label: 'Manutenção Necessária', value: 'MANUTENCAO_NECESSARIA' },
+  { label: 'Agendar Colheita', value: 'AGENDAR_COLHEITA' },
+];
+
+const PRAGAS = { varroa: false, formiga: false, traca: false, lagartixa: false, outro: false };
+const PERDAS = { alimentacao: false, veneno: false, clima: false, outro: false };
+
+/** Converte a lista do backend (ex.: ['VARROA']) no objeto de checkboxes. */
+const paraCheckbox = <T extends Record<string, boolean>>(base: T, lista?: string[]): T => {
+  const next = { ...base };
+  (lista ?? []).forEach((v) => {
+    const k = v.toLowerCase();
+    if (k in next) (next as Record<string, boolean>)[k] = true;
+  });
+  return next;
+};
+const paraLista = (obj: Record<string, boolean>) =>
+  Object.entries(obj).filter(([, marcado]) => marcado).map(([k]) => k.toUpperCase());
+
+const isoParaBr = (iso?: string) => {
+  if (!iso) return '';
+  const [a, m, d] = iso.split('-');
+  return d && m && a ? `${d}/${m}/${a}` : iso;
+};
+
 export default function EditarVistoria() {
   const router = useRouter();
-  const { id } = useLocalSearchParams(); 
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
+  const userId = user?.id;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const [dataVistoria, setDataVistoria] = useState('');
-  const [apiario, setApiario] = useState('');
-  const [colmeia, setColmeia] = useState('');
+  const [nomeApiario, setNomeApiario] = useState('');
+  const [nomeColmeia, setNomeColmeia] = useState('');
   const [condicao, setCondicao] = useState('');
   const [observacoes, setObservacoes] = useState('');
-  
-  const [pragasObj, setPragasObj] = useState({
-    varroa: false, formiga: false, traca: false, lagartixa: false, outro: false,
-  });
-  const [perdasObj, setPerdasObj] = useState({
-    alimentacao: false, veneno: false, clima: false, outro: false,
-  });
-
-  const apiarioOptions = [
-    { label: 'Rosa do Sertão', value: '1' },
-    { label: 'Vale das Abelhas', value: '2' },
-  ];
-  const colmeiaOptions = [
-    { label: 'Colmeia 1', value: '1' },
-    { label: 'Colmeia 2', value: '2' },
-  ];
-  const condicaoOptions = [
-    { label: 'Saudável', value: 'saudavel' },
-    { label: 'Manutenção Necessária', value: 'manutencao' },
-    { label: 'Em Risco', value: 'risco' },
-    { label: 'Perdida', value: 'perdida' },
-  ];
+  const [pragasObj, setPragasObj] = useState(PRAGAS);
+  const [perdasObj, setPerdasObj] = useState(PERDAS);
 
   useEffect(() => {
-    const carregarVistoria = async () => {
-      if (id) {
-        try {
-          setIsLoading(true);
-          const vistoriaId = Array.isArray(id) ? id[0] : id;
-          const dados = await getVistoriaById(vistoriaId);
-          
-          if (dados) {
-            setDataVistoria(dados.data);
-            setApiario(dados.apiarioId?.toString() || '');
-            setColmeia(dados.colmeiaId?.toString() || '');
-            setCondicao(dados.condicaoVistoria);
-            setObservacoes(dados.observacoes ?? '');
-
-            // Reconstrói objetos de checkbox a partir dos arrays do banco
-            if (dados.pragas) {
-                setPragasObj(prev => {
-                    const next = { ...prev };
-                    dados.pragas?.forEach(p => {
-                        const key = p.toLowerCase() as keyof typeof prev;
-                        if (key in next) (next as any)[key] = true;
-                    });
-                    return next;
-                });
-            }
-            if (dados.perdas) {
-                setPerdasObj(prev => {
-                    const next = { ...prev };
-                    dados.perdas?.forEach(p => {
-                        const key = p.toLowerCase() as keyof typeof prev;
-                        if (key in next) (next as any)[key] = true;
-                    });
-                    return next;
-                });
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao buscar vistoria:', error);
+    if (!id || !userId) return;
+    let ativo = true;
+    getVistoriaById(userId, id)
+      .then((dados) => {
+        if (!ativo) return;
+        if (!dados) {
           Alert.alert('Erro', 'Vistoria não encontrada!');
-          router.back();
-        } finally {
-          setIsLoading(false);
+          voltar(router);
+          return;
         }
-      }
+        setDataVistoria(isoParaBr(dados.dataVistoria));
+        setNomeApiario(dados.nomeApiario ?? '');
+        setNomeColmeia(dados.nomeColmeia ?? '');
+        setCondicao(dados.condicao ?? '');
+        setObservacoes(dados.observacoes ?? '');
+        setPragasObj(paraCheckbox(PRAGAS, dados.pragasIdentificadas));
+        setPerdasObj(paraCheckbox(PERDAS, dados.perdasIdentificadas));
+      })
+      .catch(() => {
+        if (!ativo) return;
+        Alert.alert('Erro', 'Vistoria não encontrada!');
+        voltar(router);
+      })
+      .finally(() => ativo && setIsLoading(false));
+    return () => {
+      ativo = false;
     };
-
-    carregarVistoria();
-  }, [id]);
+  }, [id, userId, router]);
 
   const handleSalvar = async () => {
-    if (!id || !user?.id) return;
-
+    if (!id || !userId || isSaving) return;
+    if (dataVistoria.length !== 10 || !condicao) {
+      Alert.alert('Erro', 'Informe a data (dd/mm/aaaa) e a condição.');
+      return;
+    }
     setIsSaving(true);
     try {
-      const vistoriaId = Array.isArray(id) ? id[0] : id;
-
-      const pragas = Object.entries(pragasObj)
-        .filter(([_, checked]) => checked)
-        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
-      
-      const perdas = Object.entries(perdasObj)
-        .filter(([_, checked]) => checked)
-        .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
-
-      await atualizarVistoria(vistoriaId, user.id, {
-        data: dataVistoria,
-        apiarioId: apiario,
-        colmeiaId: colmeia,
-        condicaoVistoria: condicao,
+      await atualizarVistoria(id, userId, {
+        dataVistoria,
+        condicao,
         observacoes,
-        pragas,
-        perdas,
+        pragasIdentificadas: paraLista(pragasObj),
+        perdasIdentificadas: paraLista(perdasObj),
       });
-
       Alert.alert('Sucesso', 'Vistoria atualizada com sucesso!');
       router.push('/vistorias/listar');
     } catch (error) {
@@ -151,7 +131,6 @@ export default function EditarVistoria() {
       setIsSaving(false);
     }
   };
-
 
   if (isLoading) {
     return (
@@ -171,28 +150,15 @@ export default function EditarVistoria() {
       <Input
         label="Data da Vistoria:"
         value={dataVistoria}
-        onChangeText={setDataVistoria}
+        onChangeText={(t) => setDataVistoria(maskDate(t))}
         placeholder="dd/mm/aaaa"
+        maxLength={10}
         iconName="calendar"
       />
 
-      <Selector
-        label="Selecione o Apiário*"
-        options={apiarioOptions}
-        onSelect={setApiario}
-        placeholder="Selecione"
-        iconName="home"
-        value={apiario}
-      />
-
-      <Selector
-        label="Selecione a Colmeia*"
-        options={colmeiaOptions}
-        onSelect={setColmeia}
-        placeholder="Selecione"
-        iconName="beehiveOutline"
-        value={colmeia} 
-      />
+      {/* Apiário e colmeia não podem ser alterados (a API não permite). */}
+      <Input label="Apiário" value={nomeApiario} onChangeText={() => {}} editable={false} iconName="home" />
+      <Input label="Colmeia" value={nomeColmeia} onChangeText={() => {}} editable={false} iconName="beehiveOutline" />
 
       <Selector
         label="Condição:"
@@ -231,7 +197,7 @@ export default function EditarVistoria() {
       />
 
       <Botao
-        title="Salvar"
+        title={isSaving ? 'Salvando...' : 'Salvar'}
         onPress={handleSalvar}
         cor="primaria"
         style={styles.button}

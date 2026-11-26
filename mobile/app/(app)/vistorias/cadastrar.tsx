@@ -11,7 +11,9 @@ import { cadastrarVistoria } from '@/services/vistoriaService';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import ModalSucesso from '@/components/notificacao/modalSucesso';
+import { maskDate } from '@/utils/masks';
 import { useAuth } from '@/hooks/useAuth';
+import { voltar } from '@/utils/navegacao';
 
 const CheckboxItem = ({
   label,
@@ -41,7 +43,7 @@ export default function CadastrarVistoria() {
   const [dataVistoria, setDataVistoria] = useState(new Date().toLocaleDateString('pt-BR'));
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
-  const [condicao, setCondicao] = useState('saudavel');
+  const [condicao, setCondicao] = useState('SAUDAVEL');
   const [observacoes, setObservacoes] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
@@ -71,7 +73,7 @@ export default function CadastrarVistoria() {
         };
         try {
             const data = await listarColmeiasPorApiario(user.id, apiario);
-            setColmeiaOptions(data.map((c: any) => ({ label: `Colmeia ${c.id}`, value: c.id.toString() })));
+            setColmeiaOptions(data.map((c: any) => ({ label: c.identificador || `Colmeia ${c.id}`, value: c.id.toString() })));
         } catch (e) {
             console.error('Erro ao buscar colmeias:', e);
         }
@@ -107,6 +109,10 @@ export default function CadastrarVistoria() {
       Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+    if (dataVistoria.length !== 10) {
+      Alert.alert('Erro', 'Informe a data da vistoria no formato dd/mm/aaaa.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -140,7 +146,7 @@ export default function CadastrarVistoria() {
 
   const aoFecharSucesso = () => {
     setModalSucessoVisivel(false);
-    router.back();
+    voltar(router);
   };
 
 
@@ -152,8 +158,9 @@ export default function CadastrarVistoria() {
       <Input
         label="Data da Vistoria:"
         value={dataVistoria}
-        onChangeText={setDataVistoria}
+        onChangeText={(t) => setDataVistoria(maskDate(t))}
         placeholder="dd/mm/aaaa"
+        maxLength={10}
         iconName="calendar"
       />
 

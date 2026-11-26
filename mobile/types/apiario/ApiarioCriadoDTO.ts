@@ -11,6 +11,8 @@ export interface ApiarioCriadoDTO {
     numero?: string;
     complemento?: string;
     produtor_id: number; // Mapeado exatamente como no backend (snake_case)
+    observacoes?: string;
+    caminhoDaFoto?: string;
     latitude: number;
     longitude: number;
 }

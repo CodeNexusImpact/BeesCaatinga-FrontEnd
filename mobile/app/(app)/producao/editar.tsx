@@ -6,12 +6,14 @@ import layout from '@/constants/layout';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { maskDate } from '@/utils/masks';
 import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import Subtexto from '@/components/subTexto';
 import { getProducaoPorId, atualizarProducao, deletarProducao } from '@/services/producaoService';
 import { UnidadeMedida } from '@/types/insumos/Enums';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
+import { voltar } from '@/utils/navegacao';
 
 type Opcao = { label: string; value: string };
 
@@ -45,7 +47,7 @@ export default function Editar() {
                 ]);
                 if (!data) {
                     Alert.alert('Erro', 'Produção não encontrada.');
-                    router.back();
+                    voltar(router);
                     return;
                 }
 
@@ -54,8 +56,9 @@ export default function Editar() {
 
                 setTipoProduto(data.tipoProducao);
                 setQuantidade(data.quantidade.toString());
-                // O DTO de retorno não traz unidade, apiarioId nem colmeiaId: resolvemos pelos nomes.
-                setApiario(opcoes.find((o) => o.label === data.nomeApiario)?.value ?? '');
+                setMedida((data.unidadeMedida as UnidadeMedida) ?? '');
+                setApiario(data.apiarioId ? String(data.apiarioId) : opcoes.find((o) => o.label === data.nomeApiario)?.value ?? '');
+                if (data.colmeiaId) setColmeia(String(data.colmeiaId));
                 setNomeColmeiaOriginal(data.nomeColmeia ?? '');
 
                 if (data.dataColeta) {
@@ -64,7 +67,7 @@ export default function Editar() {
                 }
             } catch {
                 Alert.alert('Erro', 'Não foi possível carregar os dados da produção.');
-                router.back();
+                voltar(router);
             } finally {
                 setIsLoading(false);
             }
@@ -252,7 +255,8 @@ export default function Editar() {
             <Input
                 label="Data Coleta"
                 value={dataColeta}
-                onChangeText={setDataColeta}
+                onChangeText={(t) => setDataColeta(maskDate(t))}
+                maxLength={10}
                 placeholder="dd/mm/aaaa"
                 iconName="calendar"
             />
@@ -295,15 +299,13 @@ const styles = StyleSheet.create({
         marginBottom: layout.espacamento.amigavel,
     },
     row: {
-        flexDirection: 'row',
+        flexDirection: 'row', flexWrap: 'wrap', // empilha em telas estreitas (celular)
         justifyContent: 'space-between',
         gap: layout.espacamento.amigavel,
         zIndex: 10,
         position: 'relative',
     },
-    inputMetade: {
-        flex: 1,
-    },
+    inputMetade: { flexGrow: 1, flexBasis: 240 },
     buttonSave: {
         marginTop: layout.espacamento.social,
     },

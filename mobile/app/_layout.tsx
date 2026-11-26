@@ -5,6 +5,9 @@ import { Text, ActivityIndicator, View } from 'react-native';
 import temaCores from "@/constants/cores";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { instalarAlertWeb } from '@/utils/alertWeb';
+
+instalarAlertWeb();
 
 function RootLayout() {
   const { session, isLoading } = useAuth();
@@ -20,11 +23,9 @@ function RootLayout() {
 
     if (!session && !inAuthGroup) {
       // Caso 1: Usuário não está logado e tenta acessar área protegida -> Vai para Login
-      console.log("🛡️ Rota Protegida: Redirecionando para Login");
       router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
       // Caso 2: Usuário está logado mas está nas telas de auth -> Vai para Home
-      console.log("🛡️ Usuário Autenticado: Redirecionando para Home");
       router.replace('/(app)');
     }
   }, [session, isLoading, segments]);

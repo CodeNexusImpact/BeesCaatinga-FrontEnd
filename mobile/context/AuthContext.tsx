@@ -45,6 +45,7 @@ interface AuthContextType {
     isLoading: boolean;
     signIn: (email: string, senha: string) => Promise<void>;
     signOut: () => Promise<void>;
+    atualizarUsuario: (produtor: Produtor) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -53,6 +54,7 @@ export const AuthContext = createContext<AuthContextType>({
     isLoading: true,
     signIn: async () => { },
     signOut: async () => { },
+    atualizarUsuario: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -121,8 +123,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    // Atualiza os dados do produtor em memória e no storage (ex.: após editar o perfil).
+    const atualizarUsuario = async (produtor: Produtor) => {
+        await storage.setItem('user_data', JSON.stringify(produtor));
+        setUser(produtor);
+    };
+
     return (
-        <AuthContext.Provider value={{ session, user, isLoading, signIn, signOut }}>
+        <AuthContext.Provider value={{ session, user, isLoading, signIn, signOut, atualizarUsuario }}>
             {children}
         </AuthContext.Provider>
     );

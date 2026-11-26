@@ -8,17 +8,21 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import Icon from '@/components/icon';
 import { useAuth } from '@/hooks/useAuth';
+import { atualizarProdutor } from '@/services/produtorService';
+import { maskPhone } from '@/utils/masks';
+import { voltar } from '@/utils/navegacao';
 
 export default function Index() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, atualizarUsuario } = useAuth();
+  const [salvando, setSalvando] = useState(false);
 
   // Estados baseados nos dados reais do usuário logado
   const [nome, setNome] = useState(user?.nomeCompleto || '');
   const [genero, setGenero] = useState(user?.genero || '');
   const [email, setEmail] = useState(user?.email || '');
   const [empresa, setEmpresa] = useState(user?.nomeDaEmpresa || '');
-  const [telefone, setTelefone] = useState(user?.telefone || '');
+  const [telefone, setTelefone] = useState(maskPhone(user?.telefone || ''));
   const [endereco, setEndereco] = useState(user?.endereco || '');
 
   // Opções para gênero alinhadas ao backend
@@ -28,13 +32,38 @@ export default function Index() {
     { label: 'Outro', value: 'OUTRO' },
   ];
 
-  const handleSalvar = () => {
-    Alert.alert('Info', 'Funcionalidade de salvamento em manutenção.');
-    router.back();
+  const handleSalvar = async () => {
+    if (!user?.id || salvando) return;
+    if (!nome.trim()) {
+      Alert.alert('Erro', 'O nome é obrigatório.');
+      return;
+    }
+    const digitos = telefone.replace(/\D/g, '');
+    if (digitos && digitos.length < 10) {
+      Alert.alert('Erro', 'Telefone inválido.');
+      return;
+    }
+    setSalvando(true);
+    try {
+      const atualizado = await atualizarProdutor(user.id, {
+        nomeCompleto: nome.trim(),
+        genero: genero || undefined,
+        nomeDaEmpresa: empresa.trim(),
+        telefone: digitos || undefined,
+        endereco: endereco.trim(),
+      });
+      await atualizarUsuario({ ...user, ...atualizado });
+      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+      voltar(router);
+    } catch (error: any) {
+      Alert.alert('Erro', error?.response?.data?.message || 'Não foi possível salvar o perfil.');
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const handleCancelar = () => {
-    router.back();
+    voltar(router);
   };
 
   return (
@@ -89,7 +118,7 @@ export default function Index() {
       <Input
         label="Celular"
         value={telefone}
-        onChangeText={setTelefone}
+        onChangeText={(t) => setTelefone(maskPhone(t))}
         placeholder="(00) 0 0000-0000"
         keyboardType="phone-pad"
       />
@@ -104,7 +133,7 @@ export default function Index() {
       {/* Botões */}
       <View style={styles.botoesContainer}>
         <Botao
-          title="Salvar Alterações"
+          title={salvando ? 'Salvando...' : 'Salvar Alterações'}
           onPress={handleSalvar}
           cor="primaria"
           tamanho="grande"

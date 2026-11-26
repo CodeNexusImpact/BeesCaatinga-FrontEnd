@@ -57,12 +57,12 @@ export default function DashboardVistoria() {
             // Exemplo de agregação para Pizza (Status)
             const statusCount: {[key: string]: number} = {};
             vistoriasArray.forEach(v => {
-                const s = v.condicaoVistoria || 'saudavel';
+                const s = (v.condicao || 'SAUDAVEL').toLowerCase();
                 statusCount[s] = (statusCount[s] || 0) + 1;
             });
 
             const coresMap: {[key: string]: string} = {
-                saudavel: '#4CAF50', excelente: '#8BC34A', manutencao: '#FFC107', risco: '#FF9800', perdida: '#F44336'
+                saudavel: '#4CAF50', manutencao_necessaria: '#FFC107', agendar_colheita: '#8BC34A'
             };
 
             const pizza = Object.entries(statusCount).map(([name, count]) => ({

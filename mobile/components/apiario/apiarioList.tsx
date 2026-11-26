@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import ColmeiaItem from '@/components/apiario/colmeiaItem';
 import Icon from '@/components/icon';
 import cores from '@/constants/cores';
@@ -11,12 +12,13 @@ import { ApiarioRetornoDTO } from '@/types/apiario';
 const ApiarioList: React.FC<{ apiario: ApiarioRetornoDTO }> = ({ apiario }) => {
     const { id, nome, colmeias } = apiario;
     const [isExpanded, setIsExpanded] = useState(false);
+    const router = useRouter();
 
     const colmeiasTotal = colmeias.length;
     const colmeiasAtivas = colmeias.filter(c => c.statusColmeia !== 'INATIVO').length;
 
     function openApiarioDetails() {
-        console.log('Apiário Selecionado', `Você selecionou o apiário: ${id}`);
+        router.push({ pathname: '/apiario/editar', params: { id: String(id) } });
     }
 
 

@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 
 import { ApiarioCriadoDTO } from '@/types/apiario/ApiarioCriadoDTO';
 import { EnderecoProps } from '@/types/common/Endereco';
 import { maskDate } from '@/utils/masks';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 import Input from '@/components/formulario/input';
 import FormEndereco from '@/components/formulario/formEndereco';
-import TipoQuantidadeColmeia from '@/components/apiario/tipoQuantidadeColmeia';
 import Botao from '@/components/formulario/botao';
 import Subtexto from '@/components/subTexto';
 
@@ -16,11 +15,21 @@ import { styles as hero } from '@/styles/hero.styles';
 import { styles as formStyles } from '@/styles/forms.styles';
 import ImagemPicker from '@/components/formulario/imagemPicker';
 import { useAuth } from '@/hooks/useAuth';
-import { cadastrarApiario } from '@/services/apiarioService';
+import { atualizarApiario, cadastrarApiario, listarApiariosPorProdutor } from '@/services/apiarioService';
+import { voltar } from '@/utils/navegacao';
 
+const isoParaBr = (iso?: string | null) => {
+    if (!iso) return '';
+    const [a, m, d] = iso.split('-');
+    return d && m && a ? `${d}/${m}/${a}` : iso;
+};
+
+/** Cadastro e edição de apiário (edição quando a rota recebe `?id=`). */
 const CadastrarApiario = () => {
     const router = useRouter();
     const { user } = useAuth();
+    const { id: apiarioId } = useLocalSearchParams<{ id?: string }>();
+    const editando = !!apiarioId;
     const [loading, setLoading] = useState(false);
     const [foto, setFoto] = useState(''); // Armazena a URL da imagem upada
 
@@ -49,23 +58,52 @@ const CadastrarApiario = () => {
         },
     });
 
-    //quantidade colmeias por tipo    
-    const [colmeiasMadeiraAtivas, setColmeiasMadeiraAtivas] = useState(0);
-    const [colmeiasMadeiraInativas, setColmeiasMadeiraInativas] = useState(0);
-
-    const [colmeiasConcretoAtivas, setColmeiasConcretoAtivas] = useState(0);
-    const [colmeiasConcretoInativas, setColmeiasConcretoInativas] = useState(0);
-
-    const [colmeiasPoliestirenoAtivas, setColmeiasPoliestirenoAtivas] = useState(0);
-    const [colmeiasPoliestirenoInativas, setColmeiasPoliestirenoInativas] = useState(0);
 
     //dados adicionais
     const [observacoes, setObservacoes] = useState('');
 
+    // Edição: carrega os dados do apiário (a API não tem GET por id; busca na listagem).
+    const userId = user?.id;
+    useEffect(() => {
+        if (!editando || !userId) return;
+        let ativo = true;
+        listarApiariosPorProdutor(userId)
+            .then((lista) => {
+                const a = (lista ?? []).find((x) => String(x.id) === String(apiarioId));
+                if (!ativo) return;
+                if (!a) {
+                    Alert.alert('Erro', 'Apiário não encontrado.');
+                    voltar(router);
+                    return;
+                }
+                setNome(a.nome ?? '');
+                setRegistro(a.nRegistro ?? '');
+                setDataCriacao(isoParaBr(a.dataDeCriacao));
+                setObservacoes(a.observacoes ?? '');
+                setFoto(a.caminhoDaFoto ?? '');
+                setEndereco({
+                    cep: a.cep ?? '',
+                    propriedade: a.nomeDaPropriedade ?? '',
+                    estado: a.estado ?? '',
+                    cidade: a.cidade ?? '',
+                    bairro: a.bairro ?? '',
+                    rua: a.rua ?? '',
+                    numero: a.numero ?? '',
+                    complemento: a.complemento ?? '',
+                    coordenadas: { latitude: Number(a.latitude ?? 0), longitude: Number(a.longitude ?? 0) },
+                });
+            })
+            .catch(() => ativo && Alert.alert('Erro', 'Não foi possível carregar o apiário.'));
+        return () => {
+            ativo = false;
+        };
+    }, [editando, apiarioId, userId, router]);
+
 
     const handleSubmit = async () => {
-        if (!nome || !registro || !user?.id) {
-            Alert.alert("Erro", "Por favor, preencha os dados obrigatórios.");
+        const obrigatorios = [nome, registro, endereco.cep, endereco.rua, endereco.bairro, endereco.cidade, endereco.estado, endereco.propriedade];
+        if (obrigatorios.some((v) => !v?.trim()) || !user?.id) {
+            Alert.alert("Erro", "Preencha nome, registro e endereço (CEP, rua, bairro, cidade, estado e propriedade).");
             return;
         }
 
@@ -73,8 +111,8 @@ const CadastrarApiario = () => {
         const apiarioData: ApiarioCriadoDTO = {
             nome,
             nRegistro: registro,
-            dataDeCriacao: dataCriacao,
-            cep: endereco.cep,
+            dataDeCriacao: dataCriacao || undefined,
+            cep: endereco.cep.replace(/\D/g, ''),
             nomeDaPropriedade: endereco.propriedade,
             estado: endereco.estado,
             cidade: endereco.cidade,
@@ -85,16 +123,25 @@ const CadastrarApiario = () => {
             latitude: endereco.coordenadas.latitude,
             longitude: endereco.coordenadas.longitude,
             produtor_id: user.id,
-            caminhoDaFoto: foto, // Inclui a URL da foto no payload
-        } as any; // Type as any to bypass temporary missing props in DTO if needed
+            observacoes,
+            caminhoDaFoto: foto || undefined,
+        };
 
         try {
+            if (editando) {
+                const { produtor_id: _ignorado, ...dadosAtualizacao } = apiarioData;
+                await atualizarApiario(Number(apiarioId), user.id, dadosAtualizacao);
+                Alert.alert("Sucesso", "Apiário atualizado com sucesso!");
+                voltar(router);
+                return;
+            }
             await cadastrarApiario(user.id, apiarioData);
             Alert.alert("Sucesso", "Apiário cadastrado com sucesso!");
             router.replace('/apiario/listar');
-        } catch (error) {
-            console.error('Erro ao cadastrar apiário:', error);
-            Alert.alert("Erro", "Não foi possível cadastrar o apiário.");
+        } catch (error: any) {
+            console.error('Erro ao salvar apiário:', error);
+            const msg = error?.response?.data?.message;
+            Alert.alert("Erro", msg || `Não foi possível ${editando ? 'atualizar' : 'cadastrar'} o apiário.`);
         } finally {
             setLoading(false);
         }
@@ -103,12 +150,10 @@ const CadastrarApiario = () => {
 
 
 
-    const windowWidth = Dimensions.get('window').width;
-    const windowHeight = Dimensions.get('window').height;
 
     return (
         <ScrollView>
-            <Stack.Screen options={{ title: 'Cadastrar Apiário' }} />
+            <Stack.Screen options={{ title: editando ? 'Editar Apiário' : 'Cadastrar Apiário' }} />
 
             <View style={hero.formStyle}>
                 <View style={formStyles.formStyle}>
@@ -138,34 +183,6 @@ const CadastrarApiario = () => {
                     <FormEndereco enderecoInicial={endereco} onEnderecoChange={setEndereco} />
                 </View>
                 <View style={formStyles.formStyle}>
-                    <Subtexto>Colmeias</Subtexto>
-                    <Text>tipo - quantidade colmeias: (ativas / inativas)</Text>
-                    <TipoQuantidadeColmeia
-                        isEditable={true}
-                        tipo={'Madeira'}
-                        ativas={colmeiasMadeiraAtivas}
-                        inativas={colmeiasMadeiraInativas}
-                        onAtivasChange={setColmeiasMadeiraAtivas}
-                        onInativasChange={setColmeiasMadeiraInativas}
-                    />
-                    <TipoQuantidadeColmeia
-                        isEditable={false}
-                        tipo={'Concreto'}
-                        ativas={colmeiasConcretoAtivas}
-                        inativas={colmeiasConcretoInativas}
-                        onAtivasChange={setColmeiasConcretoAtivas}
-                        onInativasChange={setColmeiasConcretoInativas}
-                    />
-                    <TipoQuantidadeColmeia
-                        isEditable={false}
-                        tipo={'Poliestireno'}
-                        ativas={colmeiasPoliestirenoAtivas}
-                        inativas={colmeiasPoliestirenoInativas}
-                        onAtivasChange={setColmeiasPoliestirenoAtivas}
-                        onInativasChange={setColmeiasPoliestirenoInativas}
-                    />
-                </View>
-                <View style={formStyles.formStyle}>
                     <Subtexto>Dados Adicionais</Subtexto>
                     <View style={[formStyles.formStyle, { flex: 1,flexDirection: Dimensions.get('window').width > 600 ? 'row' : 'column' , justifyContent: 'space-between', width: '100%'}]}>
                         <Input
@@ -184,7 +201,7 @@ const CadastrarApiario = () => {
                         />
                     </View>
                 </View>
-                <Botao title="Cadastrar Apiário" onPress={handleSubmit} />
+                <Botao title={loading ? 'Salvando...' : editando ? 'Salvar Alterações' : 'Cadastrar Apiário'} onPress={loading ? () => {} : handleSubmit} />
 
 
 
