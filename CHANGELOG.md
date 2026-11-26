@@ -5,6 +5,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Unreleased]
 ### Added
+- Testes E2E com Playwright (`npm run e2e`, `mobile/e2e/`): 128 verificações pela UI com conferência campo a campo na API; relatório `mobile/e2e/RELATORIO_QA.md` e capturas de tela.
+- Edição de perfil e de apiário funcionais; geolocalização real em apiário, colmeia e lote; marcadores de apiários no mapa.
+- Polyfill de `Alert.alert` para a web (alertas e confirmações antes ignorados no navegador).
 - Licença MIT, Código de Conduta, Política de Segurança e templates de issue/PR.
 - Dependabot para npm, GitHub Actions e Docker.
 - Configuração Nginx para SPA com health check (`/healthz`), gzip e headers de segurança.
@@ -25,6 +28,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Rastreabilidade lista lotes via `/lotes/{produtorId}/detalhado`; a tela de lote passa a ser somente leitura (a API não expõe edição/exclusão de lotes).
 
 ### Fixed
+- Contratos de vistoria, insumo e lote alinhados aos DTOs do backend (cadastros falhavam com 400).
+- Tabelas de produção e vistorias usavam o token JWT como id do produtor.
+- Conversão kg→L fixa, data sem máscara, campos sobrepostos em telas de celular, dropdown atrás de outras seções.
+- Leaflet empacotado (sem CDN) e navegação "voltar" segura sem histórico.
 - Typecheck com 0 erros (`jsx: react-jsx`, import ausente em `useProducao`, campo `tipoInsumo`, assinatura de `atualizarVistoria`).
 - Lint com 0 erros (regras do React Compiler: setState em effects, refs no render, memoização e componentes criados durante o render).
 - Busca por id de produção/colmeia/lote usava rotas inexistentes no backend.

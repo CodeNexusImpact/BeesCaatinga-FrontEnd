@@ -12,3 +12,6 @@ web-build/
 
 # JVM crash logs
 hs_err_pid*.log
+
+# Resultado bruto do E2E (gerado a cada execução)
+mobile/e2e/resultado.json
