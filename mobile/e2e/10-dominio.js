@@ -13,9 +13,20 @@ secao('apiario', async (page, h, ctx) => {
   await h.preencher('Apiário Bees Caatinga ', D.apiario);
   await h.preencher('SISBI 1234/2025', D.registro);
   await h.preencher('31/12/2000', '10012020');
-  await h.clicar('Usar localização atual');
-  await page.waitForTimeout(800);
-  registrar('apiario', 'coordenadas exibidas após "Usar localização atual"', /Coordenadas: -7\.02/.test(await h.texto()));
+  await h.clicar('Usar minha localização atual');
+  await page.waitForTimeout(1500);
+  registrar('apiario', 'GPS: coordenadas exibidas após "Usar localização atual"', /Coordenadas: -7\.02/.test(await h.texto()));
+  // Validação de faixa: latitude 95 é rejeitada
+  await page.getByLabel('Latitude', { exact: true }).fill('95');
+  registrar('apiario', 'latitude fora da faixa exibe erro', (await h.texto()).includes('A latitude deve estar entre -90 e 90.'));
+  await page.getByLabel('Latitude', { exact: true }).fill('-7.0247');
+  // Clique no mapa define o ponto
+  const box = await page.locator('[data-testid="mapa"]').first().boundingBox();
+  await page.mouse.click(box.x + box.width * 0.62, box.y + box.height * 0.38);
+  await page.waitForTimeout(600);
+  const m = /Coordenadas: (-?\d+\.\d+), (-?\d+\.\d+)/.exec(await h.texto());
+  D.localMapa = m ? { lat: Number(m[1]), lng: Number(m[2]) } : null;
+  registrar('apiario', 'clique no mapa define a localização', !!m && !(perto(m[1], -7.0247) && perto(m[2], -37.2806)), m ? m[0] : 'sem coordenadas');
   await h.preencher('Digite o CEP', '58700000');
   await h.preencher('Digite a rua', 'Rua do Mel');
   await h.preencher('Digite o número', '123');
@@ -38,7 +49,7 @@ secao('apiario', async (page, h, ctx) => {
     bairro: 'Centro', cidade: 'Patos', estado: 'PB', nomeDaPropriedade: 'Sítio Flor do Sertão',
     complemento: 'Próximo ao açude', observacoes: 'Apiário de teste QA',
   });
-  registrar('apiario', 'campo latitude/longitude (geolocalização)', perto(a.latitude, -7.0247) && perto(a.longitude, -37.2806), `${a.latitude}, ${a.longitude}`);
+  registrar('apiario', 'campo latitude/longitude (ponto escolhido no mapa)', !!D.localMapa && perto(a.latitude, D.localMapa.lat) && perto(a.longitude, D.localMapa.lng), `${a.latitude}, ${a.longitude}`);
 
   // Edição
   await h.ir(`/apiario/editar?id=${a.id}`);
@@ -196,105 +207,39 @@ secao('insumo', async (page, h, ctx) => {
 
 secao('producao', async (page, h, ctx) => {
   await h.ir('/producao/cadastrar');
-  await page.waitForTimeout(800);
-  await h.preencher('0,0', '25,5');
-  await h.selecionar('Selecione', 'Kg');
-  await h.selecionar('Selecione o tipo de Mel', 'Mel de Jandaíra');
-  await h.selecionar('Selecione o Apiário', D.apiario);
-  await page.waitForTimeout(800);
-  await h.selecionar('Selecione a Colmeia', D.colmeia);
-  await h.preencher('dd/mm/aaaa', '15112026');
-  registrar('producao', 'conversão para litros calculada', (await page.getByPlaceholder('Cálculo automático').inputValue()).includes('18,21'));
-  await h.foto('11-producao-cadastro');
-  await h.clicar('Cadastrar');
   await page.waitForTimeout(1500);
+  await h.preencher('dd/mm/aaaa', '15112026');
+  await h.selecionar('Selecione o apiário', D.apiario);
+  await page.waitForTimeout(1200);
+  await h.selecionar('Selecione a colmeia', D.colmeia);
+  await page.getByLabel('Tipo de mel', { exact: true }).fill('Mel de Jandaíra');
+  await page.getByTestId('campo-kg').fill('25,5');
+  const litros = await page.getByTestId('campo-litros').inputValue();
+  registrar('producao', 'conversão automática kg → L (25,5 kg = 17,96 L)', litros === '17,96', litros);
+  await h.foto('11-producao-cadastro');
+  await h.clicar('Cadastrar produção');
+  await page.waitForTimeout(2500);
   const lista = (await api('GET', `/producoes/${ctx.id}`, ctx.token)).dados;
   const p = proximo(lista, (x) => x.nomeColmeia === D.colmeia);
   registrar('producao', 'produção persistida', !!p);
   if (!p) return;
   conferir('producao', p, { tipoProducao: 'Mel de Jandaíra', quantidade: 25.5, unidadeMedida: 'KILOGRAMA', dataColeta: '2026-11-15', nomeApiario: D.apiario, apiarioId: D.apiarioId, colmeiaId: D.colmeiaId });
 
+  await h.ir('/producao/listar');
+  await page.waitForTimeout(1500);
+  registrar('producao', 'listagem mostra kg e litros', (await h.texto()).includes('25,50 kg (17,96 L)'));
+
   await h.ir(`/producao/editar?id=${p.id}`);
-  await page.waitForTimeout(1500);
-  registrar('producao', 'edição carrega apiário/colmeia reais', (await h.texto()).includes(D.colmeia));
-  await h.preencher('0,0', '30');
-  await h.selecionar('Kg', 'L');
-  await h.selecionar('Mel de Jandaíra', 'Mel de Marmeleiro');
+  await page.waitForTimeout(2000);
+  registrar('producao', 'edição carrega apiário/colmeia reais e a quantidade', (await h.texto()).includes(D.colmeia) && (await page.getByTestId('campo-kg').inputValue()) === '25,50');
+  await page.getByTestId('campo-litros').fill('30');
+  registrar('producao', 'conversão L → kg na edição (30 L = 42,60 kg)', (await page.getByTestId('campo-kg').inputValue()) === '42,60');
+  await page.getByLabel('Tipo de mel', { exact: true }).fill('Mel de Marmeleiro');
   await h.preencher('dd/mm/aaaa', '16112026');
-  await h.clicar('Salvar Edição');
-  await page.waitForTimeout(1500);
+  await h.clicar('Salvar alterações');
+  await page.waitForTimeout(2000);
   const p2 = proximo((await api('GET', `/producoes/${ctx.id}`, ctx.token)).dados, (x) => x.id === p.id);
-  conferir('producao-editar', p2, { tipoProducao: 'Mel de Marmeleiro', quantidade: 30, unidadeMedida: 'LITRO', dataColeta: '2026-11-16', colmeiaId: D.colmeiaId });
+  conferir('producao-editar', p2, { tipoProducao: 'Mel de Marmeleiro', quantidade: 42.6, unidadeMedida: 'KILOGRAMA', dataColeta: '2026-11-16', colmeiaId: D.colmeiaId });
 });
 
-secao('lote', async (page, h, ctx) => {
-  await h.ir('/rastreabilidade/cadastrar');
-  await page.waitForTimeout(800);
-  await h.preencher('dd/mm/aaaa', '05112026');
-  await h.preencher('0,0', '40,5');
-  await h.selecionar('Selecione o apiário', D.apiario);
-  await h.selecionar('Selecione a florada', 'Marmeleiro');
-  await h.clicar('📍 Usar localização atual');
-  await h.selecionar('Selecione o tipo de abelhas', 'Jandaíra');
-  await h.foto('12-lote-cadastro');
-  await h.clicar('Cadastrar');
-  await page.waitForTimeout(1500);
-  const lista = (await api('GET', `/lotes/${ctx.id}/detalhado`, ctx.token)).dados;
-  const l = proximo(lista, (x) => x.quantidadeProduzida === 40.5);
-  registrar('lote', 'lote persistido', !!l);
-  if (!l) return;
-  conferir('lote', l, { dataProducao: '2026-11-05', nomeApiario: D.apiario, tipoFlorada: 'MARMELEIRO', tipoAbelha: 'JANDAIRA', vendido: false });
-  registrar('lote', 'campo latitude/longitude', perto(l.latitude, -7.0247) && perto(l.longitude, -37.2806));
-
-  await h.ir('/rastreabilidade/listar');
-  await page.waitForTimeout(1200);
-  const txt = await h.texto();
-  registrar('lote', 'listagem exibe o lote e o apiário', txt.includes(String(l.id)) && txt.includes(D.apiario));
-  await h.foto('13-lote-listar');
-  await page.getByText(D.apiario, { exact: true }).last().click();
-  registrar('lote', 'abre detalhes do lote', await h.aguardarUrl(/rastreabilidade\/editar/));
-  await page.waitForTimeout(800);
-  const valores = await page.$$eval('input', (els) => els.map((e) => e.value));
-  registrar('lote', 'detalhes mostram data, quantidade e apiário', valores.includes('05/11/2026') && valores.includes('40.5') && valores.includes(D.apiario), JSON.stringify(valores));
-  await h.foto('13b-lote-detalhes');
-});
-
-secao('relatorios', async (page, h, ctx) => {
-  const telas = {
-    '/apiario/tabelaApiario': D.apiario, '/apiario/tabelaColmeia': D.colmeia, '/producao/tabela': 'Marmeleiro',
-    '/vistorias/tabela': 'Vistoria editada QA', '/insumos/tabela': null, '/rastreabilidade/tabela': null,
-  };
-  for (const [rota, esperado] of Object.entries(telas)) {
-    await h.ir(rota);
-    await page.waitForTimeout(1200);
-    const txt = await h.texto();
-    registrar('relatorios', `tela ${rota} carrega${esperado ? ' com dados' : ''}`, esperado ? txt.includes(esperado) : txt.length > 30, esperado || '');
-  }
-  await h.ir('/vistorias/tabela'); await page.waitForTimeout(1000); await h.foto('14-relatorio-vistorias');
-  for (const tipo of ['producao', 'vistorias', 'rastreabilidade']) {
-    const r = await api('POST', `/relatorios/${tipo}`, ctx.token, { ano: 2026 });
-    registrar('relatorios', `relatório ${tipo} gerado (API)`, r.status === 200 && typeof r.dados === 'object', `${r.status} ${JSON.stringify(r.dados).slice(0, 120)}`);
-  }
-});
-
-secao('mapa', async (page, h) => {
-  await h.ir('/apiario/listar');
-  await page.waitForTimeout(3000);
-  const mapa = await page.locator('.leaflet-container').count();
-  const marcadores = await page.locator('.leaflet-marker-icon').count();
-  registrar('mapa', 'mapa Leaflet renderizado', mapa > 0);
-  registrar('mapa', 'marcador do apiário exibido', marcadores > 0, `${marcadores} marcador(es)`);
-  await h.foto('15-mapa');
-});
-
-secao('configuracoes', async (page, h) => {
-  await h.ir('/configuracao');
-  await h.foto('16-configuracoes');
-  await h.clicar('Sair');
-  await page.waitForTimeout(1500);
-  registrar('configuracoes', 'logout redireciona para login', /\/login/.test(page.url()), page.url());
-  const tok = await page.evaluate(() => localStorage.getItem('user_token'));
-  registrar('configuracoes', 'token removido do storage', tok === null);
-  await h.ir('/apiario');
-  registrar('configuracoes', 'rota protegida bloqueada após logout', /\/login/.test(page.url()), page.url());
-});
+module.exports = { D };

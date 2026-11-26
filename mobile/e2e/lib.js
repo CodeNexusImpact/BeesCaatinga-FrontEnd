@@ -1,8 +1,11 @@
 // Utilitários do E2E BeesCaatinga (Playwright puro, sem @playwright/test).
 const { chromium } = require('playwright');
 
-const WEB = process.env.E2E_WEB_URL || 'http://localhost:8081';
-const API = process.env.E2E_API_URL || 'http://localhost:8080';
+// Padrão: link público de homologação. Para rodar local, defina BASE_URL/API_URL (ou E2E_WEB_URL/E2E_API_URL).
+const WEB = (process.env.BASE_URL || process.env.E2E_WEB_URL || 'https://beescaatinga-hml.vercel.app').replace(/\/+$/, '');
+const API = (process.env.API_URL || process.env.E2E_API_URL || 'https://beescaatinga-api-hml.onrender.com').replace(/\/+$/, '');
+// Em ambientes com proxy de saída (HTTPS_PROXY), o Chromium também precisa usá-lo.
+const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy;
 const SHOTS = `${__dirname}/screenshots`;
 
 const resultados = []; // { secao, item, ok, detalhe }
@@ -36,7 +39,7 @@ async function api(metodo, caminho, token, corpo) {
 }
 
 async function abrirNavegador() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(PROXY ? { proxy: { server: PROXY, bypass: 'localhost,127.0.0.1' } } : {});
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 2,
@@ -46,13 +49,40 @@ async function abrirNavegador() {
     geolocation: { latitude: -7.0247, longitude: -37.2806 }, // Patos-PB
     locale: 'pt-BR',
   });
+  // Execução local contra a API pública: o CORS do backend só libera o domínio da Vercel.
+  // Com E2E_PONTE_API=1 as chamadas à API passam pelo Playwright (fora do navegador) e recebem cabeçalhos CORS.
+  // Marca o modo offline simulado (erros de rede esperados nesse período não contam como defeito).
+  const setOfflineOriginal = context.setOffline.bind(context);
+  context.setOffline = async (v) => { context.__offline = v; return setOfflineOriginal(v); };
+  if (process.env.E2E_PONTE_API === '1') {
+    await context.route(`${API}/**`, async (route) => {
+      if (context.__offline) return route.abort('internetdisconnected');
+      const origem = route.request().headers()['origin'] || WEB;
+      const cors = {
+        'access-control-allow-origin': origem,
+        'access-control-allow-headers': 'authorization,content-type,accept,idempotency-key',
+        'access-control-allow-methods': 'GET,POST,PUT,DELETE,OPTIONS',
+        'access-control-expose-headers': 'Content-Disposition',
+      };
+      if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+      try {
+        const { origin: _o, referer: _r, ...cabecalhos } = route.request().headers();
+        const resp = await route.fetch({ headers: cabecalhos });
+        await route.fulfill({ response: resp, headers: { ...resp.headers(), ...cors } });
+      } catch {
+        await route.abort('failed');
+      }
+    });
+  }
   const page = await context.newPage();
   page.on('console', (m) => {
     // Tiles do OpenStreetMap ficam bloqueados no sandbox de CI (sem internet); não é defeito do app.
+    if (context.__offline || /ERR_INTERNET_DISCONNECTED/.test(m.text())) return;
     if (m.type() === 'error' && !/ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED/.test(m.text())) problemas.console.push(`${page.url()} :: ${m.text().slice(0, 300)}`);
   });
   page.on('pageerror', (e) => problemas.console.push(`${page.url()} :: pageerror ${e.message.slice(0, 300)}`));
   page.on('requestfailed', (r) => {
+    if (context.__offline || /ERR_INTERNET_DISCONNECTED/.test(r.failure()?.errorText || '')) return;
     if (!/fonts|favicon|tile\.openstreetmap/.test(r.url())) problemas.rede.push(`FALHOU ${r.method()} ${r.url()} (${r.failure()?.errorText})`);
   });
   page.on('response', (r) => {
