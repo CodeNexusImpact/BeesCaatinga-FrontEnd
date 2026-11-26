@@ -10,7 +10,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "build:web": "expo export --platform web",
-    "e2e": "node e2e/run.js"
+    "e2e": "NODE_USE_ENV_PROXY=1 node e2e/run.js",
+    "e2e:capturas": "NODE_USE_ENV_PROXY=1 node e2e/capturas.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -23,7 +24,9 @@
     "expo": "^57.0.0",
     "expo-asset": "~57.0.11",
     "expo-checkbox": "~57.0.0",
+    "expo-clipboard": "~57.0.2",
     "expo-constants": "~57.0.11",
+    "expo-file-system": "~57.0.7",
     "expo-font": "~57.0.1",
     "expo-haptics": "~57.0.1",
     "expo-image": "~57.0.3",
@@ -32,6 +35,7 @@
     "expo-location": "~57.0.11",
     "expo-router": "~57.0.14",
     "expo-secure-store": "~57.0.1",
+    "expo-sharing": "~57.0.27",
     "expo-splash-screen": "~57.0.6",
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.2",

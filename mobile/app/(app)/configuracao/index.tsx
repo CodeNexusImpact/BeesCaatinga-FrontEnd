@@ -10,6 +10,7 @@ import InputConfig from '@/components/formulario/inputConfig';
 import Icon from '@/components/icon';
 import Botao from '@/components/formulario/botao';
 import { alerta } from '@/utils/alerta';
+import DensidadeMel from '@/components/configuracao/densidadeMel';
 
 const CONFIG_KEYS = {
     NOTIFICACOES: '@config_notificacoes',
@@ -165,12 +166,12 @@ export default function Index() {
                         showArrow={true}
                         iconName={temaEscuro ? "weather-night" : "white-balance-sunny"}
                     />
+                    <DensidadeMel />
                     <InputConfig
-                        label="Sincronização de Dados"
-                        showButton={true}
-                        buttonText="Sincronizar"
-                        onButtonPress={() => alerta('Sincronização', 'Sincronização manual será implementada em breve.')}
-                        showArrow={false}
+                        label="Integrações / Webhooks"
+                        value="Gerenciar"
+                        onPress={() => router.push('/configuracao/webhooks' as any)}
+                        showArrow={true}
                     />
                     <InputConfig
                         label="Tamanho da Fonte"

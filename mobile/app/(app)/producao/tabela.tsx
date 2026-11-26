@@ -1,4 +1,8 @@
 import React, { useState, useCallback } from 'react';
+import { exportarCsv } from '@/utils/csv';
+import BotaoExportarPdf from '@/components/botaoExportarPdf';
+import { opcoesDeAno } from '@/components/graficos';
+import { formatarKgL, paraKg } from '@/utils/mel';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/formulario/selector';
 import Botao from '@/components/formulario/botao';
@@ -27,16 +31,9 @@ const colunasDoRelatorio: TabelaColuna<DadosProducao>[] = [
     { label: 'Lote', dataKey: 'loteId', sortable: true, flex: 2 },
     { label: 'Data', dataKey: 'dataExtracao', sortable: true, flex: 3 },
     { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
-    { label: 'Peso/Qtd', dataKey: 'pesoLitro', sortable: true, flex: 2 },
+    { label: 'Quantidade', dataKey: 'pesoLitro', sortable: true, flex: 3 },
     { label: 'Qualidade', dataKey: 'qualidade', sortable: true, flex: 2 },
     { label: 'Status', dataKey: 'status', sortable: true, flex: 2 },
-];
-
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' },
-    { label: '2026', value: '2026' },
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
 ];
 
 /**
@@ -65,6 +62,7 @@ export default function RelatorioProducaoTabela() {
     const { user } = useAuth();
     const userId = user?.id;
     const [ano, setAno] = useState('');
+    const [anoOptions, setAnoOptions] = useState([{ label: 'Todos os anos', value: '' }]);
     const [producoes, setProducoes] = useState<DadosProducao[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -73,6 +71,7 @@ export default function RelatorioProducaoTabela() {
         setIsLoading(true);
         try {
             const data = await getProducoes(userId);
+            setAnoOptions(opcoesDeAno(data, (p) => p.dataColeta));
 
             // Filtragem por ano (se selecionado)
             const filtrados = ano 
@@ -81,10 +80,10 @@ export default function RelatorioProducaoTabela() {
 
             const formatados: DadosProducao[] = filtrados.map(p => ({
                 id: String(p.id),
-                loteId: p.id ? `LT-${p.id}` : '—', 
+                loteId: `#${p.id}`,
                 dataExtracao: formatDate(p.dataColeta),
                 tipo: p.tipoProducao || 'Mel',
-                pesoLitro: `${p.quantidade}`,
+                pesoLitro: formatarKgL(paraKg(p.quantidade, p.unidadeMedida)),
                 qualidade: formatQualidade(p.statusQualidade),
                 status: formatStatus(p.statusProduto)
             }));
@@ -104,33 +103,22 @@ export default function RelatorioProducaoTabela() {
         }, [carregarDados])
     );
 
-    const handleExportar = () => {
-        if (!producoes || producoes.length === 0) {
+    const handleExportar = async () => {
+        if (!producoes?.length) {
             alerta('Aviso', 'Não há dados para exportar.');
             return;
         }
-
-        // Geração do CSV real
-        const cabecalho = 'Lote,Data,Tipo,Quantidade,Qualidade,Status\n';
-        const linhas = producoes.map(p =>
-            `${p.loteId},${p.dataExtracao},${p.tipo},${p.pesoLitro},${p.qualidade},${p.status}`
-        ).join('\n');
-
-        const csvString = cabecalho + linhas;
-
-        console.log('--- EXPORTAÇÃO CSV (PRODUÇÃO) ---');
-        console.log(csvString);
-        console.log('--------------------------------');
-
-        alerta(
-            'Sucesso', 
-            `Relatório com ${producoes.length} registros gerado no console com sucesso!`
-        );
+        try {
+            await exportarCsv('relatorio-producao.csv', colunasDoRelatorio as any, producoes);
+        } catch {
+            alerta('Erro', 'Não foi possível exportar a planilha.');
+        }
     };
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Tabela' }} />
+            <Stack.Screen options={{ title: 'Relatório de Produção' }} />
+            <BotaoExportarPdf tipo="producao" filtro={{ ano: ano ? Number(ano) : null }} />
 
             <Subtexto style={styles.subtexto}>Relatório Detalhado</Subtexto>
 
@@ -171,7 +159,7 @@ export default function RelatorioProducaoTabela() {
             )}
 
             <Botao
-                title="Exportar Relatório"
+                title="Exportar planilha (CSV)"
                 cor="primaria"
                 onPress={handleExportar}
                 style={styles.botaoExportar}

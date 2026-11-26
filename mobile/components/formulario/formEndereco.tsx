@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import * as Location from 'expo-location';
+import { View } from 'react-native';
 import Input from '@/components/formulario/input';
+import CampoSugestao from '@/components/formulario/campoSugestao';
 import { EnderecoProps } from '@/types/common/Endereco';
 import {styles as formStyles} from '@/styles/forms.styles';
 import { maskCEP } from '@/utils/masks';
-import Botao from '@/components/formulario/botao';
-import { alerta } from '@/utils/alerta';
 
 interface FormEnderecoProps {
     enderecoInicial: EnderecoProps;
@@ -35,35 +33,8 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
         onEnderecoChange(updatedEndereco);
     };
 
-    // Preenche as coordenadas com a posição atual do dispositivo.
-    async function handleUseCurrentLocation() {
-        try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                alerta('Permissão negada', 'Não foi possível acessar a localização.');
-                return;
-            }
-            const pos = await Location.getCurrentPositionAsync({});
-            const updatedEndereco = {
-                ...endereco,
-                coordenadas: { latitude: pos.coords.latitude, longitude: pos.coords.longitude },
-            };
-            setEndereco(updatedEndereco);
-            onEnderecoChange(updatedEndereco);
-        } catch {
-            alerta('Erro', 'Não foi possível obter a localização atual.');
-        }
-    }
-
-    const { latitude, longitude } = endereco.coordenadas ?? { latitude: 0, longitude: 0 };
-
     return (
         <View style={formStyles.formStyle}>
-        <Botao title={'Usar localização atual'} iconName='location' textStyle={{ color: '#000000' }} onPress={handleUseCurrentLocation}></Botao>
-            {latitude !== 0 || longitude !== 0 ? (
-                <Text>{`Coordenadas: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`}</Text>
-            ) : null}
-
             <Input
                 label="CEP"
                 value={endereco.cep}
@@ -88,33 +59,13 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
                 maxLength={10}
             />
 
-            <Input
-                label="Bairro"
-                value={endereco.bairro}
-                onChangeText={(value) => handleChange('bairro', value)}
-                placeholder="Digite o bairro"
-            />
+            <CampoSugestao rotulo="Bairro" valor={endereco.bairro} onChange={(value) => handleChange('bairro', value)} placeholder="Digite o bairro" campoApi="bairro" />
 
-            <Input
-                label="Cidade"
-                value={endereco.cidade}
-                onChangeText={(value) => handleChange('cidade', value)}
-                placeholder="Digite a cidade"
-            />
+            <CampoSugestao rotulo="Cidade" valor={endereco.cidade} onChange={(value) => handleChange('cidade', value)} placeholder="Digite a cidade" campoApi="cidade" />
 
-            <Input
-                label="Estado"
-                value={endereco.estado}
-                onChangeText={(value) => handleChange('estado', value)}
-                placeholder="Digite o estado"
-            />            
+            <CampoSugestao rotulo="Estado" valor={endereco.estado} onChange={(value) => handleChange('estado', value)} placeholder="Digite o estado" campoApi="estado" dica="Ex.: PB" />            
 
-            <Input
-                label="Propriedade"
-                value={endereco.propriedade}
-                onChangeText={(value) => handleChange('propriedade', value)}
-                placeholder="Digite a propriedade"
-            />
+            <CampoSugestao rotulo="Propriedade" valor={endereco.propriedade} onChange={(value) => handleChange('propriedade', value)} placeholder="Digite a propriedade" campoApi="nomeDaPropriedade" dica="Nome do sítio ou fazenda" />
 
             <Input
                 label="Complemento"
@@ -125,11 +76,5 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onEndereco
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        padding: 16,
-    },
-});
 
 export default FormEndereco;

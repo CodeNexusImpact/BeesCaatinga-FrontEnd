@@ -1,151 +1,63 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
-import { PieChart, BarChart } from 'react-native-chart-kit'; 
-import GraficoCard, { KpiData } from '@/components/graficoCard';
-import Subtexto from '@/components/subTexto';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { Stack, useFocusEffect } from 'expo-router';
-import { getKpisInsumos, getGraficosInsumos } from '@/services/insumoService';
-import { useAuth } from '@/hooks/useAuth';
-import { alerta } from '@/utils/alerta';
+import React from 'react';
+import PainelDashboard from '@/components/painelDashboard';
+import { GraficoBarras, agrupar, rotuloEnum } from '@/components/graficos';
+import { useDadosApi } from '@/hooks/useDadosApi';
+import { listarInsumos, Insumo } from '@/services/insumoService';
 
-const screenWidth = Dimensions.get('window').width;
+const buscar = (id: number) => listarInsumos(id);
+const DIA = 24 * 60 * 60 * 1000;
+
+/** Situação de validade: vencido, vence em até 30 dias, ok ou sem validade. */
+export const situacaoValidade = (i: Insumo, hoje = new Date()) => {
+  if (!i.dataValidade) return 'Sem validade';
+  const dias = (new Date(`${i.dataValidade}T00:00:00`).getTime() - hoje.getTime()) / DIA;
+  if (dias < 0) return 'Vencido';
+  if (dias <= 30) return 'Vence em até 30 dias';
+  return 'Dentro da validade';
+};
+
+const CORES_STATUS: Record<string, string> = { DISPONIVEL: '#2E7D32', EM_USO: '#1565C0', ESTOQUE_BAIXO: '#C62828' };
+const CORES_VALIDADE: Record<string, string> = {
+  Vencido: '#C62828',
+  'Vence em até 30 dias': '#F9A825',
+  'Dentro da validade': '#2E7D32',
+  'Sem validade': '#9E9E9E',
+};
 
 export default function DashboardInsumos() {
-    const { user } = useAuth();
-    const userId = user?.id;
-    const [isLoading, setIsLoading] = useState(true);
-    const [kpis, setKpis] = useState<KpiData[]>([]);
-    const [graficos, setGraficos] = useState<{ porTipo: any[], porStatus: any[] } | null>(null);
+  const { dados: insumos, carregando, erro, recarregar } = useDadosApi<Insumo[]>(buscar, []);
+  const conta = (s: string) => insumos.filter((i) => i.statusInsumo === s).length;
+  const vencendo = insumos.filter((i) => ['Vencido', 'Vence em até 30 dias'].includes(situacaoValidade(i))).length;
 
-    /**
-     * Carregamento dinâmico via Service Nomeado
-     */
-    const carregarDados = useCallback(async () => {
-        if (!userId) return;
-        
-        try {
-            setIsLoading(true);
-            
-            const [kpiData, chartData] = await Promise.all([
-                getKpisInsumos(userId),
-                getGraficosInsumos(userId)
-            ]);
-
-            setKpis([
-                { label: 'Total Registros', value: kpiData.totalItens.toString() },
-                { label: 'Estoque Baixo', value: kpiData.estoqueBaixo.toString() },
-                { label: 'Em Uso', value: kpiData.emUso.toString() },
-                { label: 'Disponíveis', value: (kpiData.totalItens - kpiData.emUso).toString() },
-            ]);
-
-            setGraficos(chartData);
-        } catch (error) {
-            console.error('❌ [DASHBOARD INSUMOS] Erro:', error);
-            alerta('Erro', 'Não foi possível carregar as estatísticas.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [userId]);
-
-    useFocusEffect(
-        useCallback(() => {
-            carregarDados();
-        }, [carregarDados])
-    );
-
-    const chartConfig = {
-        backgroundGradientFrom: cores.branco,
-        backgroundGradientTo: cores.branco,
-        color: (opacity = 1) => `rgba(155, 89, 182, ${opacity})`,
-        strokeWidth: 2,
-        barPercentage: 0.6,
-        decimalPlaces: 0,
-        labelColor: (opacity = 1) => cores.texto,
-        fillShadowGradient: `rgba(155, 89, 182, 1)`,
-        fillShadowGradientOpacity: 1,
-    };
-
-    if (isLoading) {
-        return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={cores.primaria[100]} />
-            </View>
-        );
-    }
-
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Estatísticas de Insumos' }} />
-            <Subtexto style={styles.subtexto}>Estatísticas de Insumos</Subtexto>
-
-            <GraficoCard
-                subtexto="Visão Geral do Almoxarifado"
-                kpis={kpis}
-                showSideBar={true}
-            >
-                {/* Gráfico de Pizza (Categorias) */}
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Categorias</Text>
-                    {graficos?.porTipo && graficos.porTipo.length > 0 ? (
-                        <PieChart
-                            data={graficos.porTipo.map((t, index) => ({
-                                name: t.name,
-                                population: t.value,
-                                color: ['#3498db', '#e67e22', '#2ecc71', '#95a5a6', '#f1c40f'][index % 5],
-                                legendFontColor: '#7F7F7F',
-                                legendFontSize: 12
-                            }))}
-                            width={screenWidth - 40}
-                            height={220}
-                            chartConfig={chartConfig}
-                            accessor={"population"}
-                            backgroundColor={"transparent"}
-                            paddingLeft={"15"}
-                            center={[10, 0]}
-                            absolute
-                            style={styles.chartStyle}
-                        />
-                    ) : (
-                        <Text style={styles.emptyText}>Sem dados categorizados.</Text>
-                    )}
-                </View>
-
-                {/* Gráfico de Barras (Status) */}
-                <View style={styles.chartContainer}>
-                    <Text style={styles.chartTitle}>Situação por Status</Text>
-                    {graficos?.porStatus && graficos.porStatus.length > 0 ? (
-                        <BarChart
-                            data={{
-                                labels: graficos.porStatus.map(s => s.name),
-                                datasets: [{ data: graficos.porStatus.map(s => s.value) }]
-                            }}
-                            width={screenWidth - 80}
-                            height={220}
-                            yAxisLabel=""
-                            yAxisSuffix=""
-                            chartConfig={chartConfig}
-                            style={styles.chartStyle}
-                            showValuesOnTopOfBars
-                            fromZero
-                        />
-                    ) : (
-                        <Text style={styles.emptyText}>Nenhum status para exibir.</Text>
-                    )}
-                </View>
-            </GraficoCard>
-        </ScrollView>
-    );
+  return (
+    <PainelDashboard
+      titulo="Resumo dos Insumos"
+      subtitulo="Estoque atual de insumos"
+      carregando={carregando}
+      erro={erro}
+      vazio={insumos.length === 0}
+      mensagemVazio="Nenhum insumo cadastrado ainda. Cadastre um insumo para ver os indicadores."
+      acaoVazio={{ titulo: 'Cadastrar primeiro insumo', rota: '/insumos/cadastrar' }}
+      onTentarNovamente={recarregar}
+      kpis={[
+        { label: 'Total de Insumos', value: insumos.length },
+        { label: 'Disponíveis', value: conta('DISPONIVEL'), corDaBarra: '#2E7D32' },
+        { label: 'Em Uso', value: conta('EM_USO'), corDaBarra: '#1565C0' },
+        { label: 'Estoque Baixo', value: conta('ESTOQUE_BAIXO'), corDaBarra: '#C62828' },
+        { label: 'Vencidos ou Vencendo', value: vencendo, corDaBarra: '#F9A825' },
+      ]}
+    >
+      <GraficoBarras
+        titulo="Insumos por situação"
+        dados={agrupar(insumos, (i) => i.statusInsumo).map((p) => ({ ...p, cor: CORES_STATUS[p.rotulo], rotulo: rotuloEnum(p.rotulo) }))}
+        casas={0}
+      />
+      <GraficoBarras titulo="Insumos por tipo" dados={agrupar(insumos, (i) => i.tipo)} casas={0} />
+      <GraficoBarras
+        titulo="Validade"
+        dados={agrupar(insumos, (i) => situacaoValidade(i)).map((p) => ({ ...p, cor: CORES_VALIDADE[p.rotulo] }))}
+        casas={0}
+      />
+    </PainelDashboard>
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.fundo },
-    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, paddingBottom: 50 },
-    subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto },
-    chartContainer: { marginTop: layout.espacamento.amigavel, alignItems: 'center' },
-    chartTitle: { fontSize: 16, fontWeight: 'bold', color: cores.texto, marginBottom: 10 },
-    chartStyle: { borderRadius: 16 },
-    emptyText: { textAlign: 'center', marginTop: 20, color: '#999', fontStyle: 'italic' },
-});

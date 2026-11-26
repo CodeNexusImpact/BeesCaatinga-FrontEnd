@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { exportarCsv } from '@/utils/csv';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/formulario/selector';
 import Botao from '@/components/formulario/botao';
@@ -49,25 +50,16 @@ export default function RelatorioInsumosTabela() {
         }, [carregarDados])
     );
 
-    const handleExportar = () => {
-        if (!insumos || insumos.length === 0) {
+    const handleExportar = async () => {
+        if (!insumos?.length) {
             alerta('Aviso', 'Não há dados para exportar.');
             return;
         }
-
-        // Geração do CSV real
-        const cabecalho = 'Data,Insumo,Tipo,Quantidade,Unidade,Status,Observacoes\n';
-        const linhas = insumos.map(i => 
-            `${i.dataEntrada},${i.nome},${i.tipo},${i.quantidade},${i.unidadeMedida},${i.statusFormatado},"${(i.observacoes || '').replace(/"/g, '""')}"`
-        ).join('\n');
-
-        const csvString = cabecalho + linhas;
-
-        console.log('--- EXPORTAÇÃO CSV (INSUMOS) ---');
-        console.log(csvString);
-        console.log('--------------------------------');
-
-        alerta('Sucesso', `Relatório com ${insumos.length} registros gerado no console com sucesso!`);
+        try {
+            await exportarCsv('relatorio-insumos.csv', colunasDoRelatorio as any, insumos);
+        } catch {
+            alerta('Erro', 'Não foi possível exportar a planilha.');
+        }
     };
 
     // Colunas mapeadas com as chaves reais e formatadas
@@ -88,7 +80,7 @@ export default function RelatorioInsumosTabela() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Relatório de Inventário' }} />
+            <Stack.Screen options={{ title: 'Relatório de Insumos' }} />
             <Subtexto style={styles.subtexto}>Inventário Detalhado</Subtexto>
 
             {/* Filtros */}

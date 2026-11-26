@@ -17,7 +17,9 @@ import ImagemPicker from '@/components/formulario/imagemPicker';
 import { useAuth } from '@/hooks/useAuth';
 import { atualizarApiario, cadastrarApiario, listarApiariosPorProdutor } from '@/services/apiarioService';
 import { voltar } from '@/utils/navegacao';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
+import SeletorLocalizacao, { Coordenada } from '@/components/mapa/seletorLocalizacao';
+import { validarCoordenadas } from '@/components/mapa/mapaComum';
 
 const isoParaBr = (iso?: string | null) => {
     if (!iso) return '';
@@ -60,6 +62,9 @@ const CadastrarApiario = () => {
     });
 
 
+    // localização (mapa/GPS/manual)
+    const [local, setLocal] = useState<Coordenada | null>(null);
+
     //dados adicionais
     const [observacoes, setObservacoes] = useState('');
 
@@ -93,6 +98,7 @@ const CadastrarApiario = () => {
                     complemento: a.complemento ?? '',
                     coordenadas: { latitude: Number(a.latitude ?? 0), longitude: Number(a.longitude ?? 0) },
                 });
+                setLocal(a.latitude != null && a.longitude != null ? { latitude: Number(a.latitude), longitude: Number(a.longitude) } : null);
             })
             .catch(() => ativo && alerta('Erro', 'Não foi possível carregar o apiário.'));
         return () => {
@@ -108,6 +114,14 @@ const CadastrarApiario = () => {
             return;
         }
 
+        if (local) {
+            const erroCoord = validarCoordenadas(local.latitude, local.longitude);
+            if (erroCoord) {
+                alerta("Erro", erroCoord);
+                return;
+            }
+        }
+
         setLoading(true);
         const apiarioData: ApiarioCriadoDTO = {
             nome,
@@ -121,8 +135,8 @@ const CadastrarApiario = () => {
             rua: endereco.rua,
             numero: endereco.numero,
             complemento: endereco.complemento,
-            latitude: endereco.coordenadas.latitude,
-            longitude: endereco.coordenadas.longitude,
+            latitude: local?.latitude ?? null,
+            longitude: local?.longitude ?? null,
             produtor_id: user.id,
             observacoes,
             caminhoDaFoto: foto || undefined,
@@ -131,13 +145,13 @@ const CadastrarApiario = () => {
         try {
             if (editando) {
                 const { produtor_id: _ignorado, ...dadosAtualizacao } = apiarioData;
-                await atualizarApiario(Number(apiarioId), user.id, dadosAtualizacao);
-                alerta("Sucesso", "Apiário atualizado com sucesso!");
+                const salvo = await atualizarApiario(Number(apiarioId), user.id, dadosAtualizacao);
+                alertaSalvo(salvo, "Apiário atualizado com sucesso!");
                 voltar(router);
                 return;
             }
-            await cadastrarApiario(user.id, apiarioData);
-            alerta("Sucesso", "Apiário cadastrado com sucesso!");
+            const salvo = await cadastrarApiario(user.id, apiarioData);
+            alertaSalvo(salvo, "Apiário cadastrado com sucesso!");
             router.replace('/apiario/listar');
         } catch (error: any) {
             console.error('Erro ao salvar apiário:', error);
@@ -182,6 +196,10 @@ const CadastrarApiario = () => {
                 <View style={formStyles.formStyle}>
                     <Subtexto>Endereço</Subtexto>
                     <FormEndereco enderecoInicial={endereco} onEnderecoChange={setEndereco} />
+                </View>
+                <View style={formStyles.formStyle}>
+                    <Subtexto>Localização no Mapa</Subtexto>
+                    <SeletorLocalizacao valor={local} onChange={setLocal} />
                 </View>
                 <View style={formStyles.formStyle}>
                     <Subtexto>Dados Adicionais</Subtexto>

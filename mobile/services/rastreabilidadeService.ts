@@ -1,10 +1,11 @@
 import api from './api';
+import { listarLotesDetalhado } from './loteService';
 
 const BASE_URL = '/lotes';
 
 export interface RastreabilidadeDTO {
   id?: number;
-  produtorId: number;
+  produtorId?: number;
   apiarioId: number;
   dataProducao: string;
   quantidadeProduzida: number;
@@ -14,18 +15,13 @@ export interface RastreabilidadeDTO {
   nomeApiario?: string;
   latitude?: number;
   longitude?: number;
+  colmeiaId?: number | null;
+  identificadorColmeia?: string | null;
+  pendente?: boolean;
 }
 
-export const getRastreabilidade = async (produtorId: number | string): Promise<RastreabilidadeDTO[]> => {
-  try {
-    // /detalhado retorna id, dataProducao, quantidadeProduzida e nomeApiario.
-    const response = await api.get<RastreabilidadeDTO[]>(`${BASE_URL}/${produtorId}/detalhado`);
-    return Array.isArray(response.data) ? response.data : [];
-  } catch (error) {
-    console.error('Erro ao listar rastreabilidade/lotes:', error);
-    return [];
-  }
-};
+// Lista detalhada com cache offline e lotes pendentes de envio.
+export const getRastreabilidade = async (produtorId: number | string): Promise<RastreabilidadeDTO[]> => listarLotesDetalhado(produtorId);
 
 // O backend não expõe GET /lotes/{id}: busca na listagem detalhada do produtor.
 export const getRastreabilidadeById = async (

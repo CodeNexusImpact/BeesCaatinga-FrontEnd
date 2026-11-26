@@ -1,3 +1,4 @@
+import { alerta } from '@/utils/alerta';
 import Botao from "@/components/formulario/botao";
 import Input from "@/components/formulario/input";
 import { Image } from "expo-image";
@@ -48,7 +49,7 @@ function RedefinirSenha() {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      alert("Senha redefinida com Sucesso!");
+      alerta("Sucesso", "Senha redefinida com sucesso!");
       router.push('/login');
     }
   };

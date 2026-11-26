@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { exportarCsv } from '@/utils/csv';
+import BotaoExportarPdf from '@/components/botaoExportarPdf';
+import { opcoesDeAno } from '@/components/graficos';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import Selector from '@/components/formulario/selector';
 import Botao from '@/components/formulario/botao';
@@ -21,13 +24,6 @@ const colunasDoRelatorio: TabelaColuna<any>[] = [
     { label: 'Obs.', dataKey: 'observacoes', sortable: false, flex: 4 },
 ];
 
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' },
-    { label: '2026', value: '2026' },
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-];
-
 const statusOptions = [
     { label: 'Todos os Status', value: '' },
     { label: 'Saudável', value: 'SAUDAVEL' },
@@ -43,6 +39,7 @@ export default function RelatorioVistoriaTabela() {
     const [loading, setLoading] = useState(true);
     const [anoSelecionado, setAnoSelecionado] = useState('');
     const [statusSelecionado, setStatusSelecionado] = useState('');
+    const anoOptions = useMemo(() => opcoesDeAno(vistorias, (v) => v.dataVistoria), [vistorias]);
 
     const carregarVistorias = useCallback(async () => {
         if (!produtorId) return;
@@ -75,34 +72,22 @@ export default function RelatorioVistoriaTabela() {
         }));
     }, [vistorias, anoSelecionado, statusSelecionado]);
 
-    const handleExportar = () => {
-        if (dadosFiltrados.length === 0) {
+    const handleExportar = async () => {
+        if (!dadosFiltrados?.length) {
             alerta('Aviso', 'Não há dados para exportar.');
             return;
         }
-
-        // Geração do CSV
-        const cabecalho = 'Data,Apiario,Colmeia,Condicao,Pragas,Perdas,Observacoes\n';
-        const linhas = dadosFiltrados.map(v => 
-            `${v.dataVistoria},${v.nomeApiario ?? ''},${v.nomeColmeia ?? ''},${v.condicao},"${v.pragasTexto}","${v.perdasTexto}","${(v.observacoes ?? '').replace(/"/g, '""')}"`
-        ).join('\n');
-        
-        const csvContent = cabecalho + linhas;
-
-        console.log('--- EXPORTAÇÃO CSV (VISTORIAS) ---');
-        console.log(csvContent);
-        console.log('----------------------------------');
-
-        alerta(
-            'Sucesso',
-            `O relatório com ${dadosFiltrados.length} registros foi gerado no console com sucesso!`,
-            [{ text: 'OK' }]
-        );
+        try {
+            await exportarCsv('relatorio-vistorias.csv', colunasDoRelatorio as any, dadosFiltrados);
+        } catch {
+            alerta('Erro', 'Não foi possível exportar a planilha.');
+        }
     };
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Tabela' }} />
+            <Stack.Screen options={{ title: 'Relatório de Vistorias' }} />
+            <BotaoExportarPdf tipo="vistorias" filtro={{ ano: anoSelecionado ? Number(anoSelecionado) : null }} />
             <Subtexto style={styles.subtexto}>Vistorias Detalhadas</Subtexto>
 
             <View style={styles.filtroWrapper}>
@@ -151,7 +136,7 @@ export default function RelatorioVistoriaTabela() {
                     <Text style={styles.dicaScroll}>Deslize para ver as observações completas</Text>
 
                     <Botao
-                        title="Exportar Relatório (CSV)"
+                        title="Exportar planilha (CSV)"
                         cor="primaria"
                         onPress={handleExportar}
                         style={styles.botaoExportar}

@@ -18,4 +18,6 @@ export interface ApiarioRetornoDTO {
     latitude?: number;
     longitude?: number;
     colmeias: ColmeiaRetornoEmApiarioDTO[];
+    /** Registro salvo no aparelho, aguardando sincronização. */
+    pendente?: boolean;
 }

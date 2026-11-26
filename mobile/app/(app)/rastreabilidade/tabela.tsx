@@ -1,4 +1,11 @@
 import Botao from '@/components/formulario/botao';
+import { exportarCsv } from '@/utils/csv';
+import BotaoExportarPdf from '@/components/botaoExportarPdf';
+import { opcoesDeAno, rotuloEnum } from '@/components/graficos';
+import { isoParaBr } from '@/utils/datas';
+import { formatarKgL } from '@/utils/mel';
+
+const MESES_EXTENSO = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 import Selector from '@/components/formulario/selector';
 import Subtexto from '@/components/subTexto';
 import Tabela, { TabelaColuna } from '@/components/tabela';
@@ -42,25 +49,16 @@ export default function RelatorioRastreabilidadeTabela() {
 
     const colunasDoRelatorio: TabelaColuna<RastreabilidadeDTO>[] = [
         { label: 'Lote ID', dataKey: 'id', sortable: true, flex: 1 },
-        { label: 'Data', dataKey: 'dataProducao', sortable: true, flex: 2 },
-        { label: 'Qtd (kg)', dataKey: 'quantidadeProduzida', sortable: true, flex: 1 },
-        { label: 'Florada', dataKey: 'tipoFlorada', sortable: true, flex: 2 },
-        { label: 'Abelha', dataKey: 'tipoAbelha', sortable: true, flex: 2 },
-        { label: 'Status', dataKey: 'vendido', sortable: true, flex: 1, render: (val) => val ? 'Vendido' : 'Estoque' },
+        { label: 'Data', dataKey: 'dataProducao', sortable: true, flex: 2, render: (l) => isoParaBr(l.dataProducao) },
+        { label: 'Quantidade', dataKey: 'quantidadeProduzida', sortable: true, flex: 2, render: (l) => formatarKgL(Number(l.quantidadeProduzida) || 0) },
+        { label: 'Florada', dataKey: 'tipoFlorada', sortable: true, flex: 2, render: (l) => rotuloEnum(l.tipoFlorada) },
+        { label: 'Abelha', dataKey: 'tipoAbelha', sortable: true, flex: 2, render: (l) => rotuloEnum(l.tipoAbelha) },
+        { label: 'Status', dataKey: 'vendido', sortable: true, flex: 1, render: (l) => (l.vendido ? 'Vendido' : 'Em estoque') },
     ];
 
-    const anoOptions = [
-        { label: 'Todos os Anos', value: '' },
-        { label: '2026', value: '2026' },
-        { label: '2025', value: '2025' }
-    ];
+    const anoOptions = opcoesDeAno(lotes, (l) => l.dataProducao);
 
-    const mesOptions = [
-        { label: 'Todos os Meses', value: '' },
-        { label: 'Janeiro', value: '01' },
-        { label: 'Fevereiro', value: '02' },
-        { label: 'Maio', value: '05' }
-    ];
+    const mesOptions = [{ label: 'Todos os meses', value: '' }, ...MESES_EXTENSO.map((m, i) => ({ label: m, value: String(i + 1).padStart(2, '0') }))];
 
     const dadosFiltrados = useMemo(() => {
         return lotes.filter(item => {
@@ -76,8 +74,16 @@ export default function RelatorioRastreabilidadeTabela() {
         });
     }, [lotes, ano, mes]);
 
-    const handleExportar = () => {
-        alerta('Sucesso', `Exportando ${dadosFiltrados.length} registros para CSV.`);
+    const handleExportar = async () => {
+        if (!dadosFiltrados?.length) {
+            alerta('Aviso', 'Não há dados para exportar.');
+            return;
+        }
+        try {
+            await exportarCsv('relatorio-rastreabilidade.csv', colunasDoRelatorio as any, dadosFiltrados);
+        } catch {
+            alerta('Erro', 'Não foi possível exportar a planilha.');
+        }
     };
 
     if (loading) {
@@ -90,7 +96,8 @@ export default function RelatorioRastreabilidadeTabela() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Tabela de Rastreabilidade' }} />
+            <Stack.Screen options={{ title: 'Relatório de Rastreabilidade' }} />
+            <BotaoExportarPdf tipo="rastreabilidade" filtro={{ ano: ano ? Number(ano) : null, mes: mes ? Number(mes) : null }} />
 
             <Subtexto style={styles.subtexto}>Dados Reais de Produção</Subtexto>
 
@@ -133,7 +140,7 @@ export default function RelatorioRastreabilidadeTabela() {
             </View>
 
             <Botao
-                title="Exportar Relatório"
+                title="Exportar planilha (CSV)"
                 cor="primaria"
                 onPress={handleExportar}
                 style={styles.botaoExportar}

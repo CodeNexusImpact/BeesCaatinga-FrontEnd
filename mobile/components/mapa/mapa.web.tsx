@@ -1,14 +1,17 @@
-import React, { useEffect, useRef, useSyncExternalStore } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import type * as Leaflet from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import cores from '@/constants/cores';
 import { LocalizacaoMapa, RegiaoDeMapa } from '@/types/mapa/mapaLocalizacao';
+import { COR_TIPO, REGIAO_PADRAO } from './mapaComum';
 
 interface MapaWebProps {
   localizacoes?: LocalizacaoMapa[];
   regiaoPadrao?: RegiaoDeMapa;
   permiteEdicao?: boolean;
+  /** Ponto escolhido pelo usuário (modo edição): exibido com marcador destacado. */
+  pontoSelecionado?: { latitude: number; longitude: number } | null;
   onMarkerPress?: (localizacao: LocalizacaoMapa) => void;
   onMapPress?: (latitude: number, longitude: number) => void;
   onMapClick?: (latitude: number, longitude: number) => void;
@@ -16,16 +19,13 @@ interface MapaWebProps {
 }
 
 const noopSubscribe = () => () => {};
+const escapar = (t: string) => t.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
 export default function MapaWeb({
   localizacoes = [],
-  regiaoPadrao = {
-    latitude: -5.0917,
-    longitude: -42.8156,
-    latitudeDelta: 0.5,
-    longitudeDelta: 0.5,
-  },
+  regiaoPadrao = REGIAO_PADRAO,
   permiteEdicao = false,
+  pontoSelecionado = null,
   onMarkerPress,
   onMapPress,
   onMapClick,
@@ -34,189 +34,108 @@ export default function MapaWeb({
   // true no navegador, false na renderização estática (sem mismatch de hidratação)
   const isClient = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<Leaflet.Map | null>(null);
-  const markersRef = useRef<Leaflet.Marker[]>([]);
-
-
+  const [mapa, setMapa] = useState<{ L: typeof Leaflet; map: Leaflet.Map } | null>(null);
+  const callbacks = useRef({ onMarkerPress, onMapPress, onMapClick, permiteEdicao });
   useEffect(() => {
-    if (!isClient || typeof window === 'undefined' || !containerRef.current) return;
+    callbacks.current = { onMarkerPress, onMapPress, onMapClick, permiteEdicao };
+  });
+  const regiaoInicial = useRef(regiaoPadrao);
 
-    let isMounted = true;
+  // Cria o mapa uma única vez (marcadores são atualizados em outro efeito, sem perder o zoom).
+  useEffect(() => {
+    if (!isClient || !containerRef.current) return;
+    let ativo = true;
     let resizeObserver: ResizeObserver | null = null;
+    let instancia: Leaflet.Map | null = null;
 
-    const initMap = async () => {
+    (async () => {
       try {
-        // Leaflet empacotado no bundle (sem dependência de CDN externo); carregado só no navegador.
+        // Leaflet empacotado no bundle (sem CDN); carregado só no navegador.
         const L = (await import('leaflet')).default as typeof Leaflet;
-
-        if (!isMounted || !containerRef.current) return;
-
-        // Limpar mapa anterior se existir
-        if (mapRef.current) {
-          mapRef.current.remove();
-          mapRef.current = null;
-        }
-
-        // Limpar ID do Leaflet no container para evitar erro de re-inicialização
-        if ((containerRef.current as any)._leaflet_id) {
-          (containerRef.current as any)._leaflet_id = null;
-        }
-
-        // Ícone de marcador em CSS (evita imagens externas do Leaflet).
-        L.Marker.prototype.options.icon = L.divIcon({
-          className: 'bees-marker',
-          html: '<span></span>',
-          iconSize: [22, 22],
-          iconAnchor: [11, 22],
-          popupAnchor: [0, -20],
-        });
-
-        // Criar novo mapa
-        const map = L.map(containerRef.current, {
-          center: [regiaoPadrao.latitude, regiaoPadrao.longitude],
-          zoom: 12,
-          zoomControl: true,
-        });
-
-        // Adicionar layer do OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        if (!ativo || !containerRef.current) return;
+        const r = regiaoInicial.current;
+        instancia = L.map(containerRef.current, { center: [r.latitude, r.longitude], zoom: 12, zoomControl: true });
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '© OpenStreetMap contributors',
-        }).addTo(map);
-
-        // Forçar Leaflet a recalcular tamanho do container
-        setTimeout(() => {
-          if (isMounted && map) {
-            map.invalidateSize();
-          }
-        }, 150);
-
-        setTimeout(() => {
-          if (isMounted && map) {
-            map.invalidateSize();
-          }
-        }, 600);
-
-        // Observar mudanças de tamanho do elemento
+        }).addTo(instancia);
+        instancia.on('click', (e: Leaflet.LeafletMouseEvent) => {
+          const cb = callbacks.current;
+          if (!cb.permiteEdicao) return;
+          cb.onMapPress?.(e.latlng.lat, e.latlng.lng);
+          cb.onMapClick?.(e.latlng.lat, e.latlng.lng);
+        });
+        [150, 600].forEach((ms) => setTimeout(() => ativo && instancia?.invalidateSize(), ms));
         if (typeof ResizeObserver !== 'undefined') {
-          resizeObserver = new ResizeObserver(() => {
-            if (map) {
-              map.invalidateSize();
-            }
-          });
+          resizeObserver = new ResizeObserver(() => instancia?.invalidateSize());
           resizeObserver.observe(containerRef.current);
         }
-
-        // Adicionar click handler se permitir edição
-        if (permiteEdicao) {
-          map.on('click', (e: Leaflet.LeafletMouseEvent) => {
-            if (onMapPress) {
-              onMapPress(e.latlng.lat, e.latlng.lng);
-            }
-            if (onMapClick) {
-              onMapClick(e.latlng.lat, e.latlng.lng);
-            }
-          });
-        }
-
-        // Adicionar marcadores
-        markersRef.current = [];
-        localizacoes.forEach((localizacao) => {
-          const cor = getColorForTipo(localizacao.tipo);
-
-          const customIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: `
-              <div style="
-                background-color: ${cor};
-                width: 30px;
-                height: 40px;
-                border-radius: 50% 50% 50% 0;
-                transform: rotate(-45deg);
-                border: 2px solid white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-              ">
-                <div style="
-                  transform: rotate(45deg);
-                  color: white;
-                  font-weight: bold;
-                  font-size: 12px;
-                ">
-                  ${localizacao.tipo ? localizacao.tipo.charAt(0).toUpperCase() : '📍'}
-                </div>
-              </div>
-            `,
-            iconSize: [30, 40],
-            iconAnchor: [15, 40],
-            popupAnchor: [0, -40],
-          });
-
-          const marker = L.marker(
-            [localizacao.latitude, localizacao.longitude],
-            { icon: customIcon }
-          )
-            .bindPopup(
-              `<div>
-                <strong>${localizacao.nome}</strong><br/>
-                ${localizacao.descricao ? `<p>${localizacao.descricao}</p>` : ''}
-                <small>${localizacao.latitude.toFixed(4)}, ${localizacao.longitude.toFixed(4)}</small>
-              </div>`
-            )
-            .addTo(map);
-
-          marker.on('click', () => {
-            if (onMarkerPress) {
-              onMarkerPress(localizacao);
-            }
-          });
-
-          markersRef.current.push(marker);
-        });
-
-        // Ajustar visualização para conter marcadores se houver
-        if (localizacoes.length > 0) {
-          const bounds = L.latLngBounds(
-            localizacoes.map((loc) => [loc.latitude, loc.longitude] as [number, number])
-          );
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-        }
-
-        mapRef.current = map;
+        setMapa({ L, map: instancia });
       } catch (err) {
         console.error('Erro ao inicializar o mapa Leaflet:', err);
       }
-    };
-
-    initMap();
+    })();
 
     return () => {
-      isMounted = false;
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
+      ativo = false;
+      resizeObserver?.disconnect();
+      instancia?.remove();
+      setMapa(null);
     };
-  }, [isClient, localizacoes, regiaoPadrao, permiteEdicao, onMarkerPress, onMapPress, onMapClick]);
+  }, [isClient]);
+
+  // Marcadores das localizações.
+  useEffect(() => {
+    if (!mapa) return;
+    const { L, map } = mapa;
+    const camada = L.layerGroup().addTo(map);
+    localizacoes.forEach((loc) => {
+      const icone = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="bees-pin" style="background:${COR_TIPO[loc.tipo] ?? '#666'}"><span>${loc.tipo.charAt(0).toUpperCase()}</span></div>`,
+        iconSize: [30, 40],
+        iconAnchor: [15, 40],
+        popupAnchor: [0, -40],
+      });
+      L.marker([loc.latitude, loc.longitude], { icon: icone, title: loc.nome, alt: loc.nome })
+        .bindPopup(
+          `<div><strong>${escapar(loc.nome)}</strong><br/>${loc.descricao ? `${escapar(loc.descricao)}<br/>` : ''}<small>${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}</small></div>`,
+        )
+        .on('click', () => callbacks.current.onMarkerPress?.(loc))
+        .addTo(camada);
+    });
+    if (localizacoes.length > 0) {
+      map.fitBounds(L.latLngBounds(localizacoes.map((l) => [l.latitude, l.longitude] as [number, number])), { padding: [50, 50], maxZoom: 15 });
+    }
+    return () => {
+      camada.remove();
+    };
+  }, [mapa, localizacoes]);
+
+  // Ponto escolhido no modo edição.
+  useEffect(() => {
+    if (!mapa || !pontoSelecionado) return;
+    const { L, map } = mapa;
+    const marcador = L.marker([pontoSelecionado.latitude, pontoSelecionado.longitude], {
+      icon: L.divIcon({ className: 'bees-marker bees-marker-selecionado', html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 26] }),
+      title: 'Local escolhido',
+      alt: 'Local escolhido',
+    }).addTo(map);
+    if (!map.getBounds().contains([pontoSelecionado.latitude, pontoSelecionado.longitude])) {
+      map.setView([pontoSelecionado.latitude, pontoSelecionado.longitude], Math.max(map.getZoom(), 13));
+    }
+    return () => {
+      marcador.remove();
+    };
+  }, [mapa, pontoSelecionado]);
 
   return (
     <View style={[styles.container, style]}>
       <style>{mapContainerStyle}</style>
       <div
         ref={containerRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          minHeight: '350px',
-          position: 'relative',
-          zIndex: 0,
-        }}
+        data-testid="mapa"
+        style={{ width: '100%', height: '100%', minHeight: '320px', position: 'relative', zIndex: 0, cursor: permiteEdicao ? 'crosshair' : undefined }}
       >
         {!isClient && (
           <View style={styles.loadingContainer}>
@@ -228,28 +147,18 @@ export default function MapaWeb({
   );
 }
 
-function getColorForTipo(tipo: string): string {
-  const colorMap: Record<string, string> = {
-    apiario: '#2E7D32',      // Verde
-    vistoria: '#1565C0',     // Azul
-    propriedade: '#F57C00',  // Laranja
-    produtor: '#C62828',     // Vermelho
-  };
-  return colorMap[tipo] || '#666666';
-}
-
 const styles = StyleSheet.create({
   container: {
     width: '100%',
     flex: 1,
-    minHeight: 350,
+    minHeight: 320,
     aspectRatio: 1 / 1,
     borderColor: cores.primaria,
     borderWidth: 2,
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#e5e3df', // Cor de fundo semelhante aos tiles de mapa
+    backgroundColor: '#e5e3df',
   },
   loadingContainer: {
     position: 'absolute',
@@ -264,32 +173,11 @@ const styles = StyleSheet.create({
 });
 
 const mapContainerStyle = `
-  .leaflet-container {
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 350px !important;
-    font-family: 'Roboto', sans-serif;
-    z-index: 1;
-  }
-
-  .bees-marker span {
-    display: block;
-    width: 22px;
-    height: 22px;
-    border-radius: 50% 50% 50% 0;
-    background: #E0A100;
-    border: 2px solid #ffffff;
-    transform: rotate(-45deg);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  }
-
-  .leaflet-popup-content {
-    font-size: 12px;
-    font-family: 'Roboto', sans-serif;
-  }
-
-  .custom-div-icon {
-    background: transparent;
-    border: none;
-  }
+  .leaflet-container { width: 100% !important; height: 100% !important; min-height: 320px !important; font-family: 'Roboto', sans-serif; z-index: 1; }
+  .bees-marker span { display: block; width: 22px; height: 22px; border-radius: 50% 50% 50% 0; background: #E0A100; border: 2px solid #fff; transform: rotate(-45deg); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+  .bees-marker-selecionado span { width: 26px; height: 26px; background: #C62828; }
+  .bees-pin { width: 30px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,.25); }
+  .bees-pin span { transform: rotate(45deg); color: #fff; font-weight: bold; font-size: 12px; }
+  .leaflet-popup-content { font-size: 13px; font-family: 'Roboto', sans-serif; }
+  .custom-div-icon { background: transparent; border: none; }
 `;

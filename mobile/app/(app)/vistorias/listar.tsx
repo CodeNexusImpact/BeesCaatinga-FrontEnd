@@ -1,4 +1,5 @@
 import Botao from '@/components/formulario/botao';
+import { EstadoVazio } from '@/components/graficos';
 import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -15,6 +16,7 @@ import {
   } from 'react-native';
 import { getVistorias, deletarVistoria, Vistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
+import { opcoesDeAno } from '@/components/graficos';
 
 // --- Importar os Modais ---
 import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
@@ -52,11 +54,7 @@ export default function ListarVistorias() {
     { label: 'Outubro', value: '10' }, { label: 'Novembro', value: '11' }, { label: 'Dezembro', value: '12' },
   ];
   
-  const anoOptions = [
-    { label: '2024', value: '2024' },
-    { label: '2025', value: '2025' },
-    { label: '2026', value: '2026' },
-  ];
+  const anoOptions = opcoesDeAno(vistorias, (v) => v.dataVistoria).slice(1);
 
   const carregarVistorias = useCallback(async () => {
     if (!userId) return;
@@ -152,7 +150,7 @@ export default function ListarVistorias() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Listar' }} />
+      <Stack.Screen options={{ title: 'Minhas Vistorias' }} />
       <View style={styles.container}>
         
         <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -206,7 +204,7 @@ export default function ListarVistorias() {
             {loading ? (
               <ActivityIndicator size="large" color={cores.primaria} />
             ) : vistoriasOrdenadas.length === 0 ? (
-              <Text style={{ textAlign: 'center', marginTop: 20 }}>Nenhuma vistoria encontrada.</Text>
+              <EstadoVazio mensagem={vistorias.length ? 'Nenhuma vistoria encontrada para este filtro.' : 'Nenhuma vistoria cadastrada ainda.'} icone="clipboardCheck" acao={vistorias.length ? undefined : { titulo: 'Cadastrar primeira vistoria', onPress: () => router.push('/vistorias/cadastrar') }} />
             ) : (
               vistoriasOrdenadas.map((vistoria) => {
                 // ENRIQUECIMENTO DO MAPEAMENTO DO CARD

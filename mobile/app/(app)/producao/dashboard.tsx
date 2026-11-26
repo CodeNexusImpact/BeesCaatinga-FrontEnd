@@ -1,216 +1,75 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
-import { LineChart, BarChart } from 'react-native-chart-kit'; 
+import React, { useMemo, useState } from 'react';
 import Selector from '@/components/formulario/selector';
-import GraficoCard, { KpiData } from '@/components/graficoCard';
-import Subtexto from '@/components/subTexto';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { Stack, useFocusEffect } from 'expo-router';
+import PainelDashboard from '@/components/painelDashboard';
+import { GraficoBarras, GraficoColunas, agrupar, opcoesDeAno, porMes } from '@/components/graficos';
+import { useDadosApi } from '@/hooks/useDadosApi';
 import { getProducoes } from '@/services/producaoService';
-import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
+import { formatarKgL, formatarNumero, kgParaLitros, paraKg, useDensidadeMel } from '@/utils/mel';
 
-const screenWidth = Dimensions.get('window').width;
+const emKg = (p: ProducaoRetornoDTO) => paraKg(p.quantidade, p.unidadeMedida);
 
-const anoOptions = [
-    { label: 'Todos os Anos', value: '' }, 
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-    { label: '2026', value: '2026' },
+const ESTACOES = [
+  { label: 'Todas as estações', value: '' },
+  { label: 'Verão', value: 'verao' },
+  { label: 'Outono', value: 'outono' },
+  { label: 'Inverno', value: 'inverno' },
+  { label: 'Primavera', value: 'primavera' },
 ];
-
-const estacaoOptions = [
-    { label: 'Todas as Estações', value: '' },
-    { label: 'Verão', value: 'verao' },
-    { label: 'Outono', value: 'outono' },
-    { label: 'Inverno', value: 'inverno' },
-    { label: 'Primavera', value: 'primavera' },
-];
-
-// Auxiliar para determinar a estação do ano no Brasil
-const getEstacao = (dataStr: string) => {
-    const data = new Date(dataStr + 'T00:00:00');
-    const mes = data.getMonth() + 1;
-    const dia = data.getDate();
-
-    if ((mes === 12 && dia >= 21) || mes === 1 || mes === 2 || (mes === 3 && dia < 20)) return 'verao';
-    if ((mes === 3 && dia >= 20) || mes === 4 || mes === 5 || (mes === 6 && dia < 21)) return 'outono';
-    if ((mes === 6 && dia >= 21) || mes === 7 || mes === 8 || (mes === 9 && dia < 22)) return 'inverno';
-    return 'primavera';
+const estacaoDe = (iso: string) => {
+  const m = Number(iso.slice(5, 7));
+  const d = Number(iso.slice(8, 10));
+  const md = m * 100 + d;
+  if (md >= 1221 || md < 320) return 'verao';
+  if (md < 621) return 'outono';
+  if (md < 922) return 'inverno';
+  return 'primavera';
 };
 
-export default function Dashboard() {
-    const { user } = useAuth();
-    const userId = user?.id;
-    const [ano, setAno] = useState('');
-    const [estacao, setEstacao] = useState('');
-    const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+const buscar = (id: number) => getProducoes(id);
+const fmt = (n: number) => formatarNumero(n);
 
-    const carregarDados = useCallback(async () => {
-        if (!userId) return;
-        setIsLoading(true);
-        try {
-            const data = await getProducoes(userId);
-            // Filtro por ano aplicado localmente conforme o estado da tela
-            const dataFiltradaAno = ano ? data.filter(p => p.dataColeta.includes(ano)) : data;
-            setProducoes(dataFiltradaAno);
-        } catch (error) {
-            console.error('Erro ao carregar dashboard:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [userId, ano]);
+export default function DashboardProducao() {
+  const { dados: producoes, carregando, erro, recarregar } = useDadosApi<ProducaoRetornoDTO[]>(buscar, []);
+  const anos = useMemo(() => opcoesDeAno(producoes, (p) => p.dataColeta), [producoes]);
+  const [anoEscolhido, setAno] = useState<string | null>(null);
+  const ano = anoEscolhido ?? anos[1]?.value ?? ''; // padrão: ano mais recente com dados
+  const [estacao, setEstacao] = useState('');
 
-    useFocusEffect(
-        useCallback(() => {
-            carregarDados();
-        }, [carregarDados])
-    );
+  const filtradas = producoes.filter(
+    (p) => (!ano || String(p.dataColeta).startsWith(ano)) && (!estacao || (p.dataColeta && estacaoDe(p.dataColeta) === estacao)),
+  );
+  const totalKg = filtradas.reduce((s, p) => s + emKg(p), 0);
+  const densidade = useDensidadeMel();
+  const totalL = kgParaLitros(totalKg, densidade);
+  const colmeias = new Set(filtradas.map((p) => p.colmeiaId ?? p.nomeColmeia)).size;
 
-    const dadosFiltrados = useMemo(() => {
-        return producoes.filter(item => {
-            const filtroEstacao = estacao === '' ? true : getEstacao(item.dataColeta) === estacao;
-            return filtroEstacao;
-        });
-    }, [producoes, estacao]);
-
-    const kpisCalculados: KpiData[] = useMemo(() => {
-        const totalVolume = dadosFiltrados.reduce((acc, curr) => acc + curr.quantidade, 0);
-        const qtdRegistros = dadosFiltrados.length;
-        const media = qtdRegistros > 0 ? totalVolume / qtdRegistros : 0;
-
-        return [
-            { label: 'Produção Total (kg)', value: totalVolume.toFixed(1) },
-            { label: 'Média Mensal (kg)', value: media.toFixed(1) },
-            { label: 'Registros', value: qtdRegistros.toString() },
-            { label: 'Status', value: qtdRegistros > 0 ? 'Ativo' : 'Sem dados' },
-        ];
-    }, [dadosFiltrados]);
-
-    const dataLinha = useMemo(() => {
-        const mesesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-        const volumes = new Array(12).fill(0);
-        dadosFiltrados.forEach(item => {
-            const data = new Date(item.dataColeta + 'T00:00:00');
-            const mesIndex = data.getMonth();
-            volumes[mesIndex] += item.quantidade;
-        });
-
-        return {
-            labels: mesesLabels,
-            datasets: [{ data: volumes }]
-        };
-    }, [dadosFiltrados]);
-
-    const dataBarra = useMemo(() => {
-        const aprovado = dadosFiltrados.filter(d => d.statusQualidade === 'APROVADO').length;
-        const naoAvaliado = dadosFiltrados.filter(d => d.statusQualidade === 'NAO_AVALIADO').length;
-
-        return {
-            labels: ["Aprovado", "Não Avaliado"],
-            datasets: [{ data: [aprovado, naoAvaliado] }]
-        };
-    }, [dadosFiltrados]);
-
-    const chartConfig = {
-        backgroundGradientFrom: cores.branco,
-        backgroundGradientTo: cores.branco,
-        color: (opacity = 1) => `rgba(46, 204, 113, ${opacity})`,
-        strokeWidth: 2,
-        barPercentage: 0.6,
-        decimalPlaces: 0,
-        labelColor: (opacity = 1) => cores.texto,
-        fillShadowGradient: `rgba(46, 204, 113, 1)`,
-        fillShadowGradientOpacity: 1,
-        propsForLabels: {
-            fontSize: 10
-        }
-    };
-
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Dashboard' }} />
-            <Subtexto style={styles.subtexto}>Dashboard de Produção</Subtexto>
-
-            <View style={styles.filtroContainer}>
-                 <View style={styles.linhaFiltro}>
-                    <Selector 
-                        label="Ano" 
-                        options={anoOptions} 
-                        onSelect={setAno} 
-                        placeholder="Todos os Anos" 
-                        style={styles.filtroPequeno} 
-                    />
-                    <Selector 
-                        label="Estação" 
-                        options={estacaoOptions} 
-                        onSelect={setEstacao} 
-                        placeholder="Todas" 
-                        style={styles.filtroPequeno} 
-                    />
-                </View>
-            </View>
-
-            {isLoading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={cores.primaria} />
-                </View>
-            ) : (
-                <GraficoCard
-                    subtexto={`Dados visualizados: ${ano === '' ? 'Todos os Anos' : ano} ${estacao ? '- ' + estacao : ''}`}
-                    kpis={kpisCalculados}
-                    showSideBar={true}
-                >
-                    <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitle}>Produção Mensal (kg)</Text>
-                        <LineChart
-                            data={dataLinha}
-                            width={screenWidth - 60}
-                            height={220}
-                            chartConfig={chartConfig}
-                            bezier
-                            style={styles.chartStyle}
-                            formatXLabel={(label) => label}
-                        />
-                    </View>
-
-                    <View style={styles.chartContainer}>
-                        <Text style={styles.chartTitle}>Qualidade da Produção</Text>
-                        <BarChart
-                            data={dataBarra}
-                            width={screenWidth - 60}
-                            height={220}
-                            yAxisLabel=""
-                            yAxisSuffix=""
-                            chartConfig={{
-                                ...chartConfig,
-                                color: (opacity = 1) => `rgba(241, 196, 15, ${opacity})`,
-                                fillShadowGradient: `rgba(241, 196, 15, 1)`,
-                            }}
-                            style={styles.chartStyle}
-                            showValuesOnTopOfBars
-                            fromZero
-                        />
-                    </View>
-                </GraficoCard>
-            )}
-        </ScrollView>
-    );
+  return (
+    <PainelDashboard
+      titulo="Resumo da Produção"
+      subtitulo={`Período: ${ano || 'todos os anos'}${estacao ? ` · ${ESTACOES.find((e) => e.value === estacao)?.label}` : ''}`}
+      carregando={carregando}
+      erro={erro}
+      vazio={producoes.length === 0}
+      mensagemVazio="Nenhuma produção cadastrada ainda. Registre uma coleta para ver os indicadores."
+      acaoVazio={{ titulo: 'Cadastrar primeira produção', rota: '/producao/cadastrar' }}
+      onTentarNovamente={recarregar}
+      filtros={
+        <>
+          <Selector label="Ano" options={anos} onSelect={setAno} value={ano} />
+          <Selector label="Estação" options={ESTACOES} onSelect={setEstacao} value={estacao} />
+        </>
+      }
+      kpis={[
+        { label: 'Produção total (kg)', value: fmt(totalKg) },
+        { label: 'Produção total (L)', value: fmt(totalL) },
+        { label: 'Coletas', value: filtradas.length },
+        { label: 'Média por Colmeia (kg)', value: fmt(colmeias ? totalKg / colmeias : 0) },
+      ]}
+    >
+      <GraficoColunas titulo={`Produção mensal ${ano || ''}`.trim()} unidade="kg" dados={porMes(filtradas, (p) => p.dataColeta, emKg)} />
+      <GraficoBarras titulo="Produção por tipo de mel" formatar={(n) => formatarKgL(n)} dados={agrupar(filtradas, (p) => p.tipoProducao, emKg)} />
+      <GraficoBarras titulo="Produção por apiário" formatar={(n) => formatarKgL(n)} dados={agrupar(filtradas, (p) => p.nomeApiario, emKg)} />
+    </PainelDashboard>
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, overflow: 'visible' },
-    subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto },
-    
-    filtroContainer: { marginBottom: layout.espacamento.amigavel, zIndex: 100, elevation: 10 },
-    linhaFiltro: { flexDirection: 'row', justifyContent: 'space-between', gap: layout.espacamento.texto, zIndex: 200, elevation: 20 },
-    filtroPequeno: { flex: 1, backgroundColor: cores.branco },
-    
-    loadingContainer: { height: 300, justifyContent: 'center', alignItems: 'center' },
-    chartContainer: { marginTop: layout.espacamento.amigavel, alignItems: 'center', zIndex: -1 },
-    chartTitle: { fontSize: 16, fontWeight: 'bold', color: cores.texto, marginBottom: 10 },
-    chartStyle: { borderRadius: 16 },
-});

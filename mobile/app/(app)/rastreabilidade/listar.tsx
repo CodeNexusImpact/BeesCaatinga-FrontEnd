@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { exportarCsv } from '@/utils/csv';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal, ActivityIndicator } from 'react-native';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
@@ -6,6 +7,8 @@ import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
 import { alerta } from '@/utils/alerta';
+import { isoParaBr } from '@/utils/datas';
+import { formatarKgL } from '@/utils/mel';
 
 export default function ListarLotesMel() {
   const router = useRouter();
@@ -64,22 +67,16 @@ export default function ListarLotesMel() {
     router.push({ pathname: '/rastreabilidade/editar', params: { id: String(idLote) } });
   };
 
-  const handleExportar = () => {
-    if (lotesFiltrados.length === 0) {
-      alerta('Aviso', 'Não há dados para exportar.');
-      return;
-    }
-
-    const cabecalho = 'ID,Data,Quantidade,Apiario,Florada,Abelha\n';
-    const linhas = lotesFiltrados.map(l =>
-      `${l.id},${l.dataProducao},${l.quantidadeProduzida},${l.nomeApiario ?? l.apiarioId ?? ''},${l.tipoFlorada ?? ''},${l.tipoAbelha ?? ''}`
-    ).join('\n');
-
-    console.log('--- EXPORTAÇÃO CSV (RASTREABILIDADE) ---');
-    console.log(cabecalho + linhas);
-    console.log('----------------------------------------');
-
-    alerta('Sucesso', 'Relatório de rastreabilidade gerado no console!');
+  const handleExportar = async () => {
+      if (!lotesFiltrados?.length) {
+          alerta('Aviso', 'Não há dados para exportar.');
+          return;
+      }
+      try {
+          await exportarCsv('lotes.csv', [{ label: 'Lote', dataKey: 'id' }, { label: 'Data', dataKey: 'dataProducao', render: (l: any) => isoParaBr(l.dataProducao) }, { label: 'Quantidade', dataKey: 'quantidadeProduzida', render: (l: any) => formatarKgL(Number(l.quantidadeProduzida) || 0) }, { label: 'Apiário', dataKey: 'nomeApiario' }, { label: 'Colmeia', dataKey: 'identificadorColmeia' }, { label: 'Florada', dataKey: 'tipoFlorada' }, { label: 'Abelha', dataKey: 'tipoAbelha' }] as any, lotesFiltrados);
+      } catch {
+          alerta('Erro', 'Não foi possível exportar a planilha.');
+      }
   };
 
   // Texto exibido no seletor
@@ -98,7 +95,7 @@ export default function ListarLotesMel() {
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
     >
-      <Stack.Screen options={{ title: 'Listar Lotes' }} />
+      <Stack.Screen options={{ title: 'Meus Lotes' }} />
 
       {/* Card de Lista de Lotes */}
       <View style={styles.listaContainer}>
@@ -202,10 +199,10 @@ export default function ListarLotesMel() {
                   {lote.id}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaData]}>
-                  {lote.dataProducao}
+                  {isoParaBr(lote.dataProducao)}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaQuant]}>
-                  {lote.quantidadeProduzida}
+                  {formatarKgL(Number(lote.quantidadeProduzida) || 0)}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaApiario]}>
                   {lote.nomeApiario ?? lote.apiarioId}
@@ -217,7 +214,7 @@ export default function ListarLotesMel() {
             {lotesFiltrados.length === 0 && (
               <View style={styles.semDados}>
                 <Text style={styles.semDadosTexto}>
-                  Nenhum lote encontrado.
+                  {lotes.length === 0 ? 'Nenhum lote cadastrado ainda.' : 'Nenhum lote encontrado para este filtro.'}
                 </Text>
               </View>
             )}

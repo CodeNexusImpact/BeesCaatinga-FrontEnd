@@ -12,6 +12,6 @@ export interface ApiarioAtualizadoDTO {
     complemento?: string;
     observacoes?: string;
     caminhoDaFoto?: string;
-    latitude?: number;
-    longitude?: number;
+    latitude?: number | null;
+    longitude?: number | null;
 }

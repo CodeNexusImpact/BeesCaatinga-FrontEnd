@@ -5,11 +5,13 @@ import * as Location from 'expo-location';
 import cores from '@/constants/cores';
 import { LocalizacaoMapa, RegiaoDeMapa } from '@/types/mapa/mapaLocalizacao';
 import { alerta } from '@/utils/alerta';
+import { REGIAO_PADRAO } from './mapaComum';
 
 interface MapaProps {
   localizacoes?: LocalizacaoMapa[];
   regiaoPadrao?: RegiaoDeMapa; // usado na versão web; no nativo a região vem da localização do usuário
   permiteEdicao?: boolean;
+  pontoSelecionado?: { latitude: number; longitude: number } | null;
   onMarkerPress?: (localizacao: LocalizacaoMapa) => void;
   onMapPress?: (latitude: number, longitude: number) => void;
   onMapClick?: (latitude: number, longitude: number) => void;
@@ -19,6 +21,7 @@ interface MapaProps {
 export default function Mapa({
   localizacoes = [],
   permiteEdicao = false,
+  pontoSelecionado = null,
   onMarkerPress,
   onMapPress,
   onMapClick,
@@ -38,11 +41,7 @@ export default function Mapa({
           console.warn('Permissão de localização negada');
           // Definir região padrão (Caatinga, Brasil)
           setInitialRegion({
-            latitude: -5.0917,
-            longitude: -42.8156,
-            latitudeDelta: 0.5,
-            longitudeDelta: 0.5,
-          });
+...REGIAO_PADRAO });
           setLoading(false);
           return;
         }
@@ -68,11 +67,7 @@ export default function Mapa({
         alerta('Erro', 'Não foi possível obter sua localização');
         // Fallback: região padrão
         setInitialRegion({
-          latitude: -5.0917,
-          longitude: -42.8156,
-          latitudeDelta: 0.5,
-          longitudeDelta: 0.5,
-        });
+...REGIAO_PADRAO });
         setLoading(false);
       }
     })();
@@ -131,6 +126,10 @@ export default function Mapa({
             strokeWidth={2}
             fillColor={`${cores.primaria}20`}
           />
+        )}
+
+        {pontoSelecionado && (
+          <Marker coordinate={pontoSelecionado} title="Local escolhido" pinColor="red" />
         )}
 
         {/* Marcadores das localizações */}

@@ -10,7 +10,11 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useAuth } from '@/hooks/useAuth';
+import { exportarCsv } from '@/utils/csv';
+import { alerta } from '@/utils/alerta';
 import { listarColmeiasPorProdutor } from '@/services/colmeiaService';
+import { rotuloEnum } from '@/components/graficos';
+import { isoParaBr } from '@/utils/datas';
 
 // --- Interface Atualizada ---
 interface DadosColmeia {
@@ -18,18 +22,19 @@ interface DadosColmeia {
     identificador: string;
     apiario: string;
     tipo: string;
-    status: 'Ativo' | 'Inativo';
-    dataCriacao: string; // Ex: "15/01/2025"
-    ano: string;         // Campo auxiliar para o filtro
+    situacao: string;
+    status: string;
+    ultimaVistoria: string;
 }
 
 // --- Configuração das Colunas ---
 const colunasColmeia: TabelaColuna<DadosColmeia>[] = [
     { label: 'Identificador', dataKey: 'identificador', sortable: true, flex: 2 },
-    { label: 'Criação', dataKey: 'dataCriacao', sortable: true, flex: 2.5 },
     { label: 'Apiário', dataKey: 'apiario', sortable: true, flex: 3 },
-    { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
-    { label: 'Status', dataKey: 'status', sortable: true, flex: 2 },
+    { label: 'Material', dataKey: 'tipo', sortable: true, flex: 2 },
+    { label: 'Situação', dataKey: 'situacao', sortable: true, flex: 3 },
+    { label: 'Ativa', dataKey: 'status', sortable: true, flex: 1.5 },
+    { label: 'Última vistoria', dataKey: 'ultimaVistoria', sortable: true, flex: 2.5 },
 ];
 
 export default function TabelaColmeias() {
@@ -47,11 +52,11 @@ export default function TabelaColmeias() {
                 const formatados = data.map((c: any) => ({
                     id: c.id.toString(),
                     identificador: c.identificador,
-                    apiario: c.apiarioNome || 'N/A',
-                    tipo: c.tipoColmeia || 'N/A',
-                    status: c.ativa ? 'Ativo' : 'Inativo',
-                    dataCriacao: c.dataCriacao ? new Date(c.dataCriacao).toLocaleDateString('pt-BR') : 'N/A',
-                    ano: c.dataCriacao ? new Date(c.dataCriacao).getFullYear().toString() : ''
+                    apiario: c.nomeApiario || '—',
+                    tipo: rotuloEnum(c.tipo),
+                    situacao: c.pendente ? 'Pendente de envio' : rotuloEnum(c.statusColmeia),
+                    status: c.ativa === false ? 'Não' : 'Sim',
+                    ultimaVistoria: c.ultimaVistoria ? isoParaBr(c.ultimaVistoria) : 'Nenhuma'
                 }));
                 setColmeias(formatados);
             } catch (error) {
@@ -65,14 +70,12 @@ export default function TabelaColmeias() {
 
     // --- LÓGICA: Filtra as colmeias pelo ano selecionado ---
     const dadosFiltrados = useMemo(() => {
-        return colmeias.filter(item => {
-            return filtroAno === '' ? true : item.ano === filtroAno;
-        });
+        return colmeias.filter(item => filtroAno === '' || item.apiario === filtroAno);
     }, [colmeias, filtroAno]);
 
     const anoOptions = useMemo(() => {
-        const anos = Array.from(new Set(colmeias.map(c => c.ano).filter(a => a !== ''))).sort().reverse();
-        return [{ label: 'Todos os Anos', value: '' }, ...anos.map(a => ({ label: a, value: a }))];
+        const nomes = Array.from(new Set(colmeias.map(c => c.apiario))).sort();
+        return [{ label: 'Todos os apiários', value: '' }, ...nomes.map(a => ({ label: a, value: a }))];
     }, [colmeias]);
 
     if (loading) {
@@ -90,20 +93,20 @@ export default function TabelaColmeias() {
 
             <Subtexto style={styles.subtexto}>Relatório Detalhado</Subtexto>
 
-            {/* Filtro por Ano */}
+            {/* Filtro por apiário */}
             <View style={styles.filtroContainer}>
                 <Selector 
-                    label="Filtrar por Ano" 
+                    label="Filtrar por apiário" 
                     options={anoOptions} 
                     onSelect={setFiltroAno} 
-                    placeholder="Selecione o ano" 
-                    iconName="calendar"
+                    placeholder="Selecione o apiário" 
+                    iconName="beehiveOutline"
                     value={filtroAno}
                 />
             </View>
 
             <Text style={styles.contagemTexto}>
-                {dadosFiltrados.length} colmeias encontradas no período
+                {dadosFiltrados.length} colmeia(s) encontrada(s)
             </Text>
 
             {/* --- TABELA COM SCROLL HORIZONTAL --- */}
@@ -125,9 +128,9 @@ export default function TabelaColmeias() {
             <Text style={styles.dicaScroll}>Deslize lateralmente para ver todos os dados</Text>
 
             <Botao
-                title="Exportar Relatório"
+                title="Exportar planilha (CSV)"
                 cor="primaria"
-                onPress={() => alert('Exportando dados para CSV...')}
+                onPress={() => exportarCsv('relatorio-colmeias.csv', colunasColmeia, dadosFiltrados).catch(() => alerta('Erro', 'Não foi possível exportar.'))}
                 style={styles.botaoAcao}
             />
         </ScrollView>

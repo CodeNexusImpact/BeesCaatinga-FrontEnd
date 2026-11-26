@@ -9,6 +9,8 @@ import Subtexto from '@/components/subTexto';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useAuth } from '@/hooks/useAuth';
+import { exportarCsv } from '@/utils/csv';
+import { alerta } from '@/utils/alerta';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 
 // Interface baseada no Retorno do Backend
@@ -48,7 +50,7 @@ export default function TabelaApiarios() {
                     dataCriacao: a.dataDeCriacao ? new Date(a.dataDeCriacao).toLocaleDateString('pt-BR') : 'N/A',
                     cidade: a.cidade,
                     colmeiasTotal: a.colmeias ? a.colmeias.length : 0,
-                    ano: a.dataDeCriacao ? new Date(a.dataDeCriacao).getFullYear().toString() : ''
+                    ano: a.dataDeCriacao ? String(a.dataDeCriacao).slice(0, 4) : ''
                 }));
                 setApiarios(formatados);
             } catch (error) {
@@ -81,7 +83,7 @@ export default function TabelaApiarios() {
             <View style={{ zIndex: 100 }}>
                 <Selector 
                     label="Filtrar por Ano:" 
-                    options={[{label: 'Todos', value: ''}, {label: '2026', value: '2026'}, {label: '2025', value: '2025'}, {label: '2024', value: '2024'}]} 
+                    options={[{ label: 'Todos', value: '' }, ...[...new Set(apiarios.map((a) => a.ano).filter(Boolean))].sort().reverse().map((a) => ({ label: a, value: a }))]} 
                     onSelect={setFiltroAno} 
                     iconName="calendar"
                     value={filtroAno}
@@ -96,7 +98,7 @@ export default function TabelaApiarios() {
                 </ScrollView>
             </View>
 
-            <Botao title="Exportar Relatório" cor="primaria" onPress={() => alert('Exportando para CSV...')} />
+            <Botao title="Exportar planilha (CSV)" cor="primaria" onPress={() => exportarCsv('relatorio-apiarios.csv', colunasApiario, dadosFiltrados).catch(() => alerta('Erro', 'Não foi possível exportar.'))} />
         </ScrollView>
     );
 }
