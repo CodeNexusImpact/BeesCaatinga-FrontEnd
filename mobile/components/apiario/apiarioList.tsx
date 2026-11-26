@@ -44,7 +44,7 @@ const ApiarioList: React.FC<{ apiario: ApiarioRetornoDTO }> = ({ apiario }) => {
                         keyExtractor={(item, index) => item?.id ? String(item.id) : String(index)}
                         style={{ backgroundColor: cores.cores.base[10] }}
                         renderItem={({ item }) => (
-                            <ColmeiaItem id={item.id} identificador={item.identificador} statusColmeia={item.statusColmeia} />
+                            <ColmeiaItem id={item.id} identificador={item.identificador} statusColmeia={item.statusColmeia} apiarioId={id} />
                         )}
                     />
                 </View>

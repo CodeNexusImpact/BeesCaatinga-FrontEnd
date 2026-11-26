@@ -2,7 +2,6 @@ import { TipoColmeia } from './Enums';
 
 export interface ColmeiaAtualizadaDTO {
     identificador?: string;
-    apiario_id?: number;
     tipo?: TipoColmeia;
     ativa?: boolean;
     observacoes?: string;

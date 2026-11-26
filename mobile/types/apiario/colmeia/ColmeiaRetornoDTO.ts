@@ -1,6 +1,7 @@
 import { StatusColmeia, TipoColmeia } from './Enums';
 
 export interface ColmeiaRetornoDTO {
+    id: number;
     identificador: string;
     caminhoDaFoto: string;
     nomeApiario: string;

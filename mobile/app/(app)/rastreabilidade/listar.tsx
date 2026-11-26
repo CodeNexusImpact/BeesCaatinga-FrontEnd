@@ -41,11 +41,11 @@ export default function ListarLotesMel() {
 
   // Filtrar lotes por apiário
   const lotesFiltrados = filtroApiario
-    ? lotes.filter(lote => (lote.apiarioId || lote.apiarioId?.toString()) === filtroApiario)
+    ? lotes.filter(lote => (lote.nomeApiario ?? lote.apiarioId?.toString()) === filtroApiario)
     : lotes;
 
   // Obter apiários únicos para o filtro
-  const apiariosUnicos = ['Todos', ...new Set(lotes.map(lote => (lote.tipoAbelha || lote.apiarioId?.toString())))];
+  const apiariosUnicos = ['Todos', ...new Set(lotes.map(lote => (lote.nomeApiario ?? lote.apiarioId?.toString() ?? '')))];
 
   // Handler para selecionar apiário
   const handleSelecionarApiario = (apiario: string) => {
@@ -59,7 +59,7 @@ export default function ListarLotesMel() {
 
   // Handler para navegar para detalhes do lote
   const handleLotePress = (idLote: number) => {
-    router.push(`/rastreabilidade/listar`);
+    router.push({ pathname: '/rastreabilidade/editar', params: { id: String(idLote) } });
   };
 
   const handleExportar = () => {
@@ -70,7 +70,7 @@ export default function ListarLotesMel() {
 
     const cabecalho = 'ID,Data,Quantidade,Apiario,Florada,Abelha\n';
     const linhas = lotesFiltrados.map(l =>
-      `${l.id},${l.dataProducao},${l.quantidadeProduzida},${l.apiarioId},${l.tipoFlorada},${l.tipoAbelha}`
+      `${l.id},${l.dataProducao},${l.quantidadeProduzida},${l.nomeApiario ?? l.apiarioId ?? ''},${l.tipoFlorada ?? ''},${l.tipoAbelha ?? ''}`
     ).join('\n');
 
     console.log('--- EXPORTAÇÃO CSV (RASTREABILIDADE) ---');
@@ -206,7 +206,7 @@ export default function ListarLotesMel() {
                   {lote.quantidadeProduzida}
                 </Text>
                 <Text style={[styles.rowText, styles.colunaApiario]}>
-                  {lote.apiarioId || lote.apiarioId}
+                  {lote.nomeApiario ?? lote.apiarioId}
                 </Text>
               </TouchableOpacity>
             ))}

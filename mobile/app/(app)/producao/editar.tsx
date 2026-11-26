@@ -4,12 +4,16 @@ import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ScrollView, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import Subtexto from '@/components/subTexto';
 import { getProducaoPorId, atualizarProducao, deletarProducao } from '@/services/producaoService';
 import { UnidadeMedida } from '@/types/insumos/Enums';
+import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import { listarColmeiasPorApiario } from '@/services/colmeiaService';
+
+type Opcao = { label: string; value: string };
 
 const DENSIDADE_MEL_KG_L = 1.4;
 
@@ -25,36 +29,40 @@ export default function Editar() {
     const [apiario, setApiario] = useState('');
     const [colmeia, setColmeia] = useState('');
     const [dataColeta, setDataColeta] = useState('');
-    const [conversao, setConversao] = useState('');
+    const [apiarioOptions, setApiarioOptions] = useState<Opcao[]>([]);
+    const [colmeiaOptions, setColmeiaOptions] = useState<Opcao[]>([]);
+    const [nomeColmeiaOriginal, setNomeColmeiaOriginal] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         const carregarDados = async () => {
-            if (!id) return;
+            if (!id || !user?.id) return;
             try {
-                const data = await getProducaoPorId(id as string);
+                const [data, apiarios] = await Promise.all([
+                    getProducaoPorId(user.id, id as string),
+                    listarApiariosPorProdutor(user.id),
+                ]);
                 if (!data) {
                     Alert.alert('Erro', 'Produção não encontrada.');
                     router.back();
                     return;
                 }
 
-                // Preenche os estados com os dados da API
+                const opcoes = (apiarios ?? []).map((a) => ({ label: a.nome, value: String(a.id) }));
+                setApiarioOptions(opcoes);
+
                 setTipoProduto(data.tipoProducao);
                 setQuantidade(data.quantidade.toString());
-                // Mapeamento reverso se necessário (neste caso o DTO não traz unidadeMedida, 
-                // mas vamos assumir KILOGRAMA como padrão ou buscar de onde paramos)
-                setMedida('KILOGRAMA');
-                setApiario('1'); // IDs fixos para o mock se não vierem no DTO
-                setColmeia('1');
+                // O DTO de retorno não traz unidade, apiarioId nem colmeiaId: resolvemos pelos nomes.
+                setApiario(opcoes.find((o) => o.label === data.nomeApiario)?.value ?? '');
+                setNomeColmeiaOriginal(data.nomeColmeia ?? '');
 
-                // Formata data de YYYY-MM-DD para DD/MM/YYYY
                 if (data.dataColeta) {
                     const [ano, mes, dia] = data.dataColeta.split('-');
                     setDataColeta(`${dia}/${mes}/${ano}`);
                 }
-            } catch (error) {
+            } catch {
                 Alert.alert('Erro', 'Não foi possível carregar os dados da produção.');
                 router.back();
             } finally {
@@ -63,31 +71,36 @@ export default function Editar() {
         };
 
         carregarDados();
-    }, [id]);
+    }, [id, user?.id, router]);
 
+    // Carrega as colmeias do apiário selecionado.
     useEffect(() => {
+        if (!user?.id || !apiario) return;
+        let ativo = true;
+        listarColmeiasPorApiario(user.id, apiario)
+            .then((lista: { id: number; identificador: string }[]) => {
+                if (!ativo) return;
+                const opcoes = (lista ?? []).map((c) => ({ label: c.identificador, value: String(c.id) }));
+                setColmeiaOptions(opcoes);
+                setColmeia((atual) => atual || (opcoes.find((o) => o.label === nomeColmeiaOriginal)?.value ?? ''));
+            })
+            .catch(() => ativo && setColmeiaOptions([]));
+        return () => {
+            ativo = false;
+        };
+    }, [apiario, user?.id, nomeColmeiaOriginal]);
+
+    const conversao = useMemo(() => {
         const numQuantidade = parseFloat(quantidade.replace(',', '.'));
-        if (isNaN(numQuantidade)) {
-            setConversao('N/A');
-            return;
-        }
-
-        let litros = 0;
-        if (medida === 'KILOGRAMA') {
-            litros = numQuantidade / DENSIDADE_MEL_KG_L;
-        } else if (medida === 'LITRO') {
-            litros = numQuantidade;
-        } else {
-            setConversao('N/A');
-            return;
-        }
-
-        setConversao(`${litros.toFixed(2).replace('.', ',')} L`);
+        if (isNaN(numQuantidade)) return 'N/A';
+        if (medida === 'KILOGRAMA') return `${(numQuantidade / DENSIDADE_MEL_KG_L).toFixed(2).replace('.', ',')} L`;
+        if (medida === 'LITRO') return `${numQuantidade.toFixed(2).replace('.', ',')} L`;
+        return 'N/A';
     }, [quantidade, medida]);
 
     const handleSalvar = async () => {
         if (!id) return;
-        if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta) {
+        if (!quantidade || !tipoProduto || !dataColeta) {
             Alert.alert('Erro', 'Por favor, preencha todos os campos.');
             return;
         }
@@ -100,9 +113,10 @@ export default function Editar() {
             const dto = {
                 tipoProducao: tipoProduto,
                 quantidade: parseFloat(quantidade.replace(',', '.')),
-                unidadeMedida: medida,
-                apiarioId: parseInt(apiario),
-                colmeiaId: parseInt(colmeia),
+                // Backend aplica PATCH: campos nulos/omitidos são mantidos.
+                unidadeMedida: medida || undefined,
+                apiarioId: apiario ? parseInt(apiario, 10) : undefined,
+                colmeiaId: colmeia ? parseInt(colmeia, 10) : undefined,
                 dataColeta: dataFormatada,
             };
 
@@ -219,11 +233,8 @@ export default function Editar() {
 
             <Selector
                 label="Apiário"
-                options={[
-                    { label: 'Rosa do Sertão', value: '1' },
-                    { label: 'Vale das Abelhas', value: '2' },
-                ]}
-                onSelect={setApiario}
+                options={apiarioOptions}
+                onSelect={(v) => { setApiario(v); setColmeia(''); }}
                 placeholder="Selecione o Apiário"
                 iconName="home"
                 value={apiario}
@@ -231,10 +242,7 @@ export default function Editar() {
 
             <Selector
                 label="Colmeia"
-                options={[
-                    { label: 'Colmeia 1', value: '1' },
-                    { label: 'Colmeia 2', value: '2' },
-                ]}
+                options={colmeiaOptions}
                 onSelect={setColmeia}
                 placeholder="Selecione a Colmeia"
                 iconName="beehiveOutline"

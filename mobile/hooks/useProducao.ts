@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '@/services/api';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
 import type { Kpi, GraficoConfig } from '@/types/common';
+
+export interface FiltrosProducao {
+  ano?: string;
+  mes?: string;
+  apiario?: string;
+}
 
 interface UseProducaoResult {
   data: ProducaoRetornoDTO[];
@@ -13,123 +19,88 @@ interface UseProducaoResult {
   refetch: () => void;
 }
 
-export const useProducao = (filtros: any = {}): UseProducaoResult => {
-  const [data, setData] = useState<ProducaoRetornoDTO[]>([]);
-  const [kpis, setKpis] = useState<Kpi[]>([]);
-  const [graficos, setGraficos] = useState<GraficoConfig[]>([]);
+const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const formatarKg = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg`;
+
+/** Busca as produções do produtor logado e deriva KPIs e gráficos a partir dos dados reais. */
+export const useProducao = (filtros: FiltrosProducao = {}): UseProducaoResult => {
+  const { user } = useAuth();
+  const [todos, setTodos] = useState<ProducaoRetornoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-
-  // Dados simulados (fixos para todos os usuários)
-  const mockData: ProducaoRetornoDTO[] = [
-    { 
-        id: 1, 
-        tipoProducao: "Mel",
-        quantidade: 100,
-        statusProduto: "EM_ESTOQUE",
-        dataColeta: "2025-06-20", 
-        dataVenda: undefined,
-        nomeApiario: "Serra do Mel", 
-        nomeColmeia: "C1",
-        statusQualidade: "APROVADO"
-    },
-    { 
-        id: 2, 
-        tipoProducao: "Mel",
-        quantidade: 120,
-        statusProduto: "EM_ESTOQUE",
-        dataColeta: "2025-07-04", 
-        nomeApiario: "Vale das Abelhas", 
-        nomeColmeia: "C2",
-        statusQualidade: "NAO_AVALIADO"
-    },
-    { 
-        id: 3, 
-        tipoProducao: "Própolis",
-        quantidade: 150,
-        statusProduto: "VENDIDO",
-        dataColeta: "2025-08-15", 
-        dataVenda: "2025-09-01",
-        nomeApiario: "Rosa do Sertão", 
-        nomeColmeia: "C3",
-        statusQualidade: "APROVADO"
-    },
-    { 
-        id: 4, 
-        tipoProducao: "Mel",
-        quantidade: 200,
-        statusProduto: "EM_ESTOQUE",
-        dataColeta: "2024-06-03", 
-        nomeApiario: "Apiário Central", 
-        nomeColmeia: "C5",
-        statusQualidade: "APROVADO"
-    },
-  ];
-
-  const mockKpis: Kpi[] = [
-    { label: 'Produção Total', value: '570 kg' },
-    { label: 'Média/Colmeia', value: '142.5 kg' },
-  ];
-
-  const mockGraficos: GraficoConfig[] = [
-    {
-      tipo: 'linha',
-      titulo: 'Produção Mensal (kg)',
-      dados: [
-        { mes: 'Jun', producao: 100 },
-        { mes: 'Jul', producao: 120 },
-        { mes: 'Ago', producao: 150 },
-        { mes: 'Jun-24', producao: 200 },
-      ],
-    },
-    {
-      tipo: 'barra',
-      titulo: 'Status das Colmeias',
-      dados: [
-        { status: 'Saudável', quantidade: 4, cor: '#2ecc71' },
-        { status: 'Crítica', quantidade: 0, cor: '#e74c3c' },
-      ],
-    },
-  ];
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const produtorId = user?.id;
-      if (!produtorId) {
-        setData([]);
-        return;
-      }
-      const response = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
-      let fetchedData = response.data;
-
-      // Aplica filtros
-      if (filtros.ano) {
-        fetchedData = fetchedData.filter(item => item.dataColeta.includes(filtros.ano));
-      }
-      if (filtros.mes) {
-        const mesPreenchido = filtros.mes.padStart(2, '0');
-        fetchedData = fetchedData.filter(item => item.dataColeta.includes(`-${mesPreenchido}-`));
-      }
-      if (filtros.apiario) {
-        fetchedData = fetchedData.filter(item => item.nomeApiario === filtros.apiario);
-      }
-
-      setData(fetchedData);
-      setKpis(mockKpis);
-      setGraficos(mockGraficos);
-    } catch (err) {
-      setError('Erro ao carregar dados');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [versao, setVersao] = useState(0);
 
   useEffect(() => {
-    fetchData();
-  }, [filtros, user?.id]);
+    const produtorId = user?.id;
+    if (!produtorId) return;
+    let ativo = true;
+    api
+      .get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`)
+      .then((res) => {
+        if (!ativo) return;
+        setTodos(Array.isArray(res.data) ? res.data : []);
+        setError(null);
+      })
+      .catch((err) => {
+        if (!ativo) return;
+        console.error(err);
+        setError('Erro ao carregar dados');
+      })
+      .finally(() => ativo && setLoading(false));
+    return () => {
+      ativo = false;
+    };
+  }, [user?.id, versao]);
 
-  return { data, kpis, graficos, loading, error, refetch: fetchData };
+  const refetch = useCallback(() => {
+    setLoading(true);
+    setVersao((v) => v + 1);
+  }, []);
+
+  const { ano, mes, apiario } = filtros;
+  const data = useMemo(() => {
+    const mesPreenchido = mes ? mes.padStart(2, '0') : '';
+    return todos.filter(
+      (p) =>
+        (!ano || p.dataColeta?.startsWith(ano)) &&
+        (!mesPreenchido || p.dataColeta?.slice(5, 7) === mesPreenchido) &&
+        (!apiario || p.nomeApiario === apiario),
+    );
+  }, [todos, ano, mes, apiario]);
+
+  const kpis = useMemo<Kpi[]>(() => {
+    const total = data.reduce((s, p) => s + (p.quantidade ?? 0), 0);
+    const colmeias = new Set(data.map((p) => p.nomeColmeia).filter(Boolean)).size;
+    return [
+      { label: 'Produção Total', value: formatarKg(total) },
+      { label: 'Média/Colmeia', value: formatarKg(colmeias ? total / colmeias : 0) },
+    ];
+  }, [data]);
+
+  const graficos = useMemo<GraficoConfig[]>(() => {
+    const porMes = new Map<string, number>();
+    [...data]
+      .sort((a, b) => (a.dataColeta ?? '').localeCompare(b.dataColeta ?? ''))
+      .forEach((p) => {
+        if (!p.dataColeta) return;
+        const chave = `${MESES[Number(p.dataColeta.slice(5, 7)) - 1]}/${p.dataColeta.slice(2, 4)}`;
+        porMes.set(chave, (porMes.get(chave) ?? 0) + (p.quantidade ?? 0));
+      });
+    const porStatus = new Map<string, number>();
+    data.forEach((p) => porStatus.set(p.statusProduto, (porStatus.get(p.statusProduto) ?? 0) + 1));
+    return [
+      {
+        tipo: 'linha',
+        titulo: 'Produção Mensal (kg)',
+        dados: [...porMes].map(([m, producao]) => ({ mes: m, producao })),
+      },
+      {
+        tipo: 'barra',
+        titulo: 'Status dos Produtos',
+        dados: [...porStatus].map(([status, quantidade]) => ({ status, quantidade })),
+      },
+    ];
+  }, [data]);
+
+  return { data, kpis, graficos, loading: loading && !!user?.id, error, refetch };
 };

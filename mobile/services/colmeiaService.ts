@@ -1,4 +1,5 @@
 import api from './api';
+import type { ColmeiaRetornoDTO } from '@/types/apiario/colmeia';
 
 export const listarColmeiasPorApiario = async (produtorId: number | string, apiarioId: number | string) => {
   try {
@@ -30,10 +31,12 @@ export const listarInativas = async (produtorId: number | string, apiarioId: num
   }
 };
 
-export const buscarColmeiaPorId = async (id: number | string) => {
+// O backend não expõe GET /colmeias/{id}: busca na listagem do produtor.
+export const buscarColmeiaPorId = async (produtorId: number | string, id: number | string): Promise<ColmeiaRetornoDTO | null> => {
   try {
-    const response = await api.get(`/colmeias/${id}`);
-    return response.data;
+    const response = await api.get<ColmeiaRetornoDTO[]>(`/colmeias/produtor/${produtorId}`);
+    const lista = Array.isArray(response.data) ? response.data : [];
+    return lista.find((c) => String(c.id) === String(id)) ?? null;
   } catch (error) {
     console.error(`Erro ao buscar colmeia ${id}:`, error);
     throw error;

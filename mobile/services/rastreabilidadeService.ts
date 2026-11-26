@@ -10,14 +10,16 @@ export interface RastreabilidadeDTO {
   quantidadeProduzida: number;
   tipoFlorada: string;
   tipoAbelha: string;
-  vendido: boolean;
+  vendido?: boolean;
+  nomeApiario?: string;
   latitude?: number;
   longitude?: number;
 }
 
 export const getRastreabilidade = async (produtorId: number | string): Promise<RastreabilidadeDTO[]> => {
   try {
-    const response = await api.get<RastreabilidadeDTO[]>(`${BASE_URL}/${produtorId}`);
+    // /detalhado retorna id, dataProducao, quantidadeProduzida e nomeApiario.
+    const response = await api.get<RastreabilidadeDTO[]>(`${BASE_URL}/${produtorId}/detalhado`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Erro ao listar rastreabilidade/lotes:', error);
@@ -25,10 +27,14 @@ export const getRastreabilidade = async (produtorId: number | string): Promise<R
   }
 };
 
-export const getRastreabilidadeById = async (id: number | string): Promise<RastreabilidadeDTO | null> => {
+// O backend não expõe GET /lotes/{id}: busca na listagem detalhada do produtor.
+export const getRastreabilidadeById = async (
+  produtorId: number | string,
+  id: number | string,
+): Promise<RastreabilidadeDTO | null> => {
   try {
-    const response = await api.get<RastreabilidadeDTO>(`${BASE_URL}/${id}`);
-    return response.data;
+    const lista = await getRastreabilidade(produtorId);
+    return lista.find((l) => String(l.id) === String(id)) ?? null;
   } catch (error) {
     console.error(`Erro ao buscar rastreabilidade/lote ${id}:`, error);
     throw error;

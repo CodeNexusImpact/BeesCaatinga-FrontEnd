@@ -63,7 +63,11 @@ export default function RelatorioRastreabilidadeTabela() {
     const dadosFiltrados = useMemo(() => {
         return lotes.filter(item => {
             if (!item.dataProducao) return true;
-            const [dia, mesProd, anoProd] = item.dataProducao.split('/');
+            // Backend retorna LocalDate ISO (AAAA-MM-DD); aceita também DD/MM/AAAA.
+            const iso = item.dataProducao.includes('-');
+            const partes = item.dataProducao.split(iso ? '-' : '/');
+            const anoProd = iso ? partes[0] : partes[2];
+            const mesProd = partes[1];
             const filtroAno = ano === '' ? true : anoProd === ano;
             const filtroMes = mes === '' ? true : mesProd === mes;
             return filtroAno && filtroMes;

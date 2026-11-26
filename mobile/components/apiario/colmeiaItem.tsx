@@ -1,49 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { cores, temaCores } from '@/constants/cores';
 import { ColmeiaRetornoEmApiarioDTO, StatusColmeia } from '@/types/apiario/colmeia';
 
-const ColmeiaItem: React.FC<ColmeiaRetornoEmApiarioDTO> = ({ id, identificador, statusColmeia }) => {
-    const [cor, setCorStatus] = useState(temaCores.sucesso);
-    const [statusTexto, setStatusTexto] = useState('');
-    
+const statusVisual = (status: StatusColmeia | string): { cor: string; texto: string } => {
+    switch (status) {
+        case 'SAUDAVEL':
+            return { cor: temaCores.sucesso, texto: 'Saudável' };
+        case 'TRATAMENTO_NECESSARIO':
+            return { cor: temaCores.alerta, texto: 'Tratamento' };
+        case 'MANUTENCAO_NECESSARIA':
+            return { cor: temaCores.alerta, texto: 'Manutenção' };
+        case 'PERIGO_CLIMATICO':
+            return { cor: temaCores.perigo, texto: 'Perigo Climático' };
+        case 'INATIVO':
+            return { cor: cores.base[60], texto: 'Inativa' };
+        default:
+            return { cor: 'gray', texto: String(status ?? '') };
+    }
+};
 
-    useEffect(() => {
-        // Mapeamento visual para o Enum
-        switch (statusColmeia) {
-            case 'SAUDAVEL':
-                setCorStatus(temaCores.sucesso);
-                setStatusTexto('Saudável');
-                break;
-
-            case 'TRATAMENTO_NECESSARIO': // Antigo "Tratamento Necessário"
-                setCorStatus(temaCores.alerta);
-                setStatusTexto('Tratamento');
-                break;
-
-            case 'MANUTENCAO_NECESSARIA':
-                setCorStatus(temaCores.alerta);
-                setStatusTexto('Manutenção');
-                break;
-
-            case 'PERIGO_CLIMATICO':
-                setCorStatus(temaCores.perigo);
-                setStatusTexto('Perigo Climático');
-                break;
-
-            case 'INATIVO':
-                setCorStatus(cores.base[60]);
-                setStatusTexto('Inativa');
-                break;
-
-            default:
-                setCorStatus('gray');
-                setStatusTexto(statusColmeia);
-        }
-    }, [statusColmeia]);
+const ColmeiaItem: React.FC<ColmeiaRetornoEmApiarioDTO & { apiarioId?: number }> = ({ id, identificador, statusColmeia, apiarioId }) => {
+    const router = useRouter();
+    const { cor, texto: statusTexto } = statusVisual(statusColmeia);
 
     function openColmeiaDetails() {
-        console.log("Abrir detalhes da colmeia:", id);
+        router.push({
+            pathname: '/apiario/colmeia/editar',
+            params: apiarioId ? { id: String(id), apiarioId: String(apiarioId) } : { id: String(id) },
+        });
     }
 
     return (

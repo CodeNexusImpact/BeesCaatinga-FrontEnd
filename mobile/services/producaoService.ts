@@ -13,10 +13,15 @@ export const listarProducoes = async (produtorId: number | string): Promise<Prod
 
 export const getProducoes = listarProducoes;
 
-export const getProducaoPorId = async (producaoId: number | string): Promise<ProducaoRetornoDTO | null> => {
+// O backend não expõe GET por id: busca na listagem do produtor.
+export const getProducaoPorId = async (
+  produtorId: number | string,
+  producaoId: number | string,
+): Promise<ProducaoRetornoDTO | null> => {
   try {
-    const response = await api.get<ProducaoRetornoDTO>(`/producoes/${producaoId}`);
-    return response.data;
+    const response = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
+    const lista = Array.isArray(response.data) ? response.data : [];
+    return lista.find((p) => String(p.id) === String(producaoId)) ?? null;
   } catch (error) {
     console.error(`Erro ao buscar produção ${producaoId}:`, error);
     throw error;
