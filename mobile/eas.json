@@ -23,7 +23,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-hml.codenximpact.com.br"
+        "EXPO_PUBLIC_API_URL": "https://beescaatinga-api-hml.onrender.com"
       }
     },
     "production": {

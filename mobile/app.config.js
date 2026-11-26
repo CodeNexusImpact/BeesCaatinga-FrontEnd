@@ -81,10 +81,10 @@ module.exports = {
     // Vínculo com o projeto EAS (rode `eas init` uma vez e defina EAS_PROJECT_ID no CI).
     extra: {
       eas: {
-        projectId: process.env.EAS_PROJECT_ID,
+        projectId: process.env.EAS_PROJECT_ID || 'a51fb642-07f6-415b-845e-ba78fc2bcf2d',
       },
     },
-    ...(process.env.EXPO_OWNER ? { owner: process.env.EXPO_OWNER } : {}),
+    owner: process.env.EXPO_OWNER || 'codenexusimpact',
     experiments: {
       typedRoutes: true,
       reactCompiler: true,
