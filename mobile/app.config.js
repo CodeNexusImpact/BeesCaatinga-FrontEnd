@@ -78,6 +78,13 @@ module.exports = {
       'expo-image',
       'expo-status-bar',
     ],
+    // Vínculo com o projeto EAS (rode `eas init` uma vez e defina EAS_PROJECT_ID no CI).
+    extra: {
+      eas: {
+        projectId: process.env.EAS_PROJECT_ID,
+      },
+    },
+    ...(process.env.EXPO_OWNER ? { owner: process.env.EXPO_OWNER } : {}),
     experiments: {
       typedRoutes: true,
       reactCompiler: true,

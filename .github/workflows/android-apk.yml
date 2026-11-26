@@ -1,0 +1,71 @@
+name: Android APK (homologação)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    name: EAS build (preview) e release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mobile
+    env:
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      EXPO_OWNER: ${{ vars.EXPO_OWNER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+
+      - name: Build APK no EAS (perfil preview)
+        run: eas build -p android --profile preview --non-interactive --wait --json > build.json
+
+      - name: Baixar artefato
+        run: |
+          URL=$(jq -r '.[0].artifacts.buildUrl // .[0].artifacts.applicationArchiveUrl' build.json)
+          test -n "$URL" && test "$URL" != "null"
+          curl -fsSL -o BeesCaatinga.apk "$URL"
+          ls -lh BeesCaatinga.apk
+
+      - name: Definir tag da release
+        id: tag
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=hml-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publicar na GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          name: BeesCaatinga ${{ steps.tag.outputs.name }}
+          body: |
+            APK de homologação (API: https://api-hml.codenximpact.com.br).
+            Download direto: https://github.com/${{ github.repository }}/releases/latest/download/BeesCaatinga.apk
+          files: mobile/BeesCaatinga.apk
+          make_latest: true
+          fail_on_unmatched_files: true
