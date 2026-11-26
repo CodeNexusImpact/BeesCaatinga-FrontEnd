@@ -1,4 +1,6 @@
 import React, { useState, useCallback } from 'react';
+import { EstadoVazio } from '@/components/graficos';
+import { formatarKgL, paraKg } from '@/utils/mel';
 import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import GenericCard, { CardField } from '@/components/genericCard';
 import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
@@ -97,7 +99,7 @@ export default function Visualizar() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Listar' }} />
+      <Stack.Screen options={{ title: 'Minhas Produções' }} />
       <View style={styles.container}>
         <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>
 
@@ -108,15 +110,15 @@ export default function Visualizar() {
         ) : (
           <ScrollView contentContainerStyle={styles.scrollContent}>
             {producoes.length === 0 ? (
-              <Subtexto style={styles.semDados}>Nenhuma produção encontrada.</Subtexto>
+              <EstadoVazio mensagem="Nenhuma produção cadastrada ainda." icone="honeycomb" acao={{ titulo: 'Cadastrar primeira produção', onPress: () => router.push('/producao/cadastrar') }} />
             ) : (
               producoes.map((p) => {
                 const fields: CardField[] = [
                   { label: 'Tipo', value: p.tipoProducao },
-                  { label: 'Quantidade', value: `${p.quantidade}` }, // DTO não tem unidadeMedida
+                  { label: 'Quantidade', value: formatarKgL(paraKg(p.quantidade, p.unidadeMedida)) },
                   {
                     label: 'Status',
-                    value: formatStatus(p.statusProduto),
+                    value: (p as any).pendente ? 'Pendente de envio' : formatStatus(p.statusProduto),
                     valueStyle: { color: getStatusColor(p.statusProduto) },
                   },
                   { label: 'Extração', value: formatDate(p.dataColeta) },

@@ -1,52 +1,29 @@
 import api from './api';
+import { atualizarOuEnfileirar, criarOuEnfileirar, lerComCache } from './offline';
+import { brParaIso } from '@/utils/datas';
 import type { ProducaoRetornoDTO, ProducaoCriadaDTO, ProducaoAtualizadaDTO } from '@/types/producao';
 
-export const listarProducoes = async (produtorId: number | string): Promise<ProducaoRetornoDTO[]> => {
-  try {
-    const response = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
-    return Array.isArray(response.data) ? response.data : [];
-  } catch (error) {
-    console.error('Erro ao listar produções:', error);
-    return [];
-  }
-};
+export const listarProducoes = async (produtorId: number | string): Promise<ProducaoRetornoDTO[]> =>
+  lerComCache(`producoes:${produtorId}`, async () => {
+    const { data } = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
+    return Array.isArray(data) ? data : [];
+  }, 'producao');
 
 export const getProducoes = listarProducoes;
 
 // O backend não expõe GET por id: busca na listagem do produtor.
-export const getProducaoPorId = async (
+export const getProducaoPorId = async (produtorId: number | string, producaoId: number | string): Promise<ProducaoRetornoDTO | null> =>
+  (await listarProducoes(produtorId)).find((p) => String(p.id) === String(producaoId)) ?? null;
+
+export const cadastrarProducao = async (
   produtorId: number | string,
-  producaoId: number | string,
-): Promise<ProducaoRetornoDTO | null> => {
-  try {
-    const response = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
-    const lista = Array.isArray(response.data) ? response.data : [];
-    return lista.find((p) => String(p.id) === String(producaoId)) ?? null;
-  } catch (error) {
-    console.error(`Erro ao buscar produção ${producaoId}:`, error);
-    throw error;
-  }
-};
+  dto: ProducaoCriadaDTO,
+  exibicao?: { nomeApiario?: string; nomeColmeia?: string },
+): Promise<ProducaoRetornoDTO & { pendente?: boolean }> =>
+  criarOuEnfileirar<ProducaoRetornoDTO>('producao', `/producoes/${produtorId}`, dto, `Produção de ${dto.dataColeta ?? ''}`, { ...exibicao, dataColeta: brParaIso(String(dto.dataColeta ?? '')) });
 
-export const cadastrarProducao = async (produtorId: number | string, dto: ProducaoCriadaDTO): Promise<ProducaoRetornoDTO> => {
-  try {
-    const response = await api.post<ProducaoRetornoDTO>(`/producoes/${produtorId}`, dto);
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao cadastrar produção:', error);
-    throw error;
-  }
-};
-
-export const atualizarProducao = async (producaoId: number | string, produtorId: number | string, dto: ProducaoAtualizadaDTO): Promise<ProducaoRetornoDTO> => {
-  try {
-    const response = await api.put<ProducaoRetornoDTO>(`/producoes/${producaoId}/produtor/${produtorId}`, dto);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao atualizar produção ${producaoId}:`, error);
-    throw error;
-  }
-};
+export const atualizarProducao = async (producaoId: number | string, produtorId: number | string, dto: ProducaoAtualizadaDTO): Promise<ProducaoRetornoDTO & { pendente?: boolean }> =>
+  atualizarOuEnfileirar<ProducaoRetornoDTO>('producao', `/producoes/${producaoId}/produtor/${produtorId}`, dto, `Edição da produção ${producaoId}`);
 
 export const deletarProducao = async (producaoId: number | string, produtorId: number | string): Promise<void> => {
   try {

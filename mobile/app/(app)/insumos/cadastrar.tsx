@@ -1,4 +1,6 @@
 import Botao from '@/components/formulario/botao';
+import CampoSugestao from '@/components/formulario/campoSugestao';
+import { registrarHistorico } from '@/utils/sugestoes';
 import Input from '@/components/formulario/input';
 import Selector from '@/components/formulario/selector';
 import ModalSucesso from '@/components/notificacao/modalSucesso';
@@ -11,7 +13,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { cadastrarInsumo } from '@/services/insumoService';
 import { useAuth } from '@/hooks/useAuth';
 import Checkbox from 'expo-checkbox';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo } from '@/utils/alerta';
 
 export default function CadastrarInsumo() {
   const router = useRouter();
@@ -52,8 +54,11 @@ export default function CadastrarInsumo() {
 
     try {
       setIsSubmitting(true);
-      await cadastrarInsumo(user.id, payload);
-      setModalSucessoVisivel(true);
+      const salvo = await cadastrarInsumo(user.id, payload);
+      registrarHistorico('insumo.nome', nome);
+      registrarHistorico('insumo.observacoes', observacoes);
+      if (salvo?.pendente) alertaSalvo(salvo, '');
+      else setModalSucessoVisivel(true);
     } catch (error) {
       console.error('❌ [CADASTRAR INSUMO] Erro:', error);
       alerta('Erro', 'Não foi possível realizar o cadastro no servidor.');
@@ -102,12 +107,9 @@ export default function CadastrarInsumo() {
         maxLength={10}
       />
 
-      <Input
-        label="Nome do insumo*"
-        value={nome}
-        onChangeText={setNome}
-        placeholder="Ex: Cera Alveolada"
-      />
+      <View style={{ zIndex: 40 }}>
+        <CampoSugestao rotulo="Nome do insumo" valor={nome} onChange={setNome} placeholder="Ex: Cera Alveolada" campoApi="nomeInsumo" campoLocal="insumo.nome" />
+      </View>
 
       <View style={[styles.row, { zIndex: 30 }]}>
         <Input
@@ -159,14 +161,14 @@ export default function CadastrarInsumo() {
         <Text style={styles.checkboxLabel}>Não se aplica / Sem validade</Text>
       </View>
 
-      <Input
-        label="Observações (opcional):"
-        value={observacoes}
-        onChangeText={setObservacoes}
+      <CampoSugestao
+        rotulo="Observações (opcional)"
+        valor={observacoes}
+        onChange={setObservacoes}
         placeholder="Notas adicionais..."
-        multiline={true}
-        numberOfLines={5}
-        style={styles.textArea}
+        campoLocal="insumo.observacoes"
+        dica="Ex.: fornecedor, lote do fabricante, onde está guardado."
+        multiline
       />
 
       <Botao

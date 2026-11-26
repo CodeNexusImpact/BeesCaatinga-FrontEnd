@@ -1,4 +1,7 @@
 import Botao from '@/components/formulario/botao';
+import CampoKgLitros from '@/components/formulario/campoKgLitros';
+import CampoSugestao from '@/components/formulario/campoSugestao';
+import { paraKg } from '@/utils/mel';
 import Input from '@/components/formulario/input';
 import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
@@ -14,11 +17,10 @@ import { UnidadeMedida } from '@/types/insumos/Enums';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import { voltar } from '@/utils/navegacao';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
 
 type Opcao = { label: string; value: string };
 
-const DENSIDADE_MEL_KG_L = 1.4;
 
 export default function Editar() {
     const router = useRouter();
@@ -27,8 +29,7 @@ export default function Editar() {
     const { user } = useAuth();
 
     const [tipoProduto, setTipoProduto] = useState('');
-    const [quantidade, setQuantidade] = useState('');
-    const [medida, setMedida] = useState<UnidadeMedida | ''>('');
+    const [kg, setKg] = useState<number | null>(null);
     const [apiario, setApiario] = useState('');
     const [colmeia, setColmeia] = useState('');
     const [dataColeta, setDataColeta] = useState('');
@@ -56,8 +57,7 @@ export default function Editar() {
                 setApiarioOptions(opcoes);
 
                 setTipoProduto(data.tipoProducao);
-                setQuantidade(data.quantidade.toString());
-                setMedida((data.unidadeMedida as UnidadeMedida) ?? '');
+                setKg(Math.round(paraKg(data.quantidade, data.unidadeMedida) * 100) / 100);
                 setApiario(data.apiarioId ? String(data.apiarioId) : opcoes.find((o) => o.label === data.nomeApiario)?.value ?? '');
                 if (data.colmeiaId) setColmeia(String(data.colmeiaId));
                 setNomeColmeiaOriginal(data.nomeColmeia ?? '');
@@ -94,17 +94,9 @@ export default function Editar() {
         };
     }, [apiario, user?.id, nomeColmeiaOriginal]);
 
-    const conversao = useMemo(() => {
-        const numQuantidade = parseFloat(quantidade.replace(',', '.'));
-        if (isNaN(numQuantidade)) return 'N/A';
-        if (medida === 'KILOGRAMA') return `${(numQuantidade / DENSIDADE_MEL_KG_L).toFixed(2).replace('.', ',')} L`;
-        if (medida === 'LITRO') return `${numQuantidade.toFixed(2).replace('.', ',')} L`;
-        return 'N/A';
-    }, [quantidade, medida]);
-
     const handleSalvar = async () => {
         if (!id) return;
-        if (!quantidade || !tipoProduto || !dataColeta) {
+        if (!kg || kg <= 0 || !tipoProduto.trim() || !dataColeta) {
             alerta('Erro', 'Por favor, preencha todos os campos.');
             return;
         }
@@ -116,9 +108,9 @@ export default function Editar() {
 
             const dto = {
                 tipoProducao: tipoProduto,
-                quantidade: parseFloat(quantidade.replace(',', '.')),
-                // Backend aplica PATCH: campos nulos/omitidos são mantidos.
-                unidadeMedida: medida || undefined,
+                // Quantidade sempre em kg (o campo em litros é convertido pela densidade do mel).
+                quantidade: Math.round(kg * 100) / 100,
+                unidadeMedida: 'KILOGRAMA' as UnidadeMedida,
                 apiarioId: apiario ? parseInt(apiario, 10) : undefined,
                 colmeiaId: colmeia ? parseInt(colmeia, 10) : undefined,
                 dataColeta: dataFormatada,
@@ -129,8 +121,8 @@ export default function Editar() {
                 return;
             }
 
-            await atualizarProducao(id as string, user.id, dto);
-            alerta('Sucesso', 'Produção atualizada com sucesso!', [
+            const salvo = await atualizarProducao(id as string, user.id, dto);
+            alertaSalvo(salvo, 'Produção atualizada com sucesso!', [
                 { text: 'OK', onPress: () => router.push('/producao/listar') }
             ]);
         } catch (error) {
@@ -182,7 +174,7 @@ export default function Editar() {
             style={styles.container}
             contentContainerStyle={styles.contentContainer}
         >
-            <Stack.Screen options={{ title: 'Editar' }} />
+            <Stack.Screen options={{ title: 'Editar Produção' }} />
             <Subtexto style={styles.subtexto}>Edite os dados da produção.</Subtexto>
 
             <Input
@@ -193,47 +185,11 @@ export default function Editar() {
                 onChangeText={() => { }}
             />
 
-            <Input
-                label="Conversão para litro"
-                value={conversao}
-                editable={false}
-                style={styles.conversaoInput}
-                onChangeText={() => { }}
-            />
+            <CampoKgLitros kg={kg} onChange={setKg} rotulo="Quantidade colhida" />
 
-            <View style={styles.row}>
-                <Input
-                    label="Quantidade"
-                    value={quantidade}
-                    onChangeText={setQuantidade}
-                    keyboardType="decimal-pad"
-                    style={styles.inputMetade}
-                    placeholder="0,0"
-                />
-                <Selector
-                    label="Medida"
-                    options={[
-                        { label: 'Kg', value: 'KILOGRAMA' },
-                        { label: 'L', value: 'LITRO' },
-                    ]}
-                    onSelect={(val) => setMedida(val as UnidadeMedida)}
-                    placeholder="Selecione"
-                    style={styles.inputMetade}
-                    value={medida}
-                />
+            <View style={{ zIndex: 40 }}>
+                <CampoSugestao rotulo="Tipo de mel" valor={tipoProduto} onChange={setTipoProduto} placeholder="Ex.: Mel de Jandaíra" campoApi="tipoProducao" campoLocal="producao.tipo" />
             </View>
-
-            <Selector
-                label="Tipo Produto"
-                options={[
-                    { label: 'Mel de Jandaíra', value: 'Mel de Jandaíra' },
-                    { label: 'Mel de Marmeleiro', value: 'Mel de Marmeleiro' },
-                ]}
-                onSelect={setTipoProduto}
-                placeholder="Selecione o tipo"
-                iconName="honeycomb"
-                value={tipoProduto}
-            />
 
             <Selector
                 label="Apiário"
@@ -263,7 +219,7 @@ export default function Editar() {
             />
 
             <Botao
-                title={isSaving ? "Salvando..." : "Salvar Edição"}
+                title={isSaving ? "Salvando..." : "Salvar alterações"}
                 onPress={handleSalvar}
                 cor="primaria"
                 style={styles.buttonSave}

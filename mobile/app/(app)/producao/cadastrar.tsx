@@ -6,215 +6,147 @@ import layout from '@/constants/layout';
 import { maskDate } from '@/utils/masks';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { cadastrarProducao } from '@/services/producaoService';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoCriadaDTO } from '@/types/producao';
 import { UnidadeMedida } from '@/types/insumos/Enums';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
+import CampoKgLitros from '@/components/formulario/campoKgLitros';
+import CampoSugestao from '@/components/formulario/campoSugestao';
+import { mensagemDeErro } from '@/utils/erros';
+import { dataValida } from '@/utils/datas';
+import { formatarKgL } from '@/utils/mel';
+import { lembrarEscolha, registrarHistorico, ultimaEscolha } from '@/utils/sugestoes';
 
 export default function CadastrarProducao() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // Estados
   const [tipoProduto, setTipoProduto] = useState('');
-  const [quantidade, setQuantidade] = useState('');
-  const [medida, setMedida] = useState<UnidadeMedida | ''>('');
+  const [kg, setKg] = useState<number | null>(null);
   const [apiario, setApiario] = useState('');
   const [colmeia, setColmeia] = useState('');
   const [dataColeta, setDataColeta] = useState(new Date().toLocaleDateString('pt-BR'));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Opções dinâmicas
-  const [apiarioOptions, setApiarioOptions] = useState<{label: string, value: string}[]>([]);
-  const [colmeiaOptions, setColmeiaOptions] = useState<{label: string, value: string}[]>([]);
-  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [apiarioOptions, setApiarioOptions] = useState<{ label: string; value: string }[]>([]);
+  const [colmeiaOptions, setColmeiaOptions] = useState<{ label: string; value: string }[]>([]);
 
   useEffect(() => {
-    const fetchApiarios = async () => {
-        if (!user?.id) return;
-        try {
-            setLoadingOptions(true);
-            const data = await listarApiariosPorProdutor(user.id);
-            setApiarioOptions(data.map(a => ({ label: a.nome, value: a.id.toString() })));
-        } catch (e) {
-            console.error('Erro ao buscar apiários:', e);
-        } finally {
-            setLoadingOptions(false);
-        }
+    if (!user?.id) return;
+    let ativo = true;
+    Promise.all([listarApiariosPorProdutor(user.id), ultimaEscolha('apiario')])
+      .then(([data, ultimo]) => {
+        if (!ativo) return;
+        const opcoes = data.map((a) => ({ label: a.pendente ? `${a.nome} (pendente de envio)` : a.nome, value: String(a.id) }));
+        setApiarioOptions(opcoes);
+        if (ultimo && opcoes.some((o) => o.value === ultimo)) setApiario(ultimo); // lembra o último apiário usado
+      })
+      .catch((e) => alerta('Erro', mensagemDeErro(e, 'Não foi possível carregar seus apiários.')));
+    return () => {
+      ativo = false;
     };
-    fetchApiarios();
   }, [user?.id]);
 
   useEffect(() => {
-    const fetchColmeias = async () => {
-        if (!apiario || !user?.id) {
-            setColmeiaOptions([]);
-            return;
-        };
-        try {
-            const data = await listarColmeiasPorApiario(user.id, apiario);
-            setColmeiaOptions(data.map((c: any) => ({ label: c.identificador || `Colmeia ${c.id}`, value: c.id.toString() })));
-        } catch (e) {
-            console.error('Erro ao buscar colmeias:', e);
-        }
+    if (!apiario || !user?.id) return;
+    let ativo = true;
+    listarColmeiasPorApiario(user.id, apiario)
+      .then((data) => ativo && setColmeiaOptions(data.map((c: any) => ({ label: c.identificador || `Colmeia ${c.id}`, value: String(c.id) }))))
+      .catch(() => ativo && setColmeiaOptions([]));
+    return () => {
+      ativo = false;
     };
-    fetchColmeias();
   }, [apiario, user?.id]);
 
-  const handleSubmit = async () => {
-    // Validação de campos vazios
-    if (!quantidade || !medida || !tipoProduto || !apiario || !colmeia || !dataColeta || !user?.id) {
-      alerta('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
+  const escolherApiario = (v: string) => {
+    setApiario(v);
+    setColmeia('');
+    setColmeiaOptions([]);
+  };
 
-    // Validação básica de formato de data (DD/MM/YYYY)
-    if (dataColeta.length < 10) {
-      alerta('Erro', 'Por favor, insira uma data válida (dd/mm/aaaa).');
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!user?.id) return;
+    if (!dataValida(dataColeta)) return alerta('Atenção', 'Informe a data da coleta no formato dd/mm/aaaa.');
+    if (!apiario) return alerta('Atenção', 'Escolha o apiário.');
+    if (!colmeia) return alerta('Atenção', 'Escolha a colmeia.');
+    if (!tipoProduto.trim()) return alerta('Atenção', 'Informe o tipo de mel.');
+    if (!kg || kg <= 0) return alerta('Atenção', 'Informe a quantidade em kg ou em litros.');
 
     setIsSubmitting(true);
     try {
+      // A quantidade é sempre enviada em kg (o campo em litros é convertido pela densidade do mel).
       const dto: ProducaoCriadaDTO = {
-        tipoProducao: tipoProduto,
-        quantidade: parseFloat(quantidade.replace(',', '.')),
-        unidadeMedida: medida as UnidadeMedida,
-        apiarioId: parseInt(apiario),
-        colmeiaId: parseInt(colmeia),
-        dataColeta: dataColeta, // Enviando no formato dd/MM/yyyy conforme @JsonFormat no backend
+        tipoProducao: tipoProduto.trim(),
+        quantidade: Math.round(kg * 100) / 100,
+        unidadeMedida: 'KILOGRAMA' as UnidadeMedida,
+        apiarioId: idDoSeletor(apiario) as number,
+        colmeiaId: idDoSeletor(colmeia) as number,
+        dataColeta,
       };
-
-      await cadastrarProducao(user.id, dto);
-      
-      alerta('Sucesso', 'Produção cadastrada com sucesso!', [
-        { text: 'OK', onPress: () => router.push('/producao/listar') }
-      ]);
-    } catch (error: any) {
-      alerta('Erro', error?.response?.data?.message || 'Não foi possível cadastrar a produção.');
-      console.error(error);
+      const salvo = await cadastrarProducao(user.id, dto, {
+        nomeApiario: apiarioOptions.find((a) => a.value === apiario)?.label,
+        nomeColmeia: colmeiaOptions.find((c) => c.value === colmeia)?.label,
+      });
+      lembrarEscolha('apiario', apiario);
+      registrarHistorico('producao.tipo', tipoProduto);
+      alertaSalvo(salvo, `Produção de ${formatarKgL(dto.quantidade)} cadastrada com sucesso!`, [{ text: 'OK', onPress: () => router.push('/producao/listar') }]);
+    } catch (error) {
+      alerta('Erro', mensagemDeErro(error, 'Não foi possível cadastrar a produção.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDateChange = (text: string) => {
-    setDataColeta(maskDate(text));
-  };
-
-  // Opções fixas
-  const tipoProdutoOptions = [
-    { label: 'Mel de Jandaíra', value: 'Mel de Jandaíra' },
-    { label: 'Mel de Marmeleiro', value: 'Mel de Marmeleiro' },
-  ];
-
-  const medidaOptions = [
-    { label: 'Kg', value: 'KILOGRAMA' },
-    { label: 'L', value: 'LITRO' },
-  ];
-
-  // Conversão fixa só para exibição (pode ser calculada depois)
-  // Conversão automática kg → L (densidade média do mel ≈ 1,4 kg/L).
-  const conversao = (() => {
-    const n = parseFloat(quantidade.replace(',', '.'));
-    if (isNaN(n)) return '';
-    const litros = medida === 'KILOGRAMA' ? n / 1.4 : medida === 'LITRO' ? n : NaN;
-    return isNaN(litros) ? '' : `${litros.toFixed(2).replace('.', ',')} L`;
-  })();
-
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: 'Cadastrar Produção' }} />
-      {/* Conversão (somente leitura) */}
-      <Input
-        label="Conversão para litro"
-        value={conversao}
-        editable={false}
-        style={styles.conversaoInput}
-        placeholder="Cálculo automático"
-        onChangeText={() => {}} 
-      />
 
-      {/* Quantidade + Medida */}
-      <View style={styles.row}>
-        <Input
-          label="Adicione a Quantidade"
-          value={quantidade}
-          onChangeText={(text) => {
-            const cleaned = text.replace(/[^0-9.,]/g, '');
-            setQuantidade(cleaned);
-          }}
-          keyboardType="decimal-pad"
-          style={styles.inputMetade}
-          placeholder="0,0"
-        />
+      <Input label="Data da coleta" value={dataColeta} onChangeText={(t) => setDataColeta(maskDate(t))} placeholder="dd/mm/aaaa" iconName="calendar" maxLength={10} />
+
+      <View style={{ zIndex: 30 }}>
+        <Selector label="Apiário" options={apiarioOptions} onSelect={escolherApiario} placeholder="Selecione o apiário" iconName="home" value={apiario} />
+      </View>
+      <View style={{ zIndex: 20 }}>
         <Selector
-          label="Medida"
-          options={medidaOptions}
-          onSelect={(val) => setMedida(val as UnidadeMedida)}
-          placeholder="Selecione"
-          style={styles.inputMetade}
-          value={medida}
+          label="Colmeia"
+          options={colmeiaOptions}
+          onSelect={setColmeia}
+          placeholder={apiario ? 'Selecione a colmeia' : 'Escolha o apiário primeiro'}
+          iconName="beehiveOutline"
+          value={colmeia}
         />
       </View>
 
-      {/* Tipo de Mel */}
-      <Selector
-        label="Tipo de Mel"
-        options={tipoProdutoOptions}
-        onSelect={setTipoProduto}
-        placeholder="Selecione o tipo de Mel"
-        iconName="honeycomb"
-        value={tipoProduto}
-      />
+      <View style={{ zIndex: 10 }}>
+        <CampoSugestao
+          rotulo="Tipo de mel"
+          valor={tipoProduto}
+          onChange={setTipoProduto}
+          placeholder="Ex.: Mel de Jandaíra"
+          campoApi="tipoProducao"
+          campoLocal="producao.tipo"
+          opcoes={TIPOS_MEL}
+          dica="Comece a digitar: aparecem os tipos que você já usou."
+        />
+      </View>
 
-      {/* Apiário */}
-      <Selector
-        label="Apiário"
-        options={apiarioOptions}
-        onSelect={setApiario}
-        placeholder="Selecione o Apiário"
-        iconName="home"
-        value={apiario}
-      />
+      <CampoKgLitros kg={kg} onChange={setKg} rotulo="Quantidade colhida" />
 
-      {/* Colmeia */}
-      <Selector
-        label="Colmeia"
-        options={colmeiaOptions}
-        onSelect={setColmeia}
-        placeholder="Selecione a Colmeia"
-        iconName="beehiveOutline"
-        value={colmeia}
-      />
-
-      {/* Data Coleta */}
-      <Input
-        label="Data de Coleta"
-        value={dataColeta}
-        onChangeText={handleDateChange}
-        placeholder="dd/mm/aaaa"
-        iconName="calendar"
-        maxLength={10}
-      />
-
-      {/* Botão */}
       <Botao
-        title={isSubmitting ? "Enviando..." : "Cadastrar"}
-        onPress={handleSubmit}
+        title={isSubmitting ? 'Salvando...' : 'Cadastrar produção'}
+        onPress={isSubmitting ? () => {} : handleSubmit}
         cor="primaria"
         style={[styles.button, isSubmitting && { opacity: 0.7 }]}
       />
     </ScrollView>
   );
 }
+
+const TIPOS_MEL = ['Mel de Jandaíra', 'Mel de Marmeleiro', 'Mel de Aroeira', 'Mel de Angico', 'Mel silvestre', 'Mel de Uruçu'];
 
 // Estilos
 const styles = StyleSheet.create({

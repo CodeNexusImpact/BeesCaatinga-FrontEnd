@@ -27,7 +27,7 @@ import { cadastrarColmeia } from '@/services/colmeiaService';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { voltar } from '@/utils/navegacao';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
 
 export default function Cadastrar() {
     const router = useRouter();
@@ -86,7 +86,7 @@ export default function Cadastrar() {
         try {
             const payload = {
                 identificador,
-                apiario_id: parseInt(apiario),
+                apiario_id: idDoSeletor(apiario),
                 tipo: tipo.toUpperCase(),
                 ativa: ativo === 'sim',
                 observacoes,
@@ -96,8 +96,8 @@ export default function Cadastrar() {
                 caminhoDaFoto: foto || undefined
             };
 
-            await cadastrarColmeia(userId, parseInt(apiario), payload);
-            alerta('Sucesso', 'Colmeia cadastrada com sucesso!');
+            const salvo = await cadastrarColmeia(userId, apiario, payload, apiarioOptions.find((a: any) => a.value === apiario)?.label);
+            alertaSalvo(salvo, 'Colmeia cadastrada com sucesso!');
             voltar(router);
         } catch (error) {
             console.error('Erro ao cadastrar colmeia:', error);

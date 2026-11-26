@@ -1,4 +1,6 @@
 import api from './api';
+import { atualizarOuEnfileirar, criarOuEnfileirar, lerComCache } from './offline';
+import { brParaIso } from '@/utils/datas';
 import type { InsumoRetornoDTO } from '@/types/insumos';
 
 // Espelha InsumoRetornoDTO do backend (datas em ISO yyyy-MM-dd).
@@ -14,15 +16,11 @@ export interface Insumo {
   observacoes: string;
 }
 
-export const listarInsumos = async (produtorId: number | string): Promise<Insumo[]> => {
-  try {
-    const response = await api.get<Insumo[]>(`/insumos/${produtorId}`);
-    return Array.isArray(response.data) ? response.data : [];
-  } catch (error) {
-    console.error('Erro ao listar insumos:', error);
-    return [];
-  }
-};
+export const listarInsumos = async (produtorId: number | string): Promise<Insumo[]> =>
+  lerComCache(`insumos:${produtorId}`, async () => {
+    const { data } = await api.get<Insumo[]>(`/insumos/${produtorId}`);
+    return Array.isArray(data) ? data : [];
+  }, 'insumo');
 
 export const getInsumos = listarInsumos;
 
@@ -36,25 +34,15 @@ export const buscarInsumoPorId = async (insumoId: number | string, produtorId: n
   }
 };
 
-export const cadastrarInsumo = async (produtorId: number | string, dados: any): Promise<Insumo> => {
-  try {
-    const response = await api.post<Insumo>(`/insumos/${produtorId}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao cadastrar insumo:', error);
-    throw error;
-  }
-};
+export const cadastrarInsumo = async (produtorId: number | string, dados: any): Promise<Insumo & { pendente?: boolean }> =>
+  criarOuEnfileirar<Insumo>('insumo', `/insumos/${produtorId}`, dados, `Insumo ${dados?.nome ?? ''}`, {
+    statusInsumo: 'DISPONIVEL',
+    dataEntrada: brParaIso(dados?.dataEntrada),
+    dataValidade: dados?.dataValidade ? brParaIso(dados.dataValidade) : null,
+  });
 
-export const atualizarInsumo = async (insumoId: number | string, produtorId: number | string, dados: any): Promise<Insumo> => {
-  try {
-    const response = await api.put<Insumo>(`/insumos/${insumoId}/produtor/${produtorId}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao atualizar insumo ${insumoId}:`, error);
-    throw error;
-  }
-};
+export const atualizarInsumo = async (insumoId: number | string, produtorId: number | string, dados: any): Promise<Insumo & { pendente?: boolean }> =>
+  atualizarOuEnfileirar<Insumo>('insumo', `/insumos/${insumoId}/produtor/${produtorId}`, dados, `Edição do insumo ${dados?.nome ?? insumoId}`);
 
 export const deletarInsumo = async (insumoId: number | string, produtorId: number | string): Promise<void> => {
   try {

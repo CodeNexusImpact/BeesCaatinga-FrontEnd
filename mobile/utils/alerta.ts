@@ -27,3 +27,15 @@ export function alerta(titulo: string, mensagem?: string, botoes?: AlertButton[]
   window.alert(texto);
   lista[0]?.onPress?.();
 }
+
+/** Feedback após salvar: sucesso no servidor ou salvo no aparelho (fila offline). */
+export function alertaSalvo(resultado: { pendente?: boolean } | null | undefined, mensagemSucesso: string, botoes?: AlertButton[]) {
+  if (resultado?.pendente) {
+    alerta('Salvo no aparelho', 'Sem internet agora. O registro ficou guardado e será enviado quando você tocar em "Sincronizar".', botoes);
+    return;
+  }
+  alerta('Sucesso', mensagemSucesso, botoes);
+}
+
+/** Converte id vindo de seletor: número do servidor ou id local ("local:<uuid>") de registro pendente. */
+export const idDoSeletor = (v: string) => (/^\d+$/.test(String(v)) ? Number(v) : v);

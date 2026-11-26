@@ -1,14 +1,12 @@
 import api from './api';
+import { atualizarOuEnfileirar, criarOuEnfileirar, lerComCache } from './offline';
 import type { ColmeiaRetornoDTO } from '@/types/apiario/colmeia';
 
-export const listarColmeiasPorApiario = async (produtorId: number | string, apiarioId: number | string) => {
-  try {
-    const response = await api.get(`/colmeias/produtor/${produtorId}/apiario/${apiarioId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao listar colmeias por apiário:', error);
-    throw error;
-  }
+export const listarColmeiasPorApiario = async (produtorId: number | string, apiarioId: number | string): Promise<ColmeiaRetornoDTO[]> => {
+  if (String(apiarioId).startsWith('local:')) return (await listarColmeiasPorProdutor(produtorId)).filter((c) => String(c.apiarioId) === String(apiarioId));
+  return lerComCache(`colmeias:${produtorId}:${apiarioId}`, async () => (await api.get(`/colmeias/produtor/${produtorId}/apiario/${apiarioId}`)).data ?? [], 'colmeia').then(
+    (l: any[]) => l.filter((c) => !c.pendente || String(c.apiarioId) === String(apiarioId)),
+  );
 };
 
 export const listarAtivas = async (produtorId: number | string, apiarioId: number | string) => {
@@ -43,25 +41,15 @@ export const buscarColmeiaPorId = async (produtorId: number | string, id: number
   }
 };
 
-export const cadastrarColmeia = async (produtorId: number | string, apiarioId: number | string, dados: any) => {
-  try {
-    const response = await api.post(`/colmeias/produtor/${produtorId}/apiario/${apiarioId}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao cadastrar colmeia:', error);
-    throw error;
-  }
-};
+export const cadastrarColmeia = async (produtorId: number | string, apiarioId: number | string, dados: any, nomeApiario?: string) =>
+  criarOuEnfileirar('colmeia', `/colmeias/produtor/${produtorId}/apiario/${apiarioId}`, dados, `Colmeia ${dados?.identificador ?? ''}`, {
+    apiarioId,
+    nomeApiario: nomeApiario ?? '',
+    statusColmeia: dados?.ativa === false ? 'INATIVO' : 'SAUDAVEL',
+  });
 
-export const atualizarColmeia = async (produtorId: number | string, apiarioId: number | string, colmeiaId: number | string, dados: any) => {
-  try {
-    const response = await api.put(`/colmeias/produtor/${produtorId}/apiario/${apiarioId}/colmeia/${colmeiaId}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao atualizar colmeia ${colmeiaId}:`, error);
-    throw error;
-  }
-};
+export const atualizarColmeia = async (produtorId: number | string, apiarioId: number | string, colmeiaId: number | string, dados: any) =>
+  atualizarOuEnfileirar('colmeia', `/colmeias/produtor/${produtorId}/apiario/${apiarioId}/colmeia/${colmeiaId}`, dados, `Edição da colmeia ${dados?.identificador ?? ''}`);
 
 export const deletarColmeia = async (produtorId: number | string, apiarioId: number | string, colmeiaId: number | string) => {
   try {
@@ -72,15 +60,8 @@ export const deletarColmeia = async (produtorId: number | string, apiarioId: num
   }
 };
 
-export const listarColmeiasPorProdutor = async (produtorId: number | string) => {
-  try {
-    const response = await api.get(`/colmeias/produtor/${produtorId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao listar colmeias do produtor ${produtorId}:`, error);
-    throw error;
-  }
-};
+export const listarColmeiasPorProdutor = async (produtorId: number | string): Promise<ColmeiaRetornoDTO[]> =>
+  lerComCache(`colmeias:${produtorId}`, async () => (await api.get(`/colmeias/produtor/${produtorId}`)).data ?? [], 'colmeia');
 
 export default {
   listarColmeiasPorApiario,

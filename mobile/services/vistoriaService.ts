@@ -1,4 +1,5 @@
 import api from './api';
+import { atualizarOuEnfileirar, criarOuEnfileirar, lerComCache } from './offline';
 
 const BASE_URL = '/vistorias';
 
@@ -16,15 +17,11 @@ export interface Vistoria {
   observacoes?: string;
 }
 
-export const listarVistoriasPorProdutor = async (produtorId: number | string): Promise<Vistoria[]> => {
-  try {
-    const response = await api.get(`${BASE_URL}/${produtorId}`);
-    return Array.isArray(response.data) ? response.data : [];
-  } catch (error) {
-    console.error('Erro ao buscar vistorias:', error);
-    return [];
-  }
-};
+export const listarVistoriasPorProdutor = async (produtorId: number | string): Promise<Vistoria[]> =>
+  lerComCache(`vistorias:${produtorId}`, async () => {
+    const { data } = await api.get(`${BASE_URL}/${produtorId}`);
+    return Array.isArray(data) ? data : [];
+  }, 'vistoria');
 
 export const listarPorColmeia = async (colmeiaId: number | string): Promise<Vistoria[]> => {
   try {
@@ -47,25 +44,21 @@ export const getVistoriaById = async (produtorId: string | number, id: string | 
   }
 };
 
-export const cadastrarVistoria = async (produtorId: number | string, apiarioId: number | string, colmeiaId: number | string, dados: any) => {
-  try {
-    const response = await api.post(`${BASE_URL}/produtor/${produtorId}/apiario/${apiarioId}/colmeia/${colmeiaId}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao cadastrar vistoria:', error);
-    throw error;
-  }
-};
+export const cadastrarVistoria = async (
+  produtorId: number | string,
+  apiarioId: number | string,
+  colmeiaId: number | string,
+  dados: any,
+  exibicao?: { nomeApiario?: string; nomeColmeia?: string },
+) =>
+  criarOuEnfileirar('vistoria', `${BASE_URL}/produtor/${produtorId}/apiario/${apiarioId}/colmeia/${colmeiaId}`, dados, `Vistoria de ${dados?.dataVistoria ?? ''}`, {
+    apiarioId,
+    colmeiaId,
+    ...exibicao,
+  });
 
-export const atualizarVistoria = async (vistoriaId: string | number, produtorId: number | string, dados: any) => {
-  try {
-    const response = await api.put(`${BASE_URL}/${vistoriaId}/produtor/${produtorId}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao atualizar vistoria ${vistoriaId}:`, error);
-    throw error;
-  }
-};
+export const atualizarVistoria = async (vistoriaId: string | number, produtorId: number | string, dados: any) =>
+  atualizarOuEnfileirar('vistoria', `${BASE_URL}/${vistoriaId}/produtor/${produtorId}`, dados, `Edição da vistoria ${vistoriaId}`);
 
 export const deletarVistoria = async (vistoriaId: string | number, produtorId: number | string) => {
   try {

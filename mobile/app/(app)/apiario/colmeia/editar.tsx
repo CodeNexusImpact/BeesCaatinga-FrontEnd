@@ -15,7 +15,7 @@ import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { atualizarColmeia, buscarColmeiaPorId } from '@/services/colmeiaService';
 import type { ColmeiaAtualizadaDTO, TipoColmeia } from '@/types/apiario/colmeia';
 import { voltar } from '@/utils/navegacao';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
 
 const tipoOptions = [
   { label: 'Madeira', value: 'MADEIRA' },
@@ -116,8 +116,8 @@ export default function EditarColmeia() {
         latitude,
         longitude,
       };
-      await atualizarColmeia(user.id, apiarioId, colmeiaId, dto);
-      alerta('Sucesso', 'Colmeia atualizada com sucesso!');
+      const salvo = await atualizarColmeia(user.id, apiarioId, colmeiaId, dto);
+      alertaSalvo(salvo, 'Colmeia atualizada com sucesso!');
       voltar(router);
     } catch {
       alerta('Erro', 'Não foi possível salvar as alterações.');

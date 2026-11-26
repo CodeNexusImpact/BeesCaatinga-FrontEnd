@@ -6,9 +6,11 @@ import temaCores from "@/constants/cores";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import api from '@/services/api';
+import { carregarDensidadeMel } from '@/utils/mel';
 
 // "Acorda" o backend de homologação (Render gratuito hiberna após 15 min sem uso).
 api.get('/actuator/health').catch(() => {});
+carregarDensidadeMel();
 
 function RootLayout() {
   const { session, isLoading } = useAuth();

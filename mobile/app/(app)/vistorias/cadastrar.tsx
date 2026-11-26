@@ -3,7 +3,7 @@ import Input from '@/components/formulario/input';
 import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
@@ -14,7 +14,7 @@ import ModalSucesso from '@/components/notificacao/modalSucesso';
 import { maskDate } from '@/utils/masks';
 import { useAuth } from '@/hooks/useAuth';
 import { voltar } from '@/utils/navegacao';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
 
 const CheckboxItem = ({
   label,
@@ -127,16 +127,17 @@ export default function CadastrarVistoria() {
 
       const payload = {
         dataVistoria: dataVistoria,
-        apiario_id: Number(apiario),
-        colmeia_id: Number(colmeia),
+        apiario_id: idDoSeletor(apiario),
+        colmeia_id: idDoSeletor(colmeia),
         condicao: condicao,
         observacoes,
         pragasIdentificadas: pragas,
         perdasIdentificadas: perdas,
       };
 
-      await cadastrarVistoria(user.id, apiario, colmeia, payload);
-      setModalSucessoVisivel(true);
+      const salvo = await cadastrarVistoria(user.id, apiario, colmeia, payload);
+      if (salvo?.pendente) alertaSalvo(salvo, '');
+      else setModalSucessoVisivel(true);
     } catch (error) {
       console.error('Erro ao salvar vistoria:', error);
       alerta('Erro', 'Não foi possível salvar a vistoria.');
@@ -156,6 +157,7 @@ export default function CadastrarVistoria() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+      <Stack.Screen options={{ title: 'Cadastrar Vistoria' }} />
       <Input
         label="Data da Vistoria:"
         value={dataVistoria}

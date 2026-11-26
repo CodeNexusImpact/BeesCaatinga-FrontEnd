@@ -17,7 +17,7 @@ import { getVistoriaById, atualizarVistoria } from '@/services/vistoriaService';
 import { useAuth } from '@/hooks/useAuth';
 import { maskDate } from '@/utils/masks';
 import { voltar } from '@/utils/navegacao';
-import { alerta } from '@/utils/alerta';
+import { alerta, alertaSalvo, idDoSeletor } from '@/utils/alerta';
 
 const CheckboxItem = ({ label, value, onValueChange }: {
   label: string; value: boolean; onValueChange: (value: boolean) => void;
@@ -115,14 +115,14 @@ export default function EditarVistoria() {
     }
     setIsSaving(true);
     try {
-      await atualizarVistoria(id, userId, {
+      const salvo = await atualizarVistoria(id, userId, {
         dataVistoria,
         condicao,
         observacoes,
         pragasIdentificadas: paraLista(pragasObj),
         perdasIdentificadas: paraLista(perdasObj),
       });
-      alerta('Sucesso', 'Vistoria atualizada com sucesso!');
+      alertaSalvo(salvo, 'Vistoria atualizada com sucesso!');
       router.push('/vistorias/listar');
     } catch (error) {
       console.error('Erro ao atualizar vistoria:', error);
@@ -146,7 +146,7 @@ export default function EditarVistoria() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      <Stack.Screen options={{ title: 'Editar' }} />
+      <Stack.Screen options={{ title: 'Editar Vistoria' }} />
       <Input
         label="Data da Vistoria:"
         value={dataVistoria}
