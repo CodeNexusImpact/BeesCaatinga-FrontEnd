@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { EstadoVazio } from '@/components/graficos';
 import { View, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import cores from '@/constants/cores';
@@ -97,12 +98,12 @@ export default function ListarInsumos() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Listagem de Insumos' }} />
+      <Stack.Screen options={{ title: 'Meus Insumos' }} />
       <Subtexto style={styles.subtexto}>Gerenciamento de Estoque</Subtexto>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {insumos.length === 0 ? (
-          <Subtexto style={styles.semDados}>Nenhum insumo encontrado no banco.</Subtexto>
+          <EstadoVazio mensagem="Nenhum insumo cadastrado ainda." icone="package" acao={{ titulo: 'Cadastrar primeiro insumo', onPress: () => router.push('/insumos/cadastrar') }} />
         ) : (
           insumos.map((insumo) => (
             <View key={insumo.id} style={styles.statusContainer}>

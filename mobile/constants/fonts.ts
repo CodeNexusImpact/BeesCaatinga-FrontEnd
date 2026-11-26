@@ -1,8 +1,10 @@
 export default {
+  // Base 17 (leitura confortável para quem tem pouca familiaridade com celular).
   size: {
-    p: 14,
-    m: 16,  // padrão
-    g: 26,
+    p: 15,
+    m: 17,  // padrão
+    g: 20,
+    titulo: 22,
     gg: 34,
     xg: 42,
   },

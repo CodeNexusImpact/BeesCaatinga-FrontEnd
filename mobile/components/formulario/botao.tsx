@@ -30,17 +30,17 @@ const Botao: React.FC<BotaoProps> = ({
   outline = false, // Valor padrão
   size, // Ignorado por enquanto, mas mantido para compatibilidade
 }) => {
+  // Pares de cor com contraste AA: texto marrom sobre mel; branco sobre marrom/vermelho.
   const corHex =
     cor === 'primaria'
       ? cores.primaria
       : cor === 'secundaria'
       ? cores.secundaria
       : cor === 'terciaria'
-      ? cores.terciaria
-      : cores.botaoBranco;
-
-  // Cor do texto: se for botão branco, usa a cor primária; caso contrário, branco.
-  const textColor = cor === 'branca' ? cores.primaria : cores.branco; // Corrigido: cores.texto -> cores.primaria
+      ? cores.perigo
+      : cores.branco;
+  const textColor =
+    cor === 'primaria' ? cores.textoSobrePrimaria : cor === 'branca' || outline ? cores.secundaria : cores.branco;
 
   // Estilo base do botão
   const getButtonStyle = () => {
@@ -75,12 +75,15 @@ const Botao: React.FC<BotaoProps> = ({
         style,
         {
           backgroundColor: outline ? 'transparent' : corHex,
-          borderWidth: outline ? 1 : 0,
-          borderColor: outline ? corHex : 'transparent',
+          borderWidth: outline || cor === 'branca' ? 2 : 0,
+          borderColor: outline ? corHex : cor === 'branca' ? cores.secundaria : 'transparent',
           flexDirection: iconPosition === 'right' ? 'row-reverse' : 'row',
         },
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      activeOpacity={0.75}
     >
       {iconName && (
         <Icon
@@ -99,7 +102,8 @@ const Botao: React.FC<BotaoProps> = ({
 const styles = StyleSheet.create({
   // Estilo base comum a todos
   buttonBase: {
-    borderRadius: layout.borderRadius.r25,
+    borderRadius: layout.borderRadius.r50,
+    minHeight: layout.toqueMinimo,
     alignItems: 'center',
     justifyContent: 'center',
     // Removido borderWidth aqui, agora é controlado pelo outline
@@ -108,36 +112,37 @@ const styles = StyleSheet.create({
   // Tamanhos
   buttonGrande: {
     width: '100%',
-    paddingVertical: layout.espacamento.texto, // 4
+    minHeight: layout.buttonHeight,
+    paddingVertical: layout.espacamento.amigavel,
     paddingHorizontal: layout.espacamento.amigavel, // 8
     gap: layout.espacamento.texto,
   },
   buttonMedio: {
     width: 'auto',
     minWidth: 120,
-    paddingVertical: layout.espacamento.texto,
-    paddingHorizontal: layout.espacamento.amigavel,
+    paddingVertical: layout.espacamento.amigavel,
+    paddingHorizontal: layout.espacamento.colega,
     gap: layout.espacamento.texto,
   },
   buttonPequeno: {
     width: 'auto',
     minWidth: 100,
-    paddingVertical: layout.espacamento.texto,
-    paddingHorizontal: layout.espacamento.amigavel,
+    paddingVertical: layout.espacamento.amigavel,
+    paddingHorizontal: layout.espacamento.colega,
     gap: layout.espacamento.texto,
   },
 
   // Textos
   textGrande: {
-    fontSize: fonts.size.g, // 26
+    fontSize: fonts.size.g, // 20
     fontWeight: 'bold',
   },
   textMedio: {
-    fontSize: fonts.size.m, // 16
+    fontSize: fonts.size.m, // 17
     fontWeight: 'bold',
   },
   textPequeno: {
-    fontSize: fonts.size.p, // 14
+    fontSize: fonts.size.m, // 17 (mesmo pequeno, legível)
     fontWeight: 'bold',
   },
 });

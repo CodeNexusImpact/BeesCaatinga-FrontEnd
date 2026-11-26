@@ -34,7 +34,7 @@ const Selector: React.FC<SelectorProps> = ({
     // Controlado quando `value` é passado; caso contrário mantém o rótulo internamente.
     const [labelInterno, setLabelInterno] = useState<string | null>(null);
     const selectedLabel = value !== undefined
-        ? (value ? options.find(opt => opt.value === value)?.label ?? null : null)
+        ? (options.find(opt => opt.value === value)?.label ?? null)
         : labelInterno;
 
    
@@ -48,75 +48,78 @@ const Selector: React.FC<SelectorProps> = ({
         setIsOpen(false);
     };
 
+    const textoRotulo = label ? label.replace(/:\s*$/, "") : undefined;
     return (
-        <View style={[styles.container, { zIndex: isOpen ? 1000 : 1 }, style]}>
-            {iconName && (
-                <View style={{ marginRight: layout.espacamento.texto }}>
-                    <Icon name={iconName}/>
+        <View style={[styles.campo, { zIndex: isOpen ? 1000 : 1 }]}>
+            {textoRotulo && <Text style={[styles.label, Typography.Negrito]}>{textoRotulo}</Text>}
+            <View style={[styles.container, style]}>
+                {iconName && (
+                    <View style={{ marginRight: layout.espacamento.texto }}>
+                        <Icon name={iconName} color={cores.secundaria}/>
+                    </View>
+                )}
+                <View style={styles.inputWrapper}>
+                    <TouchableOpacity
+                        style={styles.touchable}
+                        onPress={() => setIsOpen(!isOpen)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${textoRotulo ?? placeholder}: ${selectedLabel ?? 'nada selecionado'}`}
+                        accessibilityState={{ expanded: isOpen }}
+                    >
+                        <Text style={[styles.inputText, Typography.Texto, { color: selectedLabel ? cores.texto : cores.placeholder }]}>
+                            {selectedLabel ? selectedLabel : placeholder}
+                        </Text>
+                        <Icon name={isOpen ? "setaCima" : "setaBaixo"} size={22} />
+                    </TouchableOpacity>
                 </View>
-            )}
-            
-            {label && <Text style={[styles.label, Typography.Negrito]}>{label.replace(/:\s*$/, "")}:</Text>}
 
-            <View style={styles.inputWrapper}>
-                <TouchableOpacity 
-                    style={styles.touchable} 
-                    onPress={() => setIsOpen(!isOpen)}
-                >
-                    <Text style={[styles.inputText, Typography.Texto, { color: selectedLabel ? cores.texto : cores.placeholder }]}>
-                        {selectedLabel ? selectedLabel : placeholder}
-                    </Text>
-                    <Icon name={isOpen ? "setaCima" : "setaBaixo"} size={20} />
-                </TouchableOpacity>
+                {isOpen && (
+                    <View style={styles.dropdown}>
+                        <FlatList
+                            data={options}
+                            keyExtractor={(item) => item.value}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[styles.option, item.label === selectedLabel && styles.optionAtiva]}
+                                    onPress={() => handleSelect(item.value)}
+                                    accessibilityRole="menuitem"
+                                    accessibilityLabel={item.label}
+                                >
+                                    <Text style={styles.optionText}>{item.label}</Text>
+                                </TouchableOpacity>
+                            )}
+                            ListEmptyComponent={<Text style={[styles.optionText, { padding: 12, color: cores.textoSecundario }]}>Nenhuma opção disponível</Text>}
+                            style={{ maxHeight: 264 }}
+                        />
+                    </View>
+                )}
             </View>
-
-            {isOpen && (
-                <View style={styles.dropdown}>
-                    <FlatList
-                        data={options}
-                        keyExtractor={(item) => item.value}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.option} onPress={() => handleSelect(item.value)}>
-                                <Text style={styles.optionText}>{item.label}</Text>
-                            </TouchableOpacity>
-                        )}
-                        style={{ maxHeight: 200 }}
-                    />
-                </View>
-            )}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    campo: {
+        width: '100%',
+        gap: 4,
+        position: 'relative',
+    },
     container: {
         width: '100%',
-        height: 'auto',
+        minHeight: layout.toqueMinimo,
         paddingHorizontal: layout.espacamento.amigavel,
         alignItems: 'center',
         flexDirection: 'row',
         borderWidth: 1,
         borderRadius: layout.borderRadius.r25,
         paddingVertical: layout.espacamento.texto,
-        backgroundColor: cores.cores.base[5], 
+        backgroundColor: cores.branco,
         borderColor: cores.borda,
         position: 'relative',
-        ...Platform.select({
-            ios: {
-                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)', 
-            },
-            android: {
-                elevation: 2,                 
-            },
-            web: {
-                boxShadow: `2px 2px 4px ${cores.secundaria}80`, 
-            },
-        }), 
     },
-    label: {        
-        marginRight: layout.espacamento.texto,
-        minWidth: 96,
-        marginBottom: layout.espacamento.texto,
+    label: {
+        fontSize: 16,
+        color: cores.texto,
     },
     inputWrapper: {
         flex: 1,
@@ -127,10 +130,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
+        minHeight: 44,
         paddingHorizontal: 10,
     },
     inputText: {
-        fontSize: 16,
+        fontSize: 17,
         flex: 1,
     },
     dropdown: {
@@ -156,13 +160,18 @@ const styles = StyleSheet.create({
             },
         }),
     },
+    optionAtiva: {
+        backgroundColor: cores.cores.primaria[10],
+    },
     option: {
-        padding: 4,
+        minHeight: 48,
+        justifyContent: 'center',
+        paddingHorizontal: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
     optionText: {
-        fontSize: 16,
+        fontSize: 17,
         color: cores.texto,
     },
 });

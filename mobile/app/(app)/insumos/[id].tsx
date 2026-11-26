@@ -107,7 +107,7 @@ export default function InsumoDetalhe() {
 
   return (
     <ScrollView style={styles.container}>
-      <Stack.Screen options={{ title: 'Visualizar Insumo' }} />
+      <Stack.Screen options={{ title: 'Detalhes do Insumo' }} />
 
       <View style={styles.content}>
         <Subtexto style={styles.titulo}>Informações do Registro</Subtexto>

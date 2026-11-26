@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { EstadoVazio } from '@/components/graficos';
 import { View, StyleSheet, ScrollView, Text, ActivityIndicator, useWindowDimensions, FlatList } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
@@ -49,7 +50,7 @@ export default function Index() {
 
   return (
     <View style={[styles.container, { height: height }]}>
-      <Stack.Screen options={{ title: 'Apiário e Colmeias' }} />
+      <Stack.Screen options={{ title: 'Meus Apiários' }} />
       <Subtexto style={styles.subtexto}>Apiarios</Subtexto>
 
       <View style={{
@@ -72,7 +73,7 @@ export default function Index() {
               <ApiarioList apiario={item} />
             )}
             ListEmptyComponent={() => (
-              <Text style={styles.emptyText}>Nenhum apiário encontrado.</Text>
+              <EstadoVazio mensagem="Nenhum apiário cadastrado ainda." acao={{ titulo: 'Cadastrar primeiro apiário', onPress: () => router.push('/apiario/cadastrar') }} />
             )}
           />
         </View>

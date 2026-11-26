@@ -45,6 +45,15 @@ export const AppIcons: Record<string, MaterialCommunityIconsName> = {
   calendar: 'calendar-outline', // Ícone de calendário
   chevronDown: 'chevron-down', // Ícone de seta para baixo
   chevronUp: 'chevron-up', // Ícone de seta para cima
+  chevronRight: 'chevron-right',
+  setaBaixo: 'chevron-down',
+  setaCima: 'chevron-up',
+  setaDireita: 'chevron-right',
+  flower: 'flower-outline',
+  magnify: 'magnify',
+  tag: 'tag-outline',
+  close: 'close',
+  sync: 'cloud-sync-outline',
   bell: 'bell-outline', // Ícone de notificação
   video: 'video', // Ícone de vídeo
   bee: 'bee', // Ícone de abelha

@@ -86,15 +86,34 @@ const opacity = (hexColor: string, opacityPercent: number) => {
     return hexColor + opacityHex;
 }
 
+/**
+ * Identidade BeesCaatinga: amarelo-mel + marrom escuro.
+ * Pares de cor pensados para contraste WCAG AA (texto marrom sobre mel; branco sobre marrom).
+ */
+export const identidade = {
+    mel: '#F0B21A',
+    melClaro: '#FFF4D6',
+    marrom: '#5D4037',
+    marromEscuro: '#3E2723',
+    creme: '#FFFBF2',
+    texto: '#1F1A17',
+    textoSecundario: '#4A4A4A',
+    borda: '#8A7F72',
+    perigo: '#B71C1C',
+    sucesso: '#2E7D32',
+    aviso: '#8D5B00',
+};
+
 export const temaCores = {
     cores,
-    primaria: cores.primaria[100],
+    identidade,
+    primaria: identidade.mel,
     primariaHover: cores.primaria[90],
     primariaActive: cores.primaria[80],
 
     secundariaHover: cores.secundaria[90],
     secundariaActive: cores.secundaria[80],
-    secundaria: cores.secundaria[100],
+    secundaria: identidade.marrom,
     terciaria: cores.terciaria[100],
 
     branco: cores.base[0],
@@ -104,15 +123,17 @@ export const temaCores = {
     botaoBrancoHover: cores.base[10],
     botaoBrancoActive: cores.base[20],
 
-    perigo: cores.complementarNegativa[100],
+    perigo: identidade.perigo,
     alerta: cores.primaria[100],
-    sucesso: cores.complementarPositiva[100],
+    sucesso: identidade.sucesso,
 
-    texto: cores.base[100],
-    fundo: cores.base[0],
-    placeholder: cores.base[60],
+    texto: identidade.texto,
+    textoSecundario: identidade.textoSecundario,
+    textoSobrePrimaria: identidade.marromEscuro,
+    fundo: identidade.creme,
+    placeholder: '#6B6B6B',
     sublinhado: cores.secundaria[30],
-    borda: opacity(cores.base[100], 50),
+    borda: identidade.borda,
 };
 
 export default temaCores

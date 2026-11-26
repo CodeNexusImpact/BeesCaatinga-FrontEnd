@@ -33,28 +33,22 @@ const BottomMenu = () => {
         }
     };
 
+    const itens: { rotulo: string; icone: string; acao: () => void }[] = [
+        { rotulo: 'Início', icone: 'home', acao: () => router.push('/' as any) },
+        { rotulo: 'Apiários', icone: 'beehiveOutline', acao: () => router.push('/apiario/listar' as any) },
+        { rotulo: 'Mapa', icone: 'map', acao: () => router.push('/mapa' as any) },
+        { rotulo: 'Relatórios', icone: 'pizzaGraph', acao: () => router.push('/relatorio' as any) },
+        { rotulo: 'Sair', icone: 'logout', acao: handleSair },
+    ];
+
     return (
-        <View style={styles.container}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/' as any)}>
-                <Icon name="home" size={24} color="black" />
-                <Text style={styles.menuText}>Inicio</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/apiario/listar' as any)}>
-                <Icon name="map" size={24} color="black" />
-                <Text style={styles.menuText}>Apiários</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/relatorio' as any)}>
-                <Icon name="pizzaGraph" size={24} color="black" />
-                <Text style={styles.menuText}>Relatórios</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/configuracao' as any)}>
-                <Icon name="settings" size={24} color="black" />
-                <Text style={styles.menuText}>Configuração</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleSair}>
-                <Icon name="logout" size={24} color="black" />
-                <Text style={styles.menuText}>Sair</Text>
-            </TouchableOpacity>
+        <View style={styles.container} accessibilityRole="tablist">
+            {itens.map((i) => (
+                <TouchableOpacity key={i.rotulo} style={styles.menuItem} onPress={i.acao} accessibilityRole="button" accessibilityLabel={i.rotulo}>
+                    <Icon name={i.icone} size={26} color={temaCores.textoSobrePrimaria} />
+                    <Text style={styles.menuText}>{i.rotulo}</Text>
+                </TouchableOpacity>
+            ))}
         </View>
     );
 };
@@ -65,18 +59,23 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         alignItems: 'center',
         backgroundColor: temaCores.primaria,
-        paddingVertical: 10,
+        paddingVertical: 6,
         borderTopWidth: 1,
-        borderTopColor: '#ccc',
-        height: 60,
+        borderTopColor: temaCores.identidade.marrom,
+        height: 64,
         width: '100%',
     },
     menuItem: {
         alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 64,
+        minHeight: 52,
     },
     menuText: {
-        fontSize: 12,
-        marginTop: 4,
+        fontSize: 13,
+        fontWeight: '600',
+        color: temaCores.textoSobrePrimaria,
+        marginTop: 2,
     },
 });
 

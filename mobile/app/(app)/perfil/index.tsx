@@ -3,7 +3,7 @@ import Input from '@/components/formulario/input';
 import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Icon from '@/components/icon';
@@ -72,6 +72,7 @@ export default function Index() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
+      <Stack.Screen options={{ title: 'Meu Perfil' }} />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Meu Perfil</Text>

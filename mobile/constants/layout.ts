@@ -23,7 +23,9 @@ export default {
   },
   
   // Tamanhos de Botões e Componentes
-  buttonHeight: 48,
+  buttonHeight: 52,
+  // Área mínima de toque (WCAG / Material: 48 px)
+  toqueMinimo: 48,
   
   // Raio de Borda
 

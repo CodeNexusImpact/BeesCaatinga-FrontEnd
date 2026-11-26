@@ -43,7 +43,9 @@ export const Typography = StyleSheet.create({
     },
 
     Negrito: {
-        fontFamily: fonts.family.bold,
+        // 'System-Bold' não existe na web (caía em fonte serifada): usa a família padrão em negrito.
+        fontFamily: fonts.family.sans,
+        fontWeight: 'bold',
         fontSize: fonts.size.m,
         color: temaCores.texto,
     },
