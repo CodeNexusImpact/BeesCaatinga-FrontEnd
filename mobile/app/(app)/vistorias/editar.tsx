@@ -15,10 +15,26 @@ import {
   Alert,
 } from 'react-native';
 import { getVistoriaById, atualizarVistoria } from '@/services/vistoriaService';
+import { useAuth } from '@/hooks/useAuth';
+
+const CheckboxItem = ({ label, value, onValueChange }: {
+  label: string; value: boolean; onValueChange: (value: boolean) => void;
+}) => (
+  <View style={styles.checkboxContainer}>
+    <Checkbox
+      style={styles.checkbox}
+      value={value}
+      onValueChange={onValueChange}
+      color={value ? cores.primaria : undefined}
+    />
+    <Text style={styles.checkboxLabel}>{label}</Text>
+  </View>
+);
 
 export default function EditarVistoria() {
   const router = useRouter();
   const { id } = useLocalSearchParams(); 
+  const { user } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -64,7 +80,7 @@ export default function EditarVistoria() {
             setApiario(dados.apiarioId?.toString() || '');
             setColmeia(dados.colmeiaId?.toString() || '');
             setCondicao(dados.condicaoVistoria);
-            setObservacoes(dados.observacoes);
+            setObservacoes(dados.observacoes ?? '');
 
             // Reconstrói objetos de checkbox a partir dos arrays do banco
             if (dados.pragas) {
@@ -102,7 +118,7 @@ export default function EditarVistoria() {
   }, [id]);
 
   const handleSalvar = async () => {
-    if (!id) return;
+    if (!id || !user?.id) return;
 
     setIsSaving(true);
     try {
@@ -116,7 +132,7 @@ export default function EditarVistoria() {
         .filter(([_, checked]) => checked)
         .map(([key]) => key.charAt(0).toUpperCase() + key.slice(1));
 
-      await atualizarVistoria(vistoriaId, {
+      await atualizarVistoria(vistoriaId, user.id, {
         data: dataVistoria,
         apiarioId: apiario,
         colmeiaId: colmeia,
@@ -136,19 +152,6 @@ export default function EditarVistoria() {
     }
   };
 
-  const CheckboxItem = ({ label, value, onValueChange }: {
-    label: string; value: boolean; onValueChange: (value: boolean) => void;
-  }) => (
-    <View style={styles.checkboxContainer}>
-      <Checkbox
-        style={styles.checkbox}
-        value={value}
-        onValueChange={onValueChange}
-        color={value ? cores.primaria : undefined}
-      />
-      <Text style={styles.checkboxLabel}>{label}</Text>
-    </View>
-  );
 
   if (isLoading) {
     return (

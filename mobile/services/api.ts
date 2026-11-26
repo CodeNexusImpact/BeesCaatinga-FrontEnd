@@ -2,8 +2,19 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// Prioriza Variável de Ambiente, senão usa o IP local de desenvolvimento
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.8:8080';
+const TOKEN_KEY = 'user_token';
+const USER_KEY = 'user_data';
+
+// URL da API definida em tempo de build via EXPO_PUBLIC_API_URL (ver .env.example).
+const resolveBaseUrl = (): string => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl) return envUrl.replace(/\/+$/, '');
+  if (__DEV__) return 'http://localhost:8080';
+  console.warn('[api] EXPO_PUBLIC_API_URL não definida; usando a mesma origem.');
+  return '';
+};
+
+export const BASE_URL = resolveBaseUrl();
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -13,41 +24,48 @@ const api = axios.create({
   },
 });
 
-// Função utilitária para limpar os dados de sessão (Anti-Zumbi)
-const clearStorage = async () => {
-    try {
-        if (Platform.OS === 'web') {
-            localStorage.removeItem('user_token');
-            localStorage.removeItem('user_data');
-        } else {
-            await SecureStore.deleteItemAsync('user_token');
-            await SecureStore.deleteItemAsync('user_data');
-        }
-    } catch (e) {
-        console.error('Erro ao limpar storage no interceptor:', e);
-    }
+const getToken = async (): Promise<string | null> => {
+  try {
+    if (Platform.OS === 'web') return localStorage.getItem(TOKEN_KEY);
+    return await SecureStore.getItemAsync(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 };
 
-// INTERCEPTADOR DE RESPOSTA
+const clearStorage = async () => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    } else {
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await SecureStore.deleteItemAsync(USER_KEY);
+    }
+  } catch (e) {
+    console.error('Erro ao limpar storage no interceptor:', e);
+  }
+};
+
+// Anexa o token de sessão (Bearer) em todas as requisições, se existir.
+api.interceptors.request.use(async (config) => {
+  const token = await getToken();
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Sessão inválida/expirada: limpa somente em 401 (404 é recurso inexistente, não sessão).
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    if (error.response) {
-      const status = error.response.status;
-      if (status === 401 || status === 404) {
-        console.warn(`[Axios Interceptor] Erro ${status} detectado. Expurgando sessão zumbi...`);
-        await clearStorage();
-      }
+    if (error.response?.status === 401) {
+      await clearStorage();
     }
     return Promise.reject(error);
   }
 );
 
-// O Interceptador de Requisição continua comentado até a implementação do JWT
-// ...
-
 export default api;
-
-

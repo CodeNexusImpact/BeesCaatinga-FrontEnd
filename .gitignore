@@ -1,5 +1,14 @@
-mock-api/node_modules/
-mobile/.env
+node_modules/
+dist/
+web-build/
+.expo/
+.idea/
+.env
+.env.*
+!.env.example
+!.env.exemple
+*.log
+.DS_Store
 
 # JVM crash logs
 hs_err_pid*.log

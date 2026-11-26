@@ -83,10 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signIn = async (email: string, senha: string) => {
         try {
-            const response = await api.post<Produtor>('/login', { email, senha });
-            const produtor = response.data;
+            const response = await api.post<Produtor & { token?: string }>('/login', { email, senha });
+            const { token: jwt, ...produtor } = response.data;
 
-            const token = produtor.id.toString();
+            // Usa o JWT do backend quando disponível; fallback legado = id do produtor.
+            const token = jwt ?? produtor.id.toString();
 
             await storage.setItem('user_token', token);
             await storage.setItem('user_data', JSON.stringify(produtor));

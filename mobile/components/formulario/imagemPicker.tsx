@@ -5,7 +5,7 @@ import Icon from '@/components/icon';
 import temaCores from '@/constants/cores';
 import layout from '@/constants/layout';
 import ModalSelecaoImagem from '@/components/formulario/modalSelecaoImagem'; // Importe o novo modal
-import api from '@/services/api';
+import api, { BASE_URL } from '@/services/api';
 
 interface ImagemPickerProps {
   onImagePicked: (uri: string | null) => void;
@@ -68,8 +68,8 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
         });
 
         if (response.data && response.data.url) {
-          const baseURL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.18.5:3000';
-          const fullUrl = `${baseURL}${response.data.url}`;
+          const url: string = response.data.url;
+          const fullUrl = /^https?:\/\//.test(url) ? url : `${BASE_URL}${url}`;
           onImagePicked(fullUrl);
         }
       } catch (error) {

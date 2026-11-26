@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import api from '@/services/api';
+import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
 import type { Kpi, GraficoConfig } from '@/types/common';
 
@@ -17,6 +19,7 @@ export const useProducao = (filtros: any = {}): UseProducaoResult => {
   const [graficos, setGraficos] = useState<GraficoConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // Dados simulados (fixos para todos os usuários)
   const mockData: ProducaoRetornoDTO[] = [
@@ -93,8 +96,11 @@ export const useProducao = (filtros: any = {}): UseProducaoResult => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Integração com o backend real
-      const produtorId = 1; // ID do produtor mockado para integração
+      const produtorId = user?.id;
+      if (!produtorId) {
+        setData([]);
+        return;
+      }
       const response = await api.get<ProducaoRetornoDTO[]>(`/producoes/${produtorId}`);
       let fetchedData = response.data;
 
@@ -123,7 +129,7 @@ export const useProducao = (filtros: any = {}): UseProducaoResult => {
 
   useEffect(() => {
     fetchData();
-  }, [filtros]);
+  }, [filtros, user?.id]);
 
   return { data, kpis, graficos, loading, error, refetch: fetchData };
 };

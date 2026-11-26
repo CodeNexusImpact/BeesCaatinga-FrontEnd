@@ -6,5 +6,9 @@ ios
 android
 .git
 .gitignore
+.env
+.env.*
+*.log
 Dockerfile
-docker-compose.yml
+.dockerignore
+docker-compose*.yml

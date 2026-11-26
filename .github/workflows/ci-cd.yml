@@ -1,94 +1,61 @@
-name: CI/CD BeesCaatinga
+name: CI/CD Frontend
 
 on:
   push:
-    branches: [ "main", "backend/erick" ]
+    branches: [main]
   pull_request:
-    branches: [ "main", "backend/erick" ]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  tests-backend:
-    name: Executar Testes do Backend
+  frontend:
+    name: Lint, typecheck e build web
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mobile
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
-
-      - name: Configurar JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-          
-      - name: Iniciar banco de dados para testes
-        run: docker compose up -d db
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build:web
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
 
-      - name: Aguardar o PostgreSQL
-        run: |
-          echo "Aguardando o PostgreSQL..."
-          until docker exec postgres_db pg_isready -U erick -d teste_db; do
-            sleep 2
-          done
-          echo "PostgreSQL está pronto!"
-
-      - name: Rodar os testes com Maven
-        working-directory: ./backend
-        run: ./mvnw test
-
-  validate-docker-compose:
-    name: Validar Docker Compose
+  docker:
+    name: Build e push da imagem (GHCR)
+    needs: frontend
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
-      
-      - name: Validar sintaxe do Docker Compose
-        run: docker compose -f docker-compose.yml config
-
-  build-and-push-images:
-    name: Buildar e Enviar Imagens Docker
-    needs: [tests-backend, validate-docker-compose]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/backend/erick')
-    steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
-
-      - name: Login no Docker Hub
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v4
+      - name: Nome da imagem em minúsculas
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/beescaatinga-frontend" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      # Backend Build & Push
-      - name: Configurar JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Buildar projeto Maven
-        working-directory: ./backend
-        run: ./mvnw clean install -DskipTests
-
-      - name: Buildar e enviar imagem Backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          build-args: SKIP_TESTS=true
-          tags: |
-            erickwolf/beescaatinga-backend:latest
-            erickwolf/beescaatinga-backend:${{ github.sha }}
-
-      # Frontend Build & Push
-      - name: Buildar e enviar imagem Frontend
-        uses: docker/build-push-action@v5
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
         with:
           context: ./mobile
           push: true
+          build-args: EXPO_PUBLIC_API_URL=${{ vars.EXPO_PUBLIC_API_URL }}
           tags: |
-            erickwolf/beescaatinga-frontend:latest
-            erickwolf/beescaatinga-frontend:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

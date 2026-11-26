@@ -13,6 +13,26 @@ import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import ModalSucesso from '@/components/notificacao/modalSucesso';
 import { useAuth } from '@/hooks/useAuth';
 
+const CheckboxItem = ({
+  label,
+  value,
+  onValueChange,
+}: {
+  label: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+}) => (
+  <View style={styles.checkboxContainer}>
+    <Checkbox
+      style={styles.checkbox}
+      value={value}
+      onValueChange={onValueChange}
+      color={value ? cores.primaria : undefined}
+    />
+    <Text style={styles.checkboxLabel}>{label}</Text>
+  </View>
+);
+
 export default function CadastrarVistoria() {
   const router = useRouter();
   const { user } = useAuth();
@@ -123,25 +143,6 @@ export default function CadastrarVistoria() {
     router.back();
   };
 
-  const CheckboxItem = ({
-    label,
-    value,
-    onValueChange,
-  }: {
-    label: string;
-    value: boolean;
-    onValueChange: (value: boolean) => void;
-  }) => (
-    <View style={styles.checkboxContainer}>
-      <Checkbox
-        style={styles.checkbox}
-        value={value}
-        onValueChange={onValueChange}
-        color={value ? cores.primaria : undefined}
-      />
-      <Text style={styles.checkboxLabel}>{label}</Text>
-    </View>
-  );
 
   return (
     <ScrollView

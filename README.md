@@ -1,21 +1,43 @@
-# BeesCaatinga
+# BeesCaatinga — Frontend
 
-O **BeesCaatinga** é um projeto iniciado em parceria com a **FAPESQ**, com o objetivo de ajudar os produtores familiares de mel do interior da Paraíba. A iniciativa visa fortalecer a apicultura local e apoiar as comunidades rurais, possuindo um grande potencial de expansão.
+[![CI/CD](https://github.com/CodeNexusImpact/BeesCaatinga-FrontEnd/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/CodeNexusImpact/BeesCaatinga-FrontEnd/actions/workflows/ci-cd.yml)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg)](LICENSE)
 
-> **Nota:** Este repositório contém apenas a parte **Front-End** da aplicação. O código-fonte do **Back-End** está disponível em outro repositório da organização: [CodeNexusImpact/BeesCaatinga-BackEnd](https://github.com/CodeNexusImpact/BeesCaatinga-BackEnd).
+O **BeesCaatinga** é um projeto iniciado em parceria com a **FAPESQ** para apoiar produtores familiares de mel do interior da Paraíba: gestão de apiários, colmeias, vistorias, insumos, produção e rastreabilidade de lotes.
 
-## Tecnologias Utilizadas
+> Este repositório contém o **Front-End** (React Native + Expo, mobile e web). O Back-End (Spring Boot) está em [CodeNexusImpact/BeesCaatinga-BackEnd](https://github.com/CodeNexusImpact/BeesCaatinga-BackEnd).
 
-O projeto utiliza as seguintes tecnologias:
+## Stack
+React Native, Expo (Expo Router), Axios, React Native Maps, Recharts/Victory. Web servido por Nginx em Docker.
 
-### Frontend Mobile & Web
-- **React Native** & **Expo**: Frameworks principais para o desenvolvimento da aplicação.
-- **Expo Router**: Roteamento e navegação.
-- **React Navigation**: Navegação e estruturação de telas.
-- **React Native Maps**: Integração de mapas.
-- **Recharts** & **Victory Native**: Visualização de dados e gráficos.
-- **Axios**: Consumo de APIs.
+## Desenvolvimento
+Pré-requisitos: Node.js 22+ e npm.
 
-### Mock API & Infraestrutura
-- **Node.js**: Utilizado no Mock API para simulação do backend.
-- **Docker** & **Docker Compose**: Containerização e orquestração dos serviços.
+```bash
+cd mobile
+cp .env.exemple .env        # defina EXPO_PUBLIC_API_URL
+npm ci
+npm start                   # Expo (web: tecla w, celular: Expo Go)
+```
+
+Scripts úteis (em `mobile/`): `npm run lint`, `npm run typecheck`, `npm run build:web`.
+
+Sem backend? Use a API mock em [`mock-api/`](mock-api/README.md) (`npm start`, porta 3000).
+
+## Docker (ambiente local completo)
+```bash
+cp .env.example .env
+docker compose up --build
+```
+Frontend: http://localhost:8081 · Backend: http://localhost:8080 · Postgres: 5432.
+
+## Deploy / homologação
+- Cada push na `main` publica a imagem `ghcr.io/codenexusimpact/beescaatinga-frontend` (tags `latest` e SHA).
+- Configure a variável de repositório `EXPO_PUBLIC_API_URL` (ex.: `https://api.seudominio`) em **Settings → Secrets and variables → Actions → Variables**.
+- O stack de produção (Caddy + HTTPS, frontend, backend, Postgres) e o passo a passo de homologação ficam no repositório/pasta **beescaatinga-integrado**.
+
+## Contribuindo
+Leia o [CONTRIBUTING.md](CONTRIBUTING.md) e o [Código de Conduta](CODE_OF_CONDUCT.md). Vulnerabilidades: veja [SECURITY.md](SECURITY.md).
+
+## Licença
+[MIT](LICENSE) © 2026 Code Nexus Impact

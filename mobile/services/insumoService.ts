@@ -95,7 +95,7 @@ export const getGraficosInsumos = async (produtorId: string | number) => {
   // Agrupamento por tipoInsumo
   const tipoCount: { [key: string]: number } = {};
   insumos.forEach(i => {
-    const tipo = i.tipo || 'Outros';
+    const tipo = i.tipoInsumo || 'Outros';
     tipoCount[tipo] = (tipoCount[tipo] || 0) + 1;
   });
 

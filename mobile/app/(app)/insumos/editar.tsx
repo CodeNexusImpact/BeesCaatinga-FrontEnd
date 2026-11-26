@@ -54,10 +54,6 @@ export default function EditarInsumo() {
         { label: 'Estoque Baixo', value: 'ESTOQUE_BAIXO' },
     ];
 
-    useEffect(() => {
-        if (id) carregarDados();
-    }, [id]);
-
     const carregarDados = async () => {
         if (!user?.id) return;
         try {
@@ -82,6 +78,9 @@ export default function EditarInsumo() {
             setIsLoading(false);
         }
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { if (id && user?.id) carregarDados(); }, [id, user?.id]);
 
     const handleSalvar = async () => {
         if (isSaving || !user?.id) return;
