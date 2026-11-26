@@ -82,26 +82,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
     const signIn = async (email: string, senha: string) => {
+        let resposta: Produtor & { token?: string };
         try {
             const response = await api.post<Produtor & { token?: string }>('/login', { email, senha });
-            const { token: jwt, ...produtor } = response.data;
-
-            // Usa o JWT do backend quando disponível; fallback legado = id do produtor.
-            const token = jwt ?? produtor.id.toString();
-
-            await storage.setItem('user_token', token);
-            await storage.setItem('user_data', JSON.stringify(produtor));
-
-            // ATENÇÃO: O Contexto APENAS atualiza o estado. 
-            // O redirecionamento é responsabilidade exclusiva do RootLayout.
-            setSession(token);
-            setUser(produtor);
-
-            console.log('✅ Estado de autenticação atualizado.');
+            resposta = response.data;
         } catch (error: any) {
-            console.error('❌ Erro no login:', error.response?.data || error.message);
-            throw new Error('E-mail ou senha inválidos');
+            // Backend responde 401 com ErrorResponse { status, error, message, timestamp }.
+            const status = error?.response?.status;
+            const mensagem: string | undefined = error?.response?.data?.message;
+            if (status === 401) throw new Error(mensagem || 'E-mail ou senha inválidos');
+            if (!error?.response) throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão.');
+            throw new Error(mensagem || 'Erro ao efetuar login. Tente novamente.');
         }
+
+        const { token, ...produtor } = resposta;
+        if (!token) {
+            throw new Error('Resposta de login inválida: token ausente.');
+        }
+
+        await storage.setItem('user_token', token);
+        await storage.setItem('user_data', JSON.stringify(produtor));
+
+        // O Contexto apenas atualiza o estado; o redirecionamento é responsabilidade do RootLayout.
+        setSession(token);
+        setUser(produtor);
     };
 
     const signOut = async () => {
@@ -112,7 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Limpa o estado. O RootLayout detectará a mudança e levará ao login.
             setSession(null);
             setUser(null);
-            console.log('Logout efetuado com sucesso.');
         } catch (e) {
             console.error('Erro ao efetuar logout:', e);
         }

@@ -34,12 +34,10 @@ function Login() {
     setLoading(true);
     try {
       await signIn(email, senha);
-      console.log("✅ Login realizado com sucesso para:", email);
     } catch (error: any) {
-      console.error("❌ Erro na tentativa de login:", error);
       Alert.alert(
-        "Erro de Autenticação", 
-        "E-mail ou senha inválidos. Verifique suas credenciais e sua conexão de rede."
+        "Erro de Autenticação",
+        error?.message || "E-mail ou senha inválidos. Verifique suas credenciais e sua conexão de rede."
       );
     } finally {
       setLoading(false);
