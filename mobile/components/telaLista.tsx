@@ -8,6 +8,14 @@ import { EstadoCarregando, EstadoErro } from '@/components/graficos';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 
+// "Cadastrar vistoria" -> "Cadastrar primeira vistoria"; "Cadastrar apiário" -> "Cadastrar primeiro apiário".
+const FEMININOS = ['vistoria', 'colmeia', 'produção', 'producao'];
+function primeiroCadastro(titulo: string): string {
+  const resto = titulo.replace(/^Cadastrar\s+/i, '');
+  const feminino = FEMININOS.some((p) => resto.toLowerCase().startsWith(p));
+  return `Cadastrar ${feminino ? 'primeira' : 'primeiro'} ${resto}`;
+}
+
 interface Props<T extends object> {
   titulo: string;
   cadastrar: { titulo: string; rota: string };
@@ -40,7 +48,7 @@ export default function TelaLista<T extends object>(p: Props<T>) {
             colunas={p.colunas}
             data={p.dados}
             vazio={p.total ? 'Nenhum registro para estes filtros.' : p.vazio}
-            acaoVazio={p.total ? undefined : { titulo: p.cadastrar.titulo.replace(/^Cadastrar /, 'Cadastrar primeiro(a) '), onPress: () => router.push(p.cadastrar.rota as any) }}
+            acaoVazio={p.total ? undefined : { titulo: primeiroCadastro(p.cadastrar.titulo), onPress: () => router.push(p.cadastrar.rota as any) }}
             onPressLinha={p.onPressLinha}
           />
         </>
