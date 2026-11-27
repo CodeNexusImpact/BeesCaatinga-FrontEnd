@@ -7,6 +7,7 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
+import SeletorLocalizacao, { Coordenada } from '@/components/mapa/seletorLocalizacao';
 import { cadastrarVistoria } from '@/services/vistoriaService';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
@@ -37,6 +38,8 @@ const CheckboxItem = ({
 );
 
 export default function CadastrarVistoria() {
+  const [local, setLocal] = useState<Coordenada | null>(null);
+  const [foto, setFoto] = useState<string | null>(null);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -133,6 +136,9 @@ export default function CadastrarVistoria() {
         observacoes,
         pragasIdentificadas: pragas,
         perdasIdentificadas: perdas,
+        latitude: local?.latitude ?? null,
+        longitude: local?.longitude ?? null,
+        ...(foto ? { caminhoDaFoto: foto } : {}),
       };
 
       const salvo = await cadastrarVistoria(user.id, apiario, colmeia, payload);
@@ -221,6 +227,11 @@ export default function CadastrarVistoria() {
         numberOfLines={5}
         style={styles.textArea}
       />
+
+      <Input label="Foto da vistoria (opcional)" useImagePicker imagemInicial={foto} onImagePicked={(url) => setFoto(url)} />
+
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: cores.texto }}>Local da vistoria (opcional)</Text>
+      <SeletorLocalizacao valor={local} onChange={setLocal} dica="Use o GPS no local da colmeia ou toque no mapa." />
 
       <Botao
         title={loading ? "Salvando..." : "Salvar"}

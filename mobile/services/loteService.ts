@@ -26,3 +26,16 @@ export default {
   listarLotesDetalhado,
   cadastrarLote,
 };
+
+/** Ids das colmeias de um lote (novo contrato `colmeias[]`, ou `colmeiaId` único). */
+export const idsColmeiasDoLote = (l: any): number[] =>
+  Array.isArray(l?.colmeias) && l.colmeias.length ? l.colmeias.map((c: any) => c.id) : l?.colmeiaId != null ? [l.colmeiaId] : [];
+
+/** PUT /lotes/{produtorId}/{id}. */
+export const atualizarLote = async (produtorId: number | string, id: number | string, dados: any) =>
+  (await api.put(`/lotes/${produtorId}/${id}`, dados)).data;
+
+/** DELETE /lotes/{produtorId}/{id}. */
+export const excluirLote = async (produtorId: number | string, id: number | string) => {
+  await api.delete(`/lotes/${produtorId}/${id}`);
+};

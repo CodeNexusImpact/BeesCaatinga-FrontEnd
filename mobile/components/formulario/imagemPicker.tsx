@@ -5,11 +5,13 @@ import Icon from '@/components/icon';
 import temaCores from '@/constants/cores';
 import layout from '@/constants/layout';
 import ModalSelecaoImagem from '@/components/formulario/modalSelecaoImagem'; // Importe o novo modal
-import api, { BASE_URL } from '@/services/api';
+import { enviarFoto, urlArquivo } from '@/services/uploadService';
 import { alerta } from '@/utils/alerta';
 
 interface ImagemPickerProps {
   onImagePicked: (uri: string | null) => void;
+  /** Foto já salva (edição). */
+  valorInicial?: string | null;
   style?: object;
   width?: number;
   height?: number;
@@ -22,8 +24,14 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
   width,
   height,
   shape = 'square',
+  valorInicial,
 }) => {
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(valorInicial ? urlArquivo(valorInicial) : null);
+  const [inicialAnterior, setInicialAnterior] = useState(valorInicial);
+  if (valorInicial !== inicialAnterior) {
+    setInicialAnterior(valorInicial);
+    setImageUri(valorInicial ? urlArquivo(valorInicial) : null);
+  }
   const [modalVisivel, setModalVisivel] = useState(false); // Estado para controlar a visibilidade do modal
   const [loading, setLoading] = useState(false); // Estado de loading para o upload
 
@@ -55,27 +63,11 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
       setLoading(true);
 
       try {
-        const formData = new FormData();
-        formData.append('foto', {
-          uri: localUri,
-          name: `photo_${Date.now()}.jpg`,
-          type: 'image/jpeg',
-        } as any);
-
-        const response = await api.post('/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        if (response.data && response.data.url) {
-          const url: string = response.data.url;
-          const fullUrl = /^https?:\/\//.test(url) ? url : `${BASE_URL}${url}`;
-          onImagePicked(fullUrl);
-        }
+        const asset = result.assets[0];
+        onImagePicked(await enviarFoto(localUri, asset.mimeType || 'image/jpeg', asset.fileName || undefined));
       } catch (error) {
         console.error('Erro no upload da imagem:', error);
-        alerta('Erro', 'Não foi possível fazer o upload da imagem.');
+        alerta('Erro', 'Não foi possível enviar a foto. Verifique a internet e tente de novo.');
         setImageUri(null); // Reseta a imagem em caso de erro
         onImagePicked(null);
       } finally {

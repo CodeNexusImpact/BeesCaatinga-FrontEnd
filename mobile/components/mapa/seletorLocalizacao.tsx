@@ -18,6 +18,7 @@ interface Props {
   onChange: (c: Coordenada | null) => void;
   /** Outros pontos para referência (ex.: demais apiários). */
   referencias?: LocalizacaoMapa[];
+  dica?: string;
 }
 
 const fmt = (n: number | undefined) => (n === undefined ? '' : String(n));
@@ -26,7 +27,7 @@ const fmt = (n: number | undefined) => (n === undefined ? '' : String(n));
  * Escolha de localização: toque/clique no mapa, GPS do aparelho ou digitação manual
  * (com validação de faixa: latitude -90..90, longitude -180..180).
  */
-export default function SeletorLocalizacao({ valor, onChange, referencias = [] }: Props) {
+export default function SeletorLocalizacao({ valor, onChange, referencias = [], dica = 'Toque no mapa no local do apiário, use o GPS ou digite as coordenadas.' }: Props) {
   const [lat, setLat] = useState(fmt(valor?.latitude));
   const [lng, setLng] = useState(fmt(valor?.longitude));
   const [erro, setErro] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export default function SeletorLocalizacao({ valor, onChange, referencias = [] }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.dica}>Toque no mapa no local do apiário, use o GPS ou digite as coordenadas.</Text>
+      <Text style={styles.dica}>{dica}</Text>
       <Mapa localizacoes={referencias} permiteEdicao pontoSelecionado={valor} onMapPress={definir} style={styles.mapa} />
       <Botao title={buscandoGps ? 'Obtendo localização...' : 'Usar minha localização atual'} iconName="location" onPress={usarGps} cor="branca" />
       <View style={styles.linha}>

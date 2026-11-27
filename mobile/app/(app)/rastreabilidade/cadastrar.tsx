@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import Checkbox from 'expo-checkbox';
 import Botao from '@/components/formulario/botao';
 import Input from '@/components/formulario/input';
@@ -14,7 +14,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
 import { listarColmeiasPorApiario } from '@/services/colmeiaService';
 import { getProducoes } from '@/services/producaoService';
-import { cadastrarLote } from '@/services/loteService';
+import { atualizarLote, cadastrarLote, idsColmeiasDoLote, listarLotesDetalhado } from '@/services/loteService';
+import { isoParaBr } from '@/utils/datas';
+import { voltar } from '@/utils/navegacao';
 import type { ApiarioRetornoDTO } from '@/types/apiario';
 import type { ColmeiaRetornoDTO } from '@/types/apiario/colmeia';
 import type { ProducaoRetornoDTO } from '@/types/producao';
@@ -59,6 +61,9 @@ export default function CadastrarLoteMel() {
   const router = useRouter();
   const { user } = useAuth();
   const produtorId = user?.id;
+  const { id: loteId } = useLocalSearchParams<{ id?: string }>();
+  const editando = !!loteId;
+  const [vendido, setVendido] = useState(false);
 
   const [dataProducao, setDataProducao] = useState(new Date().toLocaleDateString('pt-BR'));
   const [kg, setKg] = useState<number | null>(null);
@@ -82,14 +87,44 @@ export default function CadastrarLoteMel() {
         if (!ativo) return;
         setApiarios(a);
         setProducoes(p);
-        if (abelha) setTipoAbelha(abelha);
-        if (flor) setFlorada(flor);
+        if (!editando) {
+          if (abelha) setTipoAbelha(abelha);
+          if (flor) setFlorada(flor);
+        }
       })
       .catch((e) => alerta('Erro', mensagemDeErro(e, 'Não foi possível carregar seus apiários.')));
     return () => {
       ativo = false;
     };
-  }, [produtorId]);
+  }, [produtorId, editando]);
+
+  // Edição: carrega o lote e as colmeias do apiário dele.
+  useEffect(() => {
+    if (!editando || !produtorId) return;
+    let ativo = true;
+    listarLotesDetalhado(produtorId)
+      .then(async (lotes) => {
+        const l: any = lotes.find((x: any) => String(x.id) === String(loteId));
+        if (!ativo || !l) return;
+        setDataProducao(isoParaBr(l.dataProducao));
+        setKg(Number(l.quantidadeProduzida) || null);
+        setFlorada(l.tipoFlorada ?? '');
+        setTipoAbelha(l.tipoAbelha ?? '');
+        setVendido(!!l.vendido);
+        if (l.latitude != null) setLocal({ latitude: Number(l.latitude), longitude: Number(l.longitude) });
+        if (l.apiarioId != null) {
+          setApiarioId(String(l.apiarioId));
+          const lista = await listarColmeiasPorApiario(produtorId, l.apiarioId);
+          if (!ativo) return;
+          setColmeias(lista);
+          setColmeiasMarcadas(idsColmeiasDoLote(l));
+        }
+      })
+      .catch((e) => alerta('Erro', mensagemDeErro(e, 'Não foi possível carregar o lote.')));
+    return () => {
+      ativo = false;
+    };
+  }, [editando, loteId, produtorId]);
 
   const apiario = apiarios.find((a) => String(a.id) === apiarioId);
 
@@ -123,8 +158,8 @@ export default function CadastrarLoteMel() {
     ? colmeiasMarcadas.reduce((s, id) => s + (kgPorColmeia.get(id) ?? 0), 0)
     : colmeias.reduce((s, c) => s + (kgPorColmeia.get(c.id) ?? 0), 0);
 
-  // O backend vincula o lote a uma colmeia (opcional); sem colmeia, o lote representa o apiário todo.
-  const alternarColmeia = (id: number) => setColmeiasMarcadas((l) => (l.includes(id) ? [] : [id]));
+  // Lote com uma ou várias colmeias de origem; sem nenhuma marcada, representa o apiário todo.
+  const alternarColmeia = (id: number) => setColmeiasMarcadas((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]));
 
   const salvar = async () => {
     if (!produtorId) return;
@@ -140,26 +175,33 @@ export default function CadastrarLoteMel() {
     try {
       // LoteCriadoDTO: o backend identifica o apiário pelo nome (do próprio produtor).
       // apiarioId (preferencial) e colmeiaId opcional, que deve pertencer ao apiário.
-      const resultado = await cadastrarLote(produtorId, {
+      const dados = {
         dataProducao,
         quantidadeProduzida: Math.round(kg * 100) / 100,
         nomeApiario: apiario.nome,
         apiarioId: apiario.id,
-        colmeiaId: colmeiasMarcadas[0] ?? undefined,
+        colmeiaIds: colmeiasMarcadas,
+        colmeiaId: colmeiasMarcadas.length === 1 ? colmeiasMarcadas[0] : undefined,
         tipoFlorada: florada || undefined,
         tipoAbelha,
         latitude: local.latitude,
         longitude: local.longitude,
-        vendido: false,
-      });
+        vendido,
+      };
+      const resultado: any = editando ? await atualizarLote(produtorId, loteId!, dados) : await cadastrarLote(produtorId, dados);
       lembrarEscolha('lote.tipoAbelha', tipoAbelha);
       if (florada) lembrarEscolha('lote.florada', florada);
       lembrarEscolha('apiario', apiarioId);
       alerta(
         resultado?.pendente ? 'Salvo no aparelho' : 'Sucesso',
-        resultado?.pendente ? 'Sem internet: o lote será enviado ao sincronizar.' : `Lote ${resultado?.id ?? ''} cadastrado com sucesso!`,
+        resultado?.pendente
+          ? 'Sem internet: o lote será enviado ao sincronizar.'
+          : editando
+            ? `Lote ${loteId} atualizado com sucesso!`
+            : `Lote ${resultado?.id ?? ''} cadastrado com sucesso!`,
       );
-      router.replace('/rastreabilidade/listar');
+      if (editando) voltar(router, '/rastreabilidade/listar');
+      else router.replace('/rastreabilidade/listar');
     } catch (e) {
       alerta('Erro', mensagemDeErro(e, 'Não foi possível salvar o lote.'));
     } finally {
@@ -169,7 +211,7 @@ export default function CadastrarLoteMel() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.conteudo} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ title: 'Cadastrar Lote' }} />
+      <Stack.Screen options={{ title: editando ? 'Editar Lote' : 'Cadastrar Lote' }} />
       <Text style={styles.intro}>Escolha o apiário e as colmeias de onde saiu o mel. O lote recebe um número para rastreio.</Text>
 
       <Input label="Data de produção" value={dataProducao} onChangeText={(t) => setDataProducao(maskDate(t))} placeholder="dd/mm/aaaa" iconName="calendar" maxLength={10} />
@@ -187,15 +229,15 @@ export default function CadastrarLoteMel() {
 
       {apiario && (
         <View style={styles.card}>
-          <Text style={styles.titulo}>Colmeia de origem (opcional)</Text>
-          <Text style={styles.dica}>Marque a colmeia de onde saiu o mel. Deixe sem marcar se o lote reúne todo o apiário.</Text>
+          <Text style={styles.titulo}>Colmeias de origem (opcional)</Text>
+          <Text style={styles.dica}>Marque as colmeias de onde saiu o mel. Deixe sem marcar se o lote reúne todo o apiário.</Text>
           {carregandoColmeias ? (
             <Text style={styles.dica}>Carregando colmeias...</Text>
           ) : colmeias.length === 0 ? (
             <Text style={styles.dica}>Este apiário ainda não tem colmeias cadastradas.</Text>
           ) : (
             colmeias.map((c) => (
-              <TouchableOpacity key={c.id} style={styles.linhaColmeia} onPress={() => alternarColmeia(c.id)} role="radio" aria-checked={colmeiasMarcadas.includes(c.id)} accessibilityLabel={`Colmeia ${c.identificador}`} testID={`colmeia-${c.id}`}>
+              <TouchableOpacity key={c.id} style={styles.linhaColmeia} onPress={() => alternarColmeia(c.id)} role="checkbox" aria-checked={colmeiasMarcadas.includes(c.id)} accessibilityLabel={`Colmeia ${c.identificador}`} testID={`colmeia-${c.id}`}>
                 <Checkbox value={colmeiasMarcadas.includes(c.id)} onValueChange={() => alternarColmeia(c.id)} color={colmeiasMarcadas.includes(c.id) ? cores.primaria : undefined} />
                 <Text style={styles.nomeColmeia}>{c.identificador}</Text>
                 <Text style={styles.dica}>{kgPorColmeia.get(c.id) ? formatarKgL(kgPorColmeia.get(c.id)!) : 'sem produção'}</Text>
@@ -220,7 +262,14 @@ export default function CadastrarLoteMel() {
       <Text style={styles.titulo}>Localização da produção</Text>
       <SeletorLocalizacao valor={local} onChange={setLocal} />
 
-      <Botao title={salvando ? 'Salvando...' : 'Cadastrar lote'} onPress={salvando ? () => {} : salvar} cor="primaria" style={{ marginTop: 16 }} />
+      {editando && (
+        <TouchableOpacity style={styles.linhaColmeia} onPress={() => setVendido(!vendido)} role="checkbox" aria-checked={vendido} accessibilityLabel="Lote vendido">
+          <Checkbox value={vendido} onValueChange={setVendido} color={vendido ? cores.primaria : undefined} />
+          <Text style={styles.nomeColmeia}>Lote vendido</Text>
+        </TouchableOpacity>
+      )}
+
+      <Botao title={salvando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Cadastrar lote'} onPress={salvando ? () => {} : salvar} cor="primaria" style={{ marginTop: 16 }} />
     </ScrollView>
   );
 }

@@ -1,13 +1,16 @@
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import Botao from '@/components/formulario/botao';
+import { alerta } from '@/utils/alerta';
+import { mensagemDeErro } from '@/utils/erros';
+import { voltar } from '@/utils/navegacao';
 import Input from '@/components/formulario/input';
-import Subtexto from '@/components/subTexto';
 import { EstadoCarregando, EstadoErro, EstadoVazio, rotuloEnum } from '@/components/graficos';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import { useDadosApi } from '@/hooks/useDadosApi';
-import { listarLotesDetalhado } from '@/services/loteService';
+import { excluirLote, idsColmeiasDoLote, listarLotesDetalhado } from '@/services/loteService';
 import { listarColmeiasPorProdutor } from '@/services/colmeiaService';
 import { getProducoes } from '@/services/producaoService';
 import { listarVistoriasPorProdutor } from '@/services/vistoriaService';
@@ -23,8 +26,8 @@ interface Origem {
 }
 
 /**
- * Detalhes do lote com a cadeia de origem: apiário → colmeias → vistorias → produções.
- * Lotes não podem ser alterados (a API não tem PUT/DELETE de lote, por rastreabilidade).
+ * Detalhes do lote com a cadeia de origem: apiário → colmeias → vistorias → produções,
+ * com editar (PUT /lotes/{p}/{id}) e excluir (DELETE, com confirmação).
  */
 export default function DetalheLote() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -41,7 +44,8 @@ export default function DetalheLote() {
       if (!lote) return { lote: null, colmeias: [], producoes: [], vistorias: [], vinculoExplicito: false };
       // Vínculo explícito (se a API devolver as colmeias do lote) ou origem derivada:
       // produções do mesmo apiário com data de coleta até a data do lote.
-      const idsExplicitos: number[] | null = lote.colmeiaId != null ? [lote.colmeiaId] : null;
+      const ids0 = idsColmeiasDoLote(lote);
+      const idsExplicitos: number[] | null = ids0.length ? ids0 : null;
       const doApiario = (colmeias as any[]).filter((c) => (lote.apiarioId != null ? c.apiarioId === lote.apiarioId : c.nomeApiario === lote.nomeApiario));
       const prods = producoes.filter(
         (p) => (lote.apiarioId != null ? p.apiarioId === lote.apiarioId : p.nomeApiario === lote.nomeApiario) && (!p.dataColeta || p.dataColeta <= lote.dataProducao) && (!idsExplicitos || idsExplicitos.includes(p.colmeiaId!)),
@@ -54,7 +58,8 @@ export default function DetalheLote() {
     [id],
   );
 
-  const { dados, carregando, erro, recarregar } = useDadosApi<Origem>(buscar, { lote: null, colmeias: [], producoes: [], vistorias: [], vinculoExplicito: false });
+  const router = useRouter();
+  const { dados, carregando, erro, recarregar, produtorId } = useDadosApi<Origem>(buscar, { lote: null, colmeias: [], producoes: [], vistorias: [], vinculoExplicito: false });
   const lote = dados.lote;
 
   if (carregando && !lote) return <EstadoCarregando texto="Carregando lote..." />;
@@ -62,10 +67,26 @@ export default function DetalheLote() {
   if (!lote) return <EstadoVazio mensagem="Lote não encontrado." />;
 
   const nada = () => {};
+  const excluir = () =>
+    alerta('Excluir lote', `Deseja excluir o lote ${lote.id}? Esta ação não pode ser desfeita.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await excluirLote(produtorId!, lote.id);
+            alerta('Lote excluído', `O lote ${lote.id} foi excluído.`);
+            voltar(router, '/rastreabilidade/listar');
+          } catch (e) {
+            alerta('Erro', mensagemDeErro(e, 'Não foi possível excluir o lote.'));
+          }
+        },
+      },
+    ]);
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.conteudo}>
       <Stack.Screen options={{ title: 'Detalhes do Lote' }} />
-      <Subtexto>Lotes registrados não podem ser alterados, para garantir a rastreabilidade.</Subtexto>
       <Input label="Número do lote" value={String(lote.id ?? '')} onChangeText={nada} editable={false} />
       <Input label="Data de produção" value={isoParaBr(lote.dataProducao)} onChangeText={nada} editable={false} iconName="calendar" />
       <Input label="Quantidade" value={formatarKgL(Number(lote.quantidadeProduzida) || 0)} onChangeText={nada} editable={false} />
@@ -81,7 +102,7 @@ export default function DetalheLote() {
         <Text style={styles.titulo}>Origem do mel</Text>
         <Text style={styles.dica}>
           {dados.vinculoExplicito
-            ? `Colmeia informada no cadastro do lote: ${lote.identificadorColmeia ?? ''}.`
+            ? 'Colmeias informadas no cadastro do lote.'
             : 'Lote do apiário inteiro: colmeias com produção registrada até a data do lote.'}
         </Text>
         {dados.colmeias.length === 0 ? (
@@ -102,6 +123,15 @@ export default function DetalheLote() {
           </Text>
         ))}
       </View>
+
+      <View style={styles.acoes}>
+        <View style={styles.acao}>
+          <Botao title="Editar lote" iconName="edit" onPress={() => router.push(`/rastreabilidade/cadastrar?id=${lote.id}` as any)} cor="primaria" />
+        </View>
+        <View style={styles.acao}>
+          <Botao title="Excluir lote" iconName="delete" onPress={excluir} cor="terciaria" />
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -114,4 +144,6 @@ const styles = StyleSheet.create({
   subtitulo: { fontSize: 15, fontWeight: 'bold', color: cores.texto, marginTop: 8 },
   dica: { fontSize: 14, color: '#555' },
   item: { fontSize: 15, color: cores.texto },
+  acoes: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  acao: { flexGrow: 1, flexBasis: 220 },
 });

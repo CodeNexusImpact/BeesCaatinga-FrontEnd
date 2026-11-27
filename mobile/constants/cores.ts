@@ -1,3 +1,4 @@
+import { temaEscuro } from '@/tema/preferencias';
 export const cores = {
     base: {
         0: '#FFFFFF',
@@ -81,24 +82,23 @@ export const cores = {
 };
 
 
-const opacity = (hexColor: string, opacityPercent: number) => {
-    const opacityHex = Math.round((opacityPercent / 100) * 255).toString(16).padStart(2, '0');
-    return hexColor + opacityHex;
-}
 
 /**
  * Identidade BeesCaatinga: amarelo-mel + marrom escuro.
  * Pares de cor pensados para contraste WCAG AA (texto marrom sobre mel; branco sobre marrom).
  */
+const escuro = temaEscuro();
+
 export const identidade = {
     mel: '#F0B21A',
     melClaro: '#FFF4D6',
     marrom: '#5D4037',
     marromEscuro: '#3E2723',
-    creme: '#FFFBF2',
-    texto: '#1F1A17',
-    textoSecundario: '#4A4A4A',
-    borda: '#8A7F72',
+    creme: escuro ? '#151311' : '#FFFBF2',
+    superficie: escuro ? '#221E1B' : '#FFFFFF',
+    texto: escuro ? '#F3EEE8' : '#1F1A17',
+    textoSecundario: escuro ? '#CFC6BC' : '#4A4A4A',
+    borda: escuro ? '#6A6056' : '#8A7F72',
     perigo: '#B71C1C',
     sucesso: '#2E7D32',
     aviso: '#8D5B00',
@@ -113,7 +113,9 @@ export const temaCores = {
 
     secundariaHover: cores.secundaria[90],
     secundariaActive: cores.secundaria[80],
-    secundaria: identidade.marrom,
+    secundaria: escuro ? '#8D6E63' : identidade.marrom,
+    superficie: identidade.superficie,
+    escuro,
     terciaria: cores.terciaria[100],
 
     branco: cores.base[0],
@@ -131,7 +133,7 @@ export const temaCores = {
     textoSecundario: identidade.textoSecundario,
     textoSobrePrimaria: identidade.marromEscuro,
     fundo: identidade.creme,
-    placeholder: '#6B6B6B',
+    placeholder: escuro ? '#B5ACA2' : '#6B6B6B',
     sublinhado: cores.secundaria[30],
     borda: identidade.borda,
 };

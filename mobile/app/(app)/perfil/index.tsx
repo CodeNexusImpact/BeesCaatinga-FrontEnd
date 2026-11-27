@@ -6,7 +6,7 @@ import layout from '@/constants/layout';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import Icon from '@/components/icon';
+import ImagemPicker from '@/components/formulario/imagemPicker';
 import { useAuth } from '@/hooks/useAuth';
 import { atualizarProdutor } from '@/services/produtorService';
 import { maskPhone } from '@/utils/masks';
@@ -25,6 +25,7 @@ export default function Index() {
   const [empresa, setEmpresa] = useState(user?.nomeDaEmpresa || '');
   const [telefone, setTelefone] = useState(maskPhone(user?.telefone || ''));
   const [endereco, setEndereco] = useState(user?.endereco || '');
+  const [foto, setFoto] = useState<string | null>(null);
 
   // Opções para gênero alinhadas ao backend
   const generoOptions = [
@@ -52,6 +53,7 @@ export default function Index() {
         nomeDaEmpresa: empresa.trim(),
         telefone: digitos || undefined,
         endereco: endereco.trim(),
+        ...(foto ? { caminhoDaFoto: foto } : {}),
       });
       await atualizarUsuario({ ...user, ...atualizado });
       alerta('Sucesso', 'Perfil atualizado com sucesso!');
@@ -75,14 +77,9 @@ export default function Index() {
       <Stack.Screen options={{ title: 'Meu Perfil' }} />
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Meu Perfil</Text>
-        {/* Foto do Perfil */}
-        <TouchableOpacity style={styles.fotoContainer}>
-          <View style={styles.fotoPlaceholder}>
-            <Icon name="camera" size={40} color={cores.preto} />
-            <Text style={styles.fotoTexto}>Foto do Perfil</Text>
-          </View>
-        </TouchableOpacity>
+        {/* Foto do perfil: POST /upload e caminhoDaFoto no produtor */}
+        <ImagemPicker shape="circle" width={140} valorInicial={(user as any)?.fotoUrl ?? user?.caminhoDaFoto ?? null} onImagePicked={(url) => setFoto(url)} />
+        <Text style={styles.fotoTexto}>Toque para trocar a foto</Text>
       </View>
 
       {/* Campos do formulário */}

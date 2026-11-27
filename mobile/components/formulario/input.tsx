@@ -18,6 +18,8 @@ interface InputProps extends TextInputProps {
     multiline?: boolean;
     useImagePicker?: boolean; // New prop to enable image picker mode
     onImagePicked?: (uri: string | null) => void; // Callback for the picked image
+    /** Foto já salva, exibida no seletor de imagem. */
+    imagemInicial?: string | null;
     /** Dica curta exibida abaixo do campo (ex.: "Ex.: 15/03/2026"). */
     dica?: string;
     /** Mensagem de erro exibida junto ao campo. */
@@ -40,6 +42,7 @@ const Input = React.forwardRef<InputRef, InputProps>(({
     multiline = false,
     useImagePicker = false, // Default to false
     onImagePicked,
+    imagemInicial,
     dica,
     erro,
     ...textInputProps
@@ -72,7 +75,7 @@ const Input = React.forwardRef<InputRef, InputProps>(({
 
                 {useImagePicker ? (
                     <View style={styles.imagePickerWrapper}>
-                        <ImagemPicker onImagePicked={onImagePicked || (() => {})} />
+                        <ImagemPicker onImagePicked={onImagePicked || (() => {})} valorInicial={imagemInicial} />
                     </View>
                 ) : (
                     <TextInput

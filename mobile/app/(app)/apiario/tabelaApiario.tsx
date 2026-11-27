@@ -1,112 +1,49 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
-import { Stack } from 'expo-router';
-
+import React, { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import Selector from '@/components/formulario/selector';
-import Botao from '@/components/formulario/botao';
-import Tabela, { TabelaColuna } from '@/components/tabela';
-import Subtexto from '@/components/subTexto';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { useAuth } from '@/hooks/useAuth';
-import { exportarCsv } from '@/utils/csv';
-import { alerta } from '@/utils/alerta';
+import TelaRelatorio from '@/components/telaRelatorio';
+import { opcoesDeAno } from '@/components/graficos';
+import type { TabelaColuna } from '@/components/tabela';
+import { useDadosApi } from '@/hooks/useDadosApi';
 import { listarApiariosPorProdutor } from '@/services/apiarioService';
+import type { ApiarioRetornoDTO } from '@/types/apiario';
 
-// Interface baseada no Retorno do Backend
-interface DadosApiario {
-    id: string;
-    nome: string;
-    registro: string;
-    dataCriacao: string; // "DD/MM/AAAA"
-    cidade: string;
-    colmeiasTotal: number;
-    ano: string; // Campo auxiliar para o filtro
-}
+const buscar = (id: number) => listarApiariosPorProdutor(id);
 
-const colunasApiario: TabelaColuna<DadosApiario>[] = [
-    { label: 'Nome', dataKey: 'nome', sortable: true, flex: 3 },
-    { label: 'Registro', dataKey: 'registro', sortable: true, flex: 2 },
-    { label: 'Cidade', dataKey: 'cidade', sortable: true, flex: 2 },
-    { label: 'Colmeias', dataKey: 'colmeiasTotal', sortable: true, flex: 1.5 },
+const colunas: TabelaColuna<ApiarioRetornoDTO>[] = [
+  { label: 'Apiário', dataKey: 'nome', sortable: true, flex: 2 },
+  { label: 'Registro', dataKey: 'nRegistro', sortable: true, flex: 1.5 },
+  { label: 'Criado em', dataKey: 'dataDeCriacao', sortable: true, tipo: 'data' },
+  { label: 'Cidade', dataKey: 'cidade', sortable: true, render: (a) => [a.cidade, a.estado].filter(Boolean).join(' - ') || '—' },
+  { label: 'Propriedade', dataKey: 'nomeDaPropriedade', sortable: true, flex: 1.5 },
+  { label: 'Colmeias', dataKey: 'colmeias', render: (a) => String(a.colmeias?.length ?? 0) },
+  { label: 'Localização', dataKey: 'latitude', render: (a) => (a.latitude != null ? 'No mapa' : 'Sem local') },
 ];
 
-export default function TabelaApiarios() {
-    const { user } = useAuth();
-    const [filtroAno, setFiltroAno] = useState('');
-    const [apiarios, setApiarios] = useState<DadosApiario[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function RelatorioApiarios() {
+  const router = useRouter();
+  const { dados, carregando, erro, recarregar } = useDadosApi<ApiarioRetornoDTO[]>(buscar, []);
+  const [ano, setAno] = useState('');
+  const [cidade, setCidade] = useState('');
+  const cidades = useMemo(() => [{ label: 'Todas as cidades', value: '' }, ...[...new Set(dados.map((a) => a.cidade).filter(Boolean))].sort().map((c) => ({ label: c, value: c }))], [dados]);
+  const filtrados = dados.filter((a) => (!ano || String(a.dataDeCriacao ?? '').startsWith(ano)) && (!cidade || a.cidade === cidade));
 
-    useEffect(() => {
-        const fetchApiarios = async () => {
-            if (!user?.id) return;
-            try {
-                setLoading(true);
-                const data = await listarApiariosPorProdutor(user.id);
-                const formatados = data.map(a => ({
-                    id: a.id.toString(),
-                    nome: a.nome,
-                    registro: a.nRegistro || 'N/A',
-                    dataCriacao: a.dataDeCriacao ? new Date(a.dataDeCriacao).toLocaleDateString('pt-BR') : 'N/A',
-                    cidade: a.cidade,
-                    colmeiasTotal: a.colmeias ? a.colmeias.length : 0,
-                    ano: a.dataDeCriacao ? String(a.dataDeCriacao).slice(0, 4) : ''
-                }));
-                setApiarios(formatados);
-            } catch (error) {
-                console.error('Erro ao buscar apiários para tabela:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchApiarios();
-    }, [user?.id]);
-
-    const dadosFiltrados = useMemo(() => {
-        return apiarios.filter(item => filtroAno === '' || item.ano === filtroAno);
-    }, [apiarios, filtroAno]);
-
-    if (loading) {
-        return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={cores.primaria[100]} />
-                <Text>Carregando Relatório...</Text>
-            </View>
-        );
-    }
-
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Relatório de Apiários' }} />
-            <Subtexto style={styles.titulo}>Relatório de Apiários</Subtexto>
-
-            <View style={{ zIndex: 100 }}>
-                <Selector 
-                    label="Filtrar por Ano:" 
-                    options={[{ label: 'Todos', value: '' }, ...[...new Set(apiarios.map((a) => a.ano).filter(Boolean))].sort().reverse().map((a) => ({ label: a, value: a }))]} 
-                    onSelect={setFiltroAno} 
-                    iconName="calendar"
-                    value={filtroAno}
-                />
-            </View>
-
-            <View style={styles.tabelaContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={{ minWidth: 700 }}>
-                        <Tabela colunas={colunasApiario} data={dadosFiltrados} />
-                    </View>
-                </ScrollView>
-            </View>
-
-            <Botao title="Exportar planilha (CSV)" cor="primaria" onPress={() => exportarCsv('relatorio-apiarios.csv', colunasApiario, dadosFiltrados).catch(() => alerta('Erro', 'Não foi possível exportar.'))} />
-        </ScrollView>
-    );
+  return (
+    <TelaRelatorio
+      titulo="Relatório de Apiários"
+      carregando={carregando}
+      erro={erro}
+      onTentarNovamente={recarregar}
+      filtros={[
+        <Selector key="ano" label="Ano de criação" options={opcoesDeAno(dados, (a) => a.dataDeCriacao)} onSelect={setAno} value={ano} />,
+        <Selector key="cidade" label="Cidade" options={cidades} onSelect={setCidade} value={cidade} />,
+      ]}
+      colunas={colunas}
+      dados={filtrados}
+      vazio={dados.length ? 'Nenhum apiário para estes filtros.' : 'Nenhum apiário cadastrado ainda.'}
+      acaoVazio={dados.length ? undefined : { titulo: 'Cadastrar primeiro apiário', onPress: () => router.push('/apiario/cadastrar') }}
+      onPressLinha={(a) => router.push(`/apiario/editar?id=${a.id}` as any)}
+      arquivoCsv="relatorio-apiarios.csv"
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: 20 },
-    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    titulo: { textAlign: 'center', width: '100%' },
-    tabelaContainer: { borderRadius: 8, borderWidth: 1, borderColor: cores.cores.base[20], overflow: 'hidden' },
-});

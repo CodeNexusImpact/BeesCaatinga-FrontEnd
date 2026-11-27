@@ -1,6 +1,6 @@
 {
   "name": "mobile",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "build:web": "expo export --platform web",
     "e2e": "NODE_USE_ENV_PROXY=1 node e2e/run.js",
-    "e2e:capturas": "NODE_USE_ENV_PROXY=1 node e2e/capturas.js"
+    "e2e:capturas": "NODE_USE_ENV_PROXY=1 node e2e/capturas.js",
+    "e2e:visual": "NODE_USE_ENV_PROXY=1 node e2e/matriz-visual.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

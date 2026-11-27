@@ -1,338 +1,50 @@
-import Botao from '@/components/formulario/botao';
-import { EstadoVazio } from '@/components/graficos';
+import React, { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import Selector from '@/components/formulario/selector';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useCallback, useMemo } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  } from 'react-native';
-import { getVistorias, deletarVistoria, Vistoria } from '@/services/vistoriaService';
-import { useAuth } from '@/hooks/useAuth';
-import { opcoesDeAno } from '@/components/graficos';
+import TelaLista from '@/components/telaLista';
+import { opcoesDeAno, rotuloEnum } from '@/components/graficos';
+import type { TabelaColuna } from '@/components/tabela';
+import { useDadosApi } from '@/hooks/useDadosApi';
+import { listarVistoriasPorProdutor, Vistoria } from '@/services/vistoriaService';
 
-// --- Importar os Modais ---
-import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
-import ModalSucesso from '@/components/notificacao/modalSucesso';
+const buscar = (id: number) => listarVistoriasPorProdutor(id);
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-import GenericCard from '@/components/genericCard';
-import type { CardField } from '@/components/genericCard';
-import { alerta } from '@/utils/alerta';
+const colunas: TabelaColuna<Vistoria>[] = [
+  { label: 'Data', dataKey: 'dataVistoria', sortable: true, tipo: 'data' },
+  { label: 'Colmeia', dataKey: 'nomeColmeia', sortable: true },
+  { label: 'Apiário', dataKey: 'nomeApiario', sortable: true, flex: 1.6 },
+  { label: 'Condição', dataKey: 'condicao', sortable: true, flex: 1.6, render: (v) => ((v as any).pendente ? 'Pendente de envio' : rotuloEnum(v.condicao)) },
+  { label: 'Pragas', dataKey: 'pragasIdentificadas', flex: 1.6, render: (v) => (v.pragasIdentificadas?.length ? v.pragasIdentificadas.map(rotuloEnum).join(', ') : 'Nenhuma') },
+];
 
 export default function ListarVistorias() {
   const router = useRouter();
-  const { user } = useAuth();
-  const userId = user?.id;
-
-  // Estados de Dados ---
-  const [vistorias, setVistorias] = useState<Vistoria[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [ordemCrescente, setOrdemCrescente] = useState(false);
-
-  // Estados de Filtro ---
+  const { dados, carregando, erro, recarregar } = useDadosApi<Vistoria[]>(buscar, []);
   const [mes, setMes] = useState('');
   const [ano, setAno] = useState('');
-  const [estado, setEstado] = useState('');
-
-  //  Estados dos Modais --- 
-  const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
-  const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
-  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
-
-  // --- Opções
-  const mesOptions = [
-    { label: 'Janeiro', value: '01' }, { label: 'Fevereiro', value: '02' }, { label: 'Março', value: '03' },
-    { label: 'Abril', value: '04' }, { label: 'Maio', value: '05' }, { label: 'Junho', value: '06' },
-    { label: 'Julho', value: '07' }, { label: 'Agosto', value: '08' }, { label: 'Setembro', value: '09' },
-    { label: 'Outubro', value: '10' }, { label: 'Novembro', value: '11' }, { label: 'Dezembro', value: '12' },
-  ];
-  
-  const anoOptions = opcoesDeAno(vistorias, (v) => v.dataVistoria).slice(1);
-
-  const carregarVistorias = useCallback(async () => {
-    if (!userId) return;
-    
-    try {
-      setLoading(true);
-      const dados = await getVistorias(userId);
-      setVistorias(dados);
-    } catch (error) {
-      console.error('Erro ao carregar vistorias:', error);
-      alerta('Erro', 'Não foi possível carregar as vistorias.');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      carregarVistorias();
-    }, [carregarVistorias])
-  );
-
-  // Lógica de Ordenação
-  const vistoriasOrdenadas = useMemo(() => {
-    return [...vistorias].sort((a, b) => {
-        const parseDate = (d: string) => {
-            const parts = d.includes('/') ? d.split('/') : d.split('-');
-            if (d.includes('/')) return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
-            return new Date(d).getTime();
-        };
-        const dataA = parseDate(a.dataVistoria);
-        const dataB = parseDate(b.dataVistoria);
-        return ordemCrescente ? dataA - dataB : dataB - dataA;
-    });
-  }, [vistorias, ordemCrescente]);
-
-  const toggleOrdem = () => {
-    setOrdemCrescente(!ordemCrescente);
-  };
-
-  // Funções de Navegação --- 
-  const handleEdit = (id: number) => {
-    router.push(`/vistorias/editar?id=${id}`);
-  };
-
-  // Funções de Exclusão --- 
-  const handleDelete = (id: number) => {
-    setIdParaExcluir(id);
-    setModalConfirmacaoVisivel(true);
-  };
-
-  const confirmarExclusao = async () => {
-    if (idParaExcluir !== null && userId) {
-      try {
-        await deletarVistoria(idParaExcluir, userId);
-        setModalConfirmacaoVisivel(false);
-        setModalSucessoVisivel(true);
-        carregarVistorias(); // Recarrega a lista
-      } catch (error) {
-        console.error('Erro ao excluir vistoria:', error);
-        alerta('Erro', 'Não foi possível excluir a vistoria.');
-        setModalConfirmacaoVisivel(false);
-      }
-    }
-  };
-
-  const cancelarExclusao = () => {
-    setModalConfirmacaoVisivel(false);
-    setIdParaExcluir(null);
-  };
-
-  const handleBuscar = () => {
-    carregarVistorias();
-  };
-
-  const getCorStatus = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'saudavel': return cores.sucesso;
-      case 'manutencao_necessaria': return cores.alerta;
-      case 'agendar_colheita': return cores.secundaria;
-      default: return cores.secundaria;
-    }
-  };
-
-  const getLabelStatus = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'saudavel': return 'Saudável';
-      case 'manutencao_necessaria': return 'Manutenção Necessária';
-      case 'agendar_colheita': return 'Agendar Colheita';
-      default: return status;
-    }
-  };
+  const ordenadas = useMemo(() => [...dados].sort((a, b) => String(b.dataVistoria).localeCompare(String(a.dataVistoria))), [dados]);
+  const filtradas = ordenadas.filter((v) => {
+    const d = String(v.dataVistoria ?? '');
+    return (!ano || d.startsWith(ano)) && (!mes || d.slice(5, 7) === mes);
+  });
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Minhas Vistorias' }} />
-      <View style={styles.container}>
-        
-        <ScrollView contentContainerStyle={styles.contentContainer}>
-          {/* 👇 Área de Filtros Simplificada */}
-          <View style={styles.filtroWrapper}>
-            <View style={styles.filtroContainer}>
-              <Text style={styles.filtroTitulo}>Filtros</Text>
-              
-              <View style={styles.botoesRow}>
-                <Selector
-                  label="Mês"
-                  options={mesOptions}
-                  onSelect={setMes}
-                  placeholder="Selecione"
-                  style={{flex: 1}}
-                />
-                <Selector
-                  label="Ano"
-                  options={anoOptions}
-                  onSelect={setAno}
-                  placeholder="Selecione"
-                  style={{flex: 1}}
-                />
-              </View>
-
-              <Botao
-                title="Buscar"
-                onPress={handleBuscar}
-                cor="primaria"
-                iconName="magnify"
-              />
-            </View>
-          </View>
-
-          <Text style={styles.resumoTexto}>
-            Resumo Geral do status atual da suas colmeias
-          </Text>
-
-          {/* --- Botão de Ordenar --- */}
-          <TouchableOpacity style={styles.ordemButton} onPress={toggleOrdem}>
-            <Text style={styles.ordemButtonText}>Ordem Data</Text>
-            <MaterialCommunityIcons
-              name={ordemCrescente ? "arrow-up" : "arrow-down"}
-              size={16}
-              color={cores.preto}
-            />
-          </TouchableOpacity>
-
-          {/*Lista de Vistorias --- */}
-          <View style={styles.listaContainer}>
-            {loading ? (
-              <ActivityIndicator size="large" color={cores.primaria} />
-            ) : vistoriasOrdenadas.length === 0 ? (
-              <EstadoVazio mensagem={vistorias.length ? 'Nenhuma vistoria encontrada para este filtro.' : 'Nenhuma vistoria cadastrada ainda.'} icone="clipboardCheck" acao={vistorias.length ? undefined : { titulo: 'Cadastrar primeira vistoria', onPress: () => router.push('/vistorias/cadastrar') }} />
-            ) : (
-              vistoriasOrdenadas.map((vistoria) => {
-                // ENRIQUECIMENTO DO MAPEAMENTO DO CARD
-                const fields: CardField[] = [
-                  {
-                    label: 'Status',
-                    value: getLabelStatus(vistoria.condicao),
-                    valueStyle: { color: getCorStatus(vistoria.condicao) },
-                  },
-                  {
-                    label: 'Local',
-                    value: `${vistoria.nomeApiario ?? ''} | ${vistoria.nomeColmeia ?? ''}`,
-                  },
-                  { label: 'Data', value: vistoria.dataVistoria },
-                  {
-                    label: 'Pragas',
-                    value: vistoria.pragasIdentificadas?.length ? vistoria.pragasIdentificadas.join(', ') : 'Nenhuma',
-                  },
-                  {
-                    label: 'Perdas',
-                    value: vistoria.perdasIdentificadas?.length ? vistoria.perdasIdentificadas.join(', ') : 'Nenhuma',
-                  },
-                  {
-                    label: 'Obs',
-                    value: vistoria.observacoes || 'Nenhuma',
-                  },
-                ];
-
-                return (
-                  <GenericCard
-                    key={vistoria.id}
-                    id={vistoria.id!}
-                    fields={fields}
-                    actions={[
-                      {
-                        iconName: 'delete',
-                        onPress: () => handleDelete(vistoria.id!),
-                      },
-                      {
-                        iconName: 'edit',
-                        onPress: () => handleEdit(vistoria.id!),
-                      },
-                    ]}
-                  />
-                );
-              })
-            )}
-          </View>
-        </ScrollView>
-
-        <ModalSucesso
-          visivel={modalSucessoVisivel}
-          mensagem="Vistoria excluída com sucesso!"
-          aoFechar={() => setModalSucessoVisivel(false)}
-        />
-      </View>
-
-      <ModalConfirmacao
-        visivel={modalConfirmacaoVisivel}
-        titulo="Deseja mesmo apagar esta vistoria?"
-        mensagem="Esta ação não pode ser desfeita."
-        aoConfirmar={confirmarExclusao}
-        aoCancelar={cancelarExclusao}
-        aoFechar={cancelarExclusao}
-      />
-    </>
+    <TelaLista
+      titulo="Minhas Vistorias"
+      cadastrar={{ titulo: 'Cadastrar vistoria', rota: '/vistorias/cadastrar' }}
+      carregando={carregando}
+      erro={erro}
+      onTentarNovamente={recarregar}
+      filtros={[
+        <Selector key="mes" label="Mês" options={[{ label: 'Todos os meses', value: '' }, ...MESES.map((m, i) => ({ label: m, value: String(i + 1).padStart(2, '0') }))]} onSelect={setMes} value={mes} />,
+        <Selector key="ano" label="Ano" options={opcoesDeAno(dados, (v) => v.dataVistoria)} onSelect={setAno} value={ano} />,
+      ]}
+      colunas={colunas}
+      dados={filtradas}
+      total={dados.length}
+      vazio="Nenhuma vistoria cadastrada ainda."
+      onPressLinha={(v) => !(v as any).pendente && router.push(`/vistorias/${v.id}` as any)}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundo,
-  },
-  contentContainer: {
-    padding: layout.espacamento.amigavel,
-    gap: layout.espacamento.colega,
-    overflow: 'visible',
-  },
-  filtroWrapper: {
-    position: 'relative',
-    zIndex: 999,
-    marginBottom: layout.espacamento.texto,
-  },
-  filtroContainer: {
-    backgroundColor: cores.cores.base[5],
-    padding: layout.espacamento.amigavel,
-    borderRadius: layout.borderRadius.r25,
-    gap: layout.espacamento.amigavel,
-    borderWidth: 1,
-    borderColor: cores.cores.base[10],
-  },
-  filtroTitulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: cores.preto,
-  },
-  botoesRow: {
-    flexDirection: 'row',
-    gap: layout.espacamento.amigavel,
-    zIndex: 10, // Garante que o conteúdo (dropdown) fique por cima do botão abaixo
-    elevation: 10, // Necessário para Android
-  },
-  resumoTexto: {
-    fontSize: 14,
-    color: cores.placeholder,
-    textAlign: 'center',
-    paddingHorizontal: layout.espacamento.social,
-  },
-  ordemButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: layout.espacamento.texto,
-    backgroundColor: cores.primaria,
-    borderRadius: layout.borderRadius.r1000,
-    paddingVertical: layout.espacamento.texto,
-    paddingHorizontal: layout.espacamento.colega,
-    alignSelf: 'center',
-  },
-  ordemButtonText: {
-    color: cores.preto,
-    fontWeight: 'bold',
-  },
-  listaContainer: {
-    gap: layout.espacamento.colega,
-  },
-  footerButton: {
-    marginTop: layout.espacamento.amigavel,
-  },
-});

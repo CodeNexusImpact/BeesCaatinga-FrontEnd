@@ -4,6 +4,7 @@ import Selector from '@/components/formulario/selector';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
 import Checkbox from 'expo-checkbox';
+import SeletorLocalizacao, { Coordenada } from '@/components/mapa/seletorLocalizacao';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -61,6 +62,8 @@ const isoParaBr = (iso?: string) => {
 };
 
 export default function EditarVistoria() {
+  const [local, setLocal] = useState<Coordenada | null>(null);
+  const [foto, setFoto] = useState<string | null>(null);
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
@@ -93,6 +96,9 @@ export default function EditarVistoria() {
         setNomeColmeia(dados.nomeColmeia ?? '');
         setCondicao(dados.condicao ?? '');
         setObservacoes(dados.observacoes ?? '');
+        const d: any = dados;
+        setFoto(d.fotoUrl ?? d.caminhoDaFoto ?? null);
+        if (d.latitude != null && d.longitude != null) setLocal({ latitude: Number(d.latitude), longitude: Number(d.longitude) });
         setPragasObj(paraCheckbox(PRAGAS, dados.pragasIdentificadas));
         setPerdasObj(paraCheckbox(PERDAS, dados.perdasIdentificadas));
       })
@@ -121,6 +127,9 @@ export default function EditarVistoria() {
         observacoes,
         pragasIdentificadas: paraLista(pragasObj),
         perdasIdentificadas: paraLista(perdasObj),
+        latitude: local?.latitude ?? null,
+        longitude: local?.longitude ?? null,
+        ...(foto ? { caminhoDaFoto: foto } : {}),
       });
       alertaSalvo(salvo, 'Vistoria atualizada com sucesso!');
       router.push('/vistorias/listar');
@@ -195,6 +204,11 @@ export default function EditarVistoria() {
         numberOfLines={5}
         style={styles.textArea}
       />
+
+      <Input label="Foto da vistoria (opcional)" useImagePicker imagemInicial={foto} onImagePicked={(url) => setFoto(url)} />
+
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: cores.texto }}>Local da vistoria (opcional)</Text>
+      <SeletorLocalizacao valor={local} onChange={setLocal} dica="Use o GPS no local da colmeia ou toque no mapa." />
 
       <Botao
         title={isSaving ? 'Salvando...' : 'Salvar'}

@@ -1,458 +1,65 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { exportarCsv } from '@/utils/csv';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Modal, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import Botao from '@/components/formulario/botao';
+import Selector from '@/components/formulario/selector';
+import Filtros from '@/components/filtros';
+import Tabela, { TabelaColuna } from '@/components/tabela';
+import { EstadoCarregando, EstadoErro, rotuloEnum } from '@/components/graficos';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { useAuth } from '@/hooks/useAuth';
-import { getRastreabilidade, RastreabilidadeDTO } from '@/services/rastreabilidadeService';
-import { alerta } from '@/utils/alerta';
-import { isoParaBr } from '@/utils/datas';
-import { formatarKgL } from '@/utils/mel';
+import { useDadosApi } from '@/hooks/useDadosApi';
+import { listarLotesDetalhado } from '@/services/loteService';
+import type { LoteRetornoListadoDTO } from '@/types/rastreabilidade';
 
-export default function ListarLotesMel() {
+const buscar = (id: number): Promise<LoteRetornoListadoDTO[]> => listarLotesDetalhado(id);
+
+const colunas: TabelaColuna<LoteRetornoListadoDTO>[] = [
+  { label: 'Lote', dataKey: 'id', sortable: true, flex: 0.8, render: (l) => ((l as any).pendente ? 'Pendente de envio' : `Nº ${l.id}`) },
+  { label: 'Apiário', dataKey: 'nomeApiario', sortable: true, flex: 1.6 },
+  { label: 'Produção', dataKey: 'dataProducao', sortable: true, tipo: 'data' },
+  { label: 'Quantidade', dataKey: 'quantidadeProduzida', sortable: true, flex: 1.8, tipo: 'kg' },
+  { label: 'Colmeia(s)', dataKey: 'identificadorColmeia', flex: 1.4, render: (l: any) => (l.colmeias?.length ? l.colmeias.map((c: any) => c.identificador).join(', ') : l.identificadorColmeia || 'Apiário inteiro') },
+  { label: 'Florada', dataKey: 'tipoFlorada', render: (l) => rotuloEnum(l.tipoFlorada) },
+  { label: 'Situação', dataKey: 'vendido', render: (l) => (l.vendido ? 'Vendido' : 'Em estoque') },
+];
+
+/** Lista de lotes (toque abre o detalhe com a origem do mel). */
+export default function ListarLotes() {
   const router = useRouter();
-  const { user } = useAuth();
-  const userId = user?.id;
-
-  // Estados para dados reais
-  const [lotes, setLotes] = useState<RastreabilidadeDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isListaVisivel, setIsListaVisivel] = useState(true);
-  const [filtroApiario, setFiltroApiario] = useState('');
-  const [modalVisivel, setModalVisivel] = useState(false);
-
-  const carregarLotes = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      setIsLoading(true);
-      const data = await getRastreabilidade(userId);
-      setLotes(data);
-    } catch (error) {
-      console.error('❌ [LISTAR LOTES] Erro ao carregar:', error);
-      alerta('Erro', 'Não foi possível carregar a lista de lotes.');
-      setLotes([]); // Garante lista vazia em caso de falha
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      carregarLotes();
-    }, [carregarLotes])
-  );
-
-  // Filtrar lotes por apiário
-  const lotesFiltrados = filtroApiario
-    ? lotes.filter(lote => (lote.nomeApiario ?? lote.apiarioId?.toString()) === filtroApiario)
-    : lotes;
-
-  // Obter apiários únicos para o filtro
-  const apiariosUnicos = ['Todos', ...new Set(lotes.map(lote => (lote.nomeApiario ?? lote.apiarioId?.toString() ?? '')))];
-
-  // Handler para selecionar apiário
-  const handleSelecionarApiario = (apiario: string) => {
-    if (apiario === 'Todos') {
-      setFiltroApiario('');
-    } else {
-      setFiltroApiario(apiario);
-    }
-    setModalVisivel(false);
-  };
-
-  // Handler para navegar para detalhes do lote
-  const handleLotePress = (idLote: number) => {
-    router.push({ pathname: '/rastreabilidade/editar', params: { id: String(idLote) } });
-  };
-
-  const handleExportar = async () => {
-      if (!lotesFiltrados?.length) {
-          alerta('Aviso', 'Não há dados para exportar.');
-          return;
-      }
-      try {
-          await exportarCsv('lotes.csv', [{ label: 'Lote', dataKey: 'id' }, { label: 'Data', dataKey: 'dataProducao', render: (l: any) => isoParaBr(l.dataProducao) }, { label: 'Quantidade', dataKey: 'quantidadeProduzida', render: (l: any) => formatarKgL(Number(l.quantidadeProduzida) || 0) }, { label: 'Apiário', dataKey: 'nomeApiario' }, { label: 'Colmeia', dataKey: 'identificadorColmeia' }, { label: 'Florada', dataKey: 'tipoFlorada' }, { label: 'Abelha', dataKey: 'tipoAbelha' }] as any, lotesFiltrados);
-      } catch {
-          alerta('Erro', 'Não foi possível exportar a planilha.');
-      }
-  };
-
-  // Texto exibido no seletor
-  const textoSeletor = filtroApiario ? filtroApiario : 'Todos os Apiários';
-
-  if (isLoading) {
-    return (
-      <View style={styles.modalOverlay}>
-        <ActivityIndicator size="large" color={cores.primaria[100]} />
-      </View>
-    );
-  }
+  const { dados, carregando, erro, recarregar } = useDadosApi<LoteRetornoListadoDTO[]>(buscar, []);
+  const [apiario, setApiario] = useState('');
+  const apiarios = useMemo(() => [{ label: 'Todos os apiários', value: '' }, ...[...new Set(dados.map((l) => l.nomeApiario).filter(Boolean))].sort().map((n) => ({ label: n, value: n }))], [dados]);
+  const filtrados = dados.filter((l) => !apiario || l.nomeApiario === apiario);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-    >
+    <ScrollView style={styles.container} contentContainerStyle={styles.conteudo}>
       <Stack.Screen options={{ title: 'Meus Lotes' }} />
-
-      {/* Card de Lista de Lotes */}
-      <View style={styles.listaContainer}>
-        {/* Header do Card (Clicável) */}
-        <TouchableOpacity
-          style={styles.listaHeader}
-          onPress={() => setIsListaVisivel(!isListaVisivel)}
-        >
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerIndex}>1</Text>
-            <Text style={styles.headerTitle}>Listar Lotes de Mel</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <Text style={styles.headerTitle}>Visão Geral</Text>
-            <Text style={{ color: cores.texto }}>
-              {isListaVisivel ? '▲' : '▼'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Conteúdo do Card (Sanfonado) */}
-        {isListaVisivel && (
-          <View style={styles.listaContent}>
-
-            {/* Seletor de Apiário */}
-            <View style={styles.filtroContainer}>
-              <Text style={styles.filtroLabel}>Filtrar por Apiário:</Text>
-
-              <TouchableOpacity
-                style={styles.seletor}
-                onPress={() => setModalVisivel(true)}
-              >
-                <Text style={styles.seletorTexto}>{textoSeletor}</Text>
-                <Text style={styles.seletorSeta}>▼</Text>
-              </TouchableOpacity>
-
-              {/* Modal do Seletor */}
-              <Modal
-                visible={modalVisivel}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setModalVisivel(false)}
-              >
-                <TouchableOpacity
-                  style={styles.modalOverlay}
-                  activeOpacity={1}
-                  onPress={() => setModalVisivel(false)}
-                >
-                  <View style={styles.modalContent}>
-                    <Text style={styles.modalTitulo}>Selecionar Apiário</Text>
-
-                    {apiariosUnicos.map((apiario, index) => (
-                      <TouchableOpacity
-                        key={apiario}
-                        style={[
-                          styles.opcaoSeletor,
-                          index === 0 && styles.primeiraOpcao,
-                          index === apiariosUnicos.length - 1 && styles.ultimaOpcao,
-                          (apiario === 'Todos' && !filtroApiario) ||
-                            (apiario === filtroApiario) ? styles.opcaoSelecionada : null
-                        ]}
-                        onPress={() => handleSelecionarApiario(apiario)}
-                      >
-                        <Text style={[
-                          styles.opcaoTexto,
-                          (apiario === 'Todos' && !filtroApiario) ||
-                            (apiario === filtroApiario) ? styles.opcaoTextoSelecionada : null
-                        ]}>
-                          {apiario === 'Todos' ? 'Todos os Apiários' : apiario}
-                        </Text>
-                        {(apiario === 'Todos' && !filtroApiario) ||
-                          (apiario === filtroApiario) && (
-                            <Text style={styles.opcaoCheck}>✓</Text>
-                          )}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </TouchableOpacity>
-              </Modal>
-            </View>
-
-            {/* Cabeçalho da Tabela */}
-            <View style={styles.tabelaCabecalho}>
-              <Text style={[styles.cabecalhoTexto, styles.colunaId]}>Lote de Mel</Text>
-              <Text style={[styles.cabecalhoTexto, styles.colunaData]}>Data</Text>
-              <Text style={[styles.cabecalhoTexto, styles.colunaQuant]}>Quant</Text>
-              <Text style={[styles.cabecalhoTexto, styles.colunaApiario]}>Apiário</Text>
-            </View>
-
-            {/* Linhas da Tabela */}
-            {lotesFiltrados.map((lote, index) => (
-              <TouchableOpacity
-                key={`${lote.id}-${index}`}
-                style={[
-                  styles.loteRow,
-                  index === 0 && styles.firstRow
-                ]}
-                onPress={() => handleLotePress(lote.id!)}
-              >
-                <Text style={[styles.rowText, styles.colunaId, styles.loteClicavel]}>
-                  {lote.id}
-                </Text>
-                <Text style={[styles.rowText, styles.colunaData]}>
-                  {isoParaBr(lote.dataProducao)}
-                </Text>
-                <Text style={[styles.rowText, styles.colunaQuant]}>
-                  {formatarKgL(Number(lote.quantidadeProduzida) || 0)}
-                </Text>
-                <Text style={[styles.rowText, styles.colunaApiario]}>
-                  {lote.nomeApiario ?? lote.apiarioId}
-                </Text>
-              </TouchableOpacity>
-            ))}
-
-            {/* Mensagem quando não há lotes */}
-            {lotesFiltrados.length === 0 && (
-              <View style={styles.semDados}>
-                <Text style={styles.semDadosTexto}>
-                  {lotes.length === 0 ? 'Nenhum lote cadastrado ainda.' : 'Nenhum lote encontrado para este filtro.'}
-                </Text>
-              </View>
-            )}
-
-            {/* Botão Exportar */}
-            <TouchableOpacity style={styles.exportarBotao} onPress={handleExportar}>
-              <Text style={styles.exportarTexto}>Exportar CSV</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+      <Botao title="Cadastrar lote" iconName="add" onPress={() => router.push('/rastreabilidade/cadastrar')} cor="primaria" />
+      {carregando && dados.length === 0 ? (
+        <EstadoCarregando texto="Carregando lotes..." />
+      ) : erro ? (
+        <EstadoErro mensagem={erro} onTentarNovamente={recarregar} />
+      ) : (
+        <>
+          {dados.length > 0 && (
+            <Filtros resumo={`${filtrados.length} lote(s)`}>
+              <Selector label="Apiário" options={apiarios} onSelect={setApiario} value={apiario} />
+            </Filtros>
+          )}
+          <Tabela
+            colunas={colunas}
+            data={filtrados}
+            vazio="Nenhum lote cadastrado ainda."
+            onPressLinha={(l) => !(l as any).pendente && router.push(`/rastreabilidade/editar?id=${l.id}` as any)}
+          />
+        </>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundo,
-  },
-  scrollContent: {
-    padding: layout.espacamento.amigavel,
-    paddingBottom: layout.espacamento.social,
-  },
-
-  // Estilos para o Card de Lista de Lotes
-  listaContainer: {
-    backgroundColor: cores.branco,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: cores.borda,
-    overflow: 'hidden',
-    marginBottom: layout.espacamento.amigavel,
-  },
-  listaHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: layout.espacamento.amigavel,
-    backgroundColor: '#FFF8E1',
-    borderBottomWidth: 1,
-    borderBottomColor: cores.borda,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  headerIndex: {
-    backgroundColor: cores.primaria[100],
-    color: cores.branco,
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: cores.texto,
-  },
-  listaContent: {
-    padding: layout.espacamento.amigavel,
-  },
-
-  // Estilos do Filtro com Seletor
-  filtroContainer: {
-    marginBottom: layout.espacamento.amigavel,
-  },
-  filtroLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: cores.texto,
-    marginBottom: 8,
-  },
-  seletor: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: cores.borda,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: cores.branco,
-  },
-  seletorTexto: {
-    fontSize: 14,
-    color: cores.texto,
-  },
-  seletorSeta: {
-    fontSize: 12,
-    color: cores.texto,
-  },
-
-  // Estilos do Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: layout.espacamento.amigavel,
-  },
-  modalContent: {
-    backgroundColor: cores.branco,
-    borderRadius: 8,
-    width: '100%',
-    maxWidth: 300,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
-    elevation: 5,
-  },
-  modalTitulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: cores.texto,
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: cores.borda,
-  },
-  opcaoSeletor: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: cores.borda,
-  },
-  primeiraOpcao: {
-    borderTopWidth: 0,
-  },
-  ultimaOpcao: {
-    borderBottomWidth: 0,
-  },
-  opcaoSelecionada: {
-    backgroundColor: cores.primaria[10],
-  },
-  opcaoTexto: {
-    fontSize: 14,
-    color: cores.texto,
-    flex: 1,
-  },
-  opcaoTextoSelecionada: {
-    color: cores.primaria[100],
-    fontWeight: 'bold',
-  },
-  opcaoCheck: {
-    color: cores.primaria[100],
-    fontWeight: 'bold',
-  },
-
-  // Estilos da Tabela
-  tabelaCabecalho: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: layout.espacamento.amigavel,
-    borderBottomWidth: 2,
-    borderBottomColor: cores.primaria[100],
-    marginBottom: 8,
-  },
-  cabecalhoTexto: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: cores.texto,
-  },
-
-  // Linhas da tabela
-  loteRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: cores.borda,
-  },
-  firstRow: {
-    borderTopWidth: 0,
-  },
-  rowText: {
-    fontSize: 14,
-    color: cores.texto,
-  },
-
-  // Colunas com larguras específicas
-  colunaId: {
-    flex: 1,
-    fontWeight: '500',
-  },
-  colunaData: {
-    flex: 1.2,
-    textAlign: 'center',
-  },
-  colunaQuant: {
-    flex: 0.8,
-    textAlign: 'center',
-  },
-  colunaApiario: {
-    flex: 1.5,
-    textAlign: 'left',
-    paddingLeft: 8,
-  },
-
-  loteClicavel: {
-    color: cores.primaria[100],
-    fontWeight: '500',
-  },
-
-  // Mensagem sem dados
-  semDados: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  semDadosTexto: {
-    fontSize: 14,
-    color: cores.texto,
-    fontStyle: 'italic',
-  },
-
-  // Botão Exportar
-  exportarBotao: {
-    backgroundColor: cores.primaria[100],
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: layout.espacamento.amigavel,
-  },
-  exportarTexto: {
-    color: cores.branco,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: cores.fundo },
+  conteudo: { padding: layout.espacamento.colega, gap: 14, paddingBottom: 40, width: '100%', maxWidth: 1200, alignSelf: 'center' },
 });

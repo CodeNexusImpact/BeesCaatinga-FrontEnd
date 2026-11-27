@@ -22,7 +22,7 @@ secao('cadastro', async (page, h) => {
   await h.preencher('Nome Completo', 'Maria QA da Silva');
   await h.preencher('Telefone (DDD + Número)', '83987654321');
   await h.preencher('E-mail', ctx.email);
-  await h.preencher('Data de Nascimento (dd/MM/yyyy)', '15031990');
+  await h.preencher('dd/mm/aaaa', '15031990');
   await h.selecionar('Selecione uma opção', 'Feminino');
   await h.preencher('Senha', ctx.senha);
   await h.preencher('Confirme sua Senha', ctx.senha);

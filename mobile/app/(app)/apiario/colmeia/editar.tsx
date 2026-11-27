@@ -71,7 +71,7 @@ export default function EditarColmeia() {
         setDetalhesDaLocalizacao(colmeia.detalhesDaLocalizacao ?? '');
         setLatitude(colmeia.latitude ?? undefined);
         setLongitude(colmeia.longitude ?? undefined);
-        setFoto(colmeia.caminhoDaFoto || undefined);
+        setFoto((colmeia as any).fotoUrl || colmeia.caminhoDaFoto || undefined);
         // O DTO de retorno não traz apiarioId: resolve pelo nome, se não veio na rota.
         setApiarioId((atual) => atual || String(colmeia.apiarioId ?? apiarios?.find((a) => a.nome === colmeia.nomeApiario)?.id ?? ''));
       } catch {
@@ -165,7 +165,7 @@ export default function EditarColmeia() {
       <View style={styles.secao}>
         <Subtexto>Dados Adicionais</Subtexto>
         <Text style={styles.labelFoto}>Foto</Text>
-        <ImagemPicker onImagePicked={(uri) => setFoto(uri ?? undefined)} />
+        <ImagemPicker valorInicial={foto} onImagePicked={(uri) => setFoto(uri ?? undefined)} />
         <Input
           label="Observações:"
           placeholder="---"

@@ -86,7 +86,7 @@ const CadastrarApiario = () => {
                 setRegistro(a.nRegistro ?? '');
                 setDataCriacao(isoParaBr(a.dataDeCriacao));
                 setObservacoes(a.observacoes ?? '');
-                setFoto(a.caminhoDaFoto ?? '');
+                setFoto((a as any).fotoUrl ?? a.caminhoDaFoto ?? '');
                 setEndereco({
                     cep: a.cep ?? '',
                     propriedade: a.nomeDaPropriedade ?? '',
@@ -205,8 +205,9 @@ const CadastrarApiario = () => {
                     <Subtexto>Dados Adicionais</Subtexto>
                     <View style={[formStyles.formStyle, { flex: 1,flexDirection: Dimensions.get('window').width > 600 ? 'row' : 'column' , justifyContent: 'space-between', width: '100%'}]}>
                         <Input
-                            label='Foto'
+                            label='Foto do apiário (opcional)'
                             useImagePicker={true}
+                            imagemInicial={foto || null}
                             onImagePicked={(uri) => {
                                 setFoto(uri || '');
                             }}

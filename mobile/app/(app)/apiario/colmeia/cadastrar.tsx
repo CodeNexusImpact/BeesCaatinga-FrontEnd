@@ -209,7 +209,7 @@ export default function Cadastrar() {
                     <Subtexto>Dados Adicionais</Subtexto>
                     <View style={[styles.secao, { flex: 1,flexDirection: RN.Dimensions.get('window').width > 600 ? 'row' : 'column' , justifyContent: 'space-between', width: '100%'}]}>
                     <Input
-                        label='Foto'
+                        label='Foto da colmeia (opcional)'
                         useImagePicker={true}
                         onImagePicked={(uri) => {
                             setFoto(uri || '');

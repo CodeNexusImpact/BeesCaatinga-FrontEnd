@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppIcons, AppIconName } from '@/constants/icons'; // Importa a documentação
-import { View} from 'react-native';
+import { View } from 'react-native';
+import { temaCores } from '@/constants/cores';
 
 type AppIconProps = {  
   name: AppIconName; 
@@ -9,7 +10,7 @@ type AppIconProps = {
   align?: 'left' | 'right' | 'center';
 };
 
-export default function Icon({ name, size = 24, color = '#333' ,align = 'center'}: AppIconProps) {
+export default function Icon({ name, size = 24, color = temaCores.texto, align = 'center' }: AppIconProps) {
   // Busca o nome real do ícone na sua documentação (AppIcons)
   const iconName = AppIcons[name]; 
   

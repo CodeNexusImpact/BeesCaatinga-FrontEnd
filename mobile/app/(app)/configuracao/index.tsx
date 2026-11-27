@@ -1,355 +1,161 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { deletarProdutor } from '@/services/produtorService';
+import { useFilaOffline } from '@/services/offline';
 import cores from '@/constants/cores';
 import layout from '@/constants/layout';
-import InputConfig from '@/components/formulario/inputConfig';
 import Icon from '@/components/icon';
 import Botao from '@/components/formulario/botao';
-import { alerta } from '@/utils/alerta';
 import DensidadeMel from '@/components/configuracao/densidadeMel';
+import { alerta } from '@/utils/alerta';
+import { preferencias, salvarPreferencias, Tema, TamanhoTexto } from '@/tema/preferencias';
 
-const CONFIG_KEYS = {
-    NOTIFICACOES: '@config_notificacoes',
-    LOCALIZACAO: '@config_localizacao',
-    TEMA: '@config_tema',
-    FONTE: '@config_fonte'
-};
-
-export default function Index() {
-    const router = useRouter();
-    const { user, signOut } = useAuth();
-
-    // Estados locais
-    const [notificacoesAtivadas, setNotificacoesAtivadas] = useState(true);
-    const [localizacaoAtivada, setLocalizacaoAtivada] = useState(true);
-    const [temaEscuro, setTemaEscuro] = useState(false);
-    const [tamanhoFonte, setTamanhoFonte] = useState(16);
-    
-    const [mostrarSeletorFonte, setMostrarSeletorFonte] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const carregarConfiguracoes = async () => {
-            try {
-                const notificacoes = await AsyncStorage.getItem(CONFIG_KEYS.NOTIFICACOES);
-                const localizacao = await AsyncStorage.getItem(CONFIG_KEYS.LOCALIZACAO);
-                const tema = await AsyncStorage.getItem(CONFIG_KEYS.TEMA);
-                const fonte = await AsyncStorage.getItem(CONFIG_KEYS.FONTE);
-
-                if (notificacoes !== null) setNotificacoesAtivadas(JSON.parse(notificacoes));
-                if (localizacao !== null) setLocalizacaoAtivada(JSON.parse(localizacao));
-                if (tema !== null) setTemaEscuro(JSON.parse(tema));
-                if (fonte !== null) setTamanhoFonte(parseInt(fonte, 10));
-            } catch (error) {
-                console.error('Erro ao carregar configurações:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        carregarConfiguracoes();
-    }, []);
-
-    // Handlers
-    const handleSalvarPress = async () => {
-        try {
-            await AsyncStorage.setItem(CONFIG_KEYS.NOTIFICACOES, JSON.stringify(notificacoesAtivadas));
-            await AsyncStorage.setItem(CONFIG_KEYS.LOCALIZACAO, JSON.stringify(localizacaoAtivada));
-            await AsyncStorage.setItem(CONFIG_KEYS.TEMA, JSON.stringify(temaEscuro));
-            await AsyncStorage.setItem(CONFIG_KEYS.FONTE, tamanhoFonte.toString());
-            
-            alerta('Sucesso', 'Configurações salvas localmente!');
-        } catch (error) {
-            alerta('Erro', 'Não foi possível salvar as configurações.');
-        }
-    };
-
-    const handleLimparCachePress = () => {
-        alerta(
-            'Limpar Cache',
-            'Isso limpará dados temporários (exceto seu login). Deseja continuar?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                { 
-                    text: 'Limpar', 
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await AsyncStorage.clear();
-                            setNotificacoesAtivadas(true);
-                            setLocalizacaoAtivada(true);
-                            setTemaEscuro(false);
-                            setTamanhoFonte(16);
-                            alerta('Sucesso', 'Cache limpo com sucesso.');
-                        } catch (error) {
-                            alerta('Erro', 'Ocorreu um erro ao limpar o cache.');
-                        }
-                    } 
-                }
-            ]
-        );
-    };
-
-    const handleExcluirPerfilPress = () => {
-        if (!user?.id) {
-            alerta('Erro', 'Usuário não identificado.');
-            return;
-        }
-
-        alerta(
-            'Atenção Crítica!',
-            'Tem certeza? Esta ação é irreversível e apagará TODOS os seus dados permanentemente.',
-            [
-                { text: 'Não, cancelar', style: 'cancel' },
-                { 
-                    text: 'Sim, excluir', 
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await deletarProdutor(user.id);
-                            alerta('Despedida', 'Seu perfil foi excluído com sucesso.');
-                            await signOut();
-                            router.replace('/login');
-                        } catch (error) {
-                            alerta('Erro', 'Não foi possível excluir o perfil.');
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
-    // A tela inteira não deve ficar bloqueada pelo Loading. Apenas um overlay simples.
-    if (isLoading) {
-        return (
-            <View style={[styles.container, styles.center]} pointerEvents="none">
-                <ActivityIndicator size="large" color={cores.primaria} />
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.container}>
-            {/* Garantir o header e botão de voltar funcional */}
-            <Stack.Screen options={{ title: 'Configurações' }} />
-
-            <ScrollView 
-                style={styles.scrollView} 
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled" // Libera os toques perfeitamente
-            >                
-                {/* Lista de configurações com o componente original restaurado */}
-                <View style={styles.configList}>
-                    <InputConfig
-                        label="Notificações"
-                        status={notificacoesAtivadas ? "Ativado" : "Desativado"}
-                        showSwitch={true}
-                        value={notificacoesAtivadas}
-                        onValueChange={setNotificacoesAtivadas}
-                        showArrow={false}
-                    />
-                    <InputConfig
-                        label="Localização"
-                        status={localizacaoAtivada ? "Ativado" : "Desativado"}
-                        showSwitch={true}
-                        value={localizacaoAtivada}
-                        onValueChange={setLocalizacaoAtivada}
-                        showArrow={false}
-                    />
-                    <InputConfig
-                        label="Tema"
-                        value={temaEscuro ? "Escuro" : "Claro"}
-                        onPress={() => setTemaEscuro(!temaEscuro)}
-                        showArrow={true}
-                        iconName={temaEscuro ? "weather-night" : "white-balance-sunny"}
-                    />
-                    <DensidadeMel />
-                    <InputConfig
-                        label="Integrações / Webhooks"
-                        value="Gerenciar"
-                        onPress={() => router.push('/configuracao/webhooks' as any)}
-                        showArrow={true}
-                    />
-                    <InputConfig
-                        label="Tamanho da Fonte"
-                        value={tamanhoFonte.toString()}
-                        onPress={() => setMostrarSeletorFonte(true)}
-                        showArrow={true}
-                    />
-                    <InputConfig
-                        label="Limpar Cache"
-                        showButton={true}
-                        buttonText="Limpar"
-                        onButtonPress={handleLimparCachePress}
-                        showArrow={false}
-                    />
-                </View>
-                
-                <View style={styles.buttonsContainer}>
-                    <Botao
-                        title="Salvar"
-                        onPress={handleSalvarPress}
-                        cor="primaria"
-                        tamanho="grande"
-                        style={styles.saveButton}
-                        textStyle={styles.saveButtonText}
-                    />
-                    
-                    <Botao
-                        title="Excluir perfil"
-                        onPress={handleExcluirPerfilPress}
-                        cor="branca"
-                        tamanho="grande"
-                        style={styles.deleteButton}
-                        textStyle={styles.deleteButtonText}
-                    />
-                </View>
-            </ScrollView>
-
-            {/* Modal para seleção de tamanho da fonte (design original restaurado) */}
-            <Modal
-                visible={mostrarSeletorFonte}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setMostrarSeletorFonte(false)}
+function Opcoes<T extends string>({ rotulo, valor, opcoes, onChange }: { rotulo: string; valor: T; opcoes: { valor: T; texto: string }[]; onChange: (v: T) => void }) {
+  return (
+    <View style={styles.grupo}>
+      <Text style={styles.rotulo}>{rotulo}</Text>
+      <View style={styles.segmentos} accessibilityRole="radiogroup" accessibilityLabel={rotulo}>
+        {opcoes.map((o) => {
+          const ativo = o.valor === valor;
+          return (
+            <TouchableOpacity
+              key={o.valor}
+              style={[styles.segmento, ativo && styles.segmentoAtivo]}
+              onPress={() => !ativo && onChange(o.valor)}
+              role="radio"
+              aria-checked={ativo}
+              accessibilityLabel={`${rotulo}: ${o.texto}`}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Selecionar Tamanho da Fonte</Text>
-                        
-                        {[14, 16, 18, 20, 22].map((tamanho) => (
-                            <TouchableOpacity
-                                key={tamanho}
-                                style={[
-                                    styles.opcaoFonte,
-                                    tamanhoFonte === tamanho && styles.opcaoFonteSelecionada
-                                ]}
-                                onPress={() => {
-                                    setTamanhoFonte(tamanho);
-                                    setMostrarSeletorFonte(false);
-                                }}
-                            >
-                                <Text style={[
-                                    styles.textoOpcaoFonte,
-                                    { fontSize: tamanho },
-                                    tamanhoFonte === tamanho && styles.textoOpcaoFonteSelecionada
-                                ]}>
-                                    Tamanho {tamanho}
-                                </Text>
-                                {tamanhoFonte === tamanho && (
-                                    <Icon name="check" size={20} color={cores.primaria} />
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                        
-                        <TouchableOpacity
-                            style={styles.botaoFecharModal}
-                            onPress={() => setMostrarSeletorFonte(false)}
-                        >
-                            <Text style={styles.textoBotaoFechar}>Cancelar</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-        </View>
-    );
+              <Text style={[styles.segmentoTexto, ativo && styles.segmentoTextoAtivo]}>{o.texto}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function Linha({ titulo, descricao, icone, onPress }: { titulo: string; descricao?: string; icone: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.linha} onPress={onPress} accessibilityRole="button" accessibilityLabel={titulo}>
+      <Icon name={icone} size={26} color={cores.secundaria} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.linhaTitulo}>{titulo}</Text>
+        {!!descricao && <Text style={styles.linhaDescricao}>{descricao}</Text>}
+      </View>
+      <Icon name="setaDireita" size={22} color={cores.textoSecundario} />
+    </TouchableOpacity>
+  );
+}
+
+export default function Configuracoes() {
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+  const { fila } = useFilaOffline();
+
+  const aplicar = (p: Partial<typeof preferencias>, descricao: string) => {
+    if (!salvarPreferencias(p)) alerta('Preferência salva', `${descricao} Feche e abra o aplicativo para ver a mudança em todas as telas.`);
+  };
+
+  const limparCache = () =>
+    alerta('Limpar dados temporários', 'Apaga listas guardadas para uso sem internet e sugestões. Seu login e os envios pendentes são mantidos. Continuar?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Limpar',
+        style: 'destructive',
+        onPress: async () => {
+          const chaves = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith('@offline:cache:') || k.startsWith('@historico:') || k.startsWith('@ultima_escolha:'));
+          await AsyncStorage.multiRemove(chaves);
+          alerta('Pronto', 'Dados temporários apagados.');
+        },
+      },
+    ]);
+
+  const excluirPerfil = () => {
+    if (!user?.id) return;
+    alerta('Excluir perfil', 'Esta ação não pode ser desfeita e apagará TODOS os seus dados. Deseja continuar?', [
+      { text: 'Não, cancelar', style: 'cancel' },
+      {
+        text: 'Sim, excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deletarProdutor(user.id);
+            alerta('Perfil excluído', 'Seu perfil foi excluído.');
+            await signOut();
+            router.replace('/login');
+          } catch {
+            alerta('Erro', 'Não foi possível excluir o perfil.');
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.conteudo}>
+      <Stack.Screen options={{ title: 'Configurações' }} />
+
+      <Text style={styles.secao}>Aparência</Text>
+      <View style={styles.card}>
+        <Opcoes<Tema>
+          rotulo="Tema"
+          valor={preferencias.tema}
+          opcoes={[{ valor: 'claro', texto: 'Claro' }, { valor: 'escuro', texto: 'Escuro' }]}
+          onChange={(tema) => aplicar({ tema }, 'Tema alterado.')}
+        />
+        <Opcoes<TamanhoTexto>
+          rotulo="Tamanho do texto"
+          valor={preferencias.tamanhoTexto}
+          opcoes={[
+            { valor: 'normal', texto: 'Normal' },
+            { valor: 'grande', texto: 'Grande' },
+            { valor: 'muito-grande', texto: 'Muito grande' },
+          ]}
+          onChange={(tamanhoTexto) => aplicar({ tamanhoTexto }, 'Tamanho do texto alterado.')}
+        />
+      </View>
+
+      <Text style={styles.secao}>Mel</Text>
+      <DensidadeMel />
+
+      <Text style={styles.secao}>Integrações e dados</Text>
+      <View style={styles.card}>
+        <Linha titulo="Integrações / Webhooks" descricao="Avise outro sistema quando houver novos registros" icone="share" onPress={() => router.push('/configuracao/webhooks' as any)} />
+        <Linha
+          titulo="Envios pendentes"
+          descricao={fila.length ? `${fila.length} registro(s) aguardando internet` : 'Nada aguardando envio'}
+          icone="sync"
+          onPress={() => router.push('/sincronizacao' as any)}
+        />
+        <Linha titulo="Limpar dados temporários" descricao="Listas guardadas e sugestões" icone="delete" onPress={limparCache} />
+      </View>
+
+      <Text style={styles.secao}>Conta</Text>
+      <View style={styles.card}>
+        <Linha titulo="Meu Perfil" descricao="Nome, telefone e endereço" icone="user" onPress={() => router.push('/perfil')} />
+        <Botao title="Excluir perfil" onPress={excluirPerfil} cor="terciaria" />
+      </View>
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: cores.branco,
-    },
-    center: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    scrollView: {
-        flex: 1,
-    },
-    sectionTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: cores.texto,
-        textAlign: 'center',
-        marginTop: 24,
-        marginBottom: 32,
-    },
-    configList: {
-        backgroundColor: cores.branco,
-        marginHorizontal: 0,
-    },
-    buttonsContainer: {
-        paddingHorizontal: 20,
-        marginTop: 40,
-        marginBottom: 20,
-        gap: 12,
-    },
-    saveButton: {
-        // Estilos adicionais se necessário
-    },
-    saveButtonText: {
-        // Estilos de texto específicos
-    },
-    deleteButton: {
-        borderWidth: 0.5,
-        borderColor: cores.preto,
-    },
-    deleteButtonText: {
-        color: cores.perigo,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: cores.borda, 
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContent: {
-        backgroundColor: cores.branco,
-        borderRadius: 12,
-        padding: 20,
-        width: '80%',
-        maxWidth: 300,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        textAlign: 'center',
-        color: cores.texto,
-    },
-    opcaoFonte: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        marginBottom: 8,
-    },
-    opcaoFonteSelecionada: {
-        backgroundColor: cores.primaria, 
-    },
-    textoOpcaoFonte: {
-        color: cores.texto,
-    },
-    textoOpcaoFonteSelecionada: {
-        color: cores.primaria,
-        fontWeight: '600',
-    },
-    botaoFecharModal: {
-        marginTop: 16,
-        paddingVertical: 12,
-        alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: cores.perigo,
-    },
-    textoBotaoFechar: {
-        color: cores.primaria,
-        fontSize: 17,
-        fontWeight: '600',
-    },
+  container: { flex: 1, backgroundColor: cores.fundo },
+  conteudo: { padding: layout.espacamento.colega, gap: 12, paddingBottom: 40, maxWidth: 720, width: '100%', alignSelf: 'center' },
+  secao: { fontSize: 18, fontWeight: 'bold', color: cores.texto, marginTop: 8 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, gap: 12, borderWidth: 1, borderColor: '#E1E3E6' },
+  grupo: { gap: 6 },
+  rotulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
+  segmentos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  segmento: { minHeight: 48, paddingHorizontal: 16, borderRadius: 24, borderWidth: 2, borderColor: cores.secundaria, justifyContent: 'center', flexGrow: 1, alignItems: 'center' },
+  segmentoAtivo: { backgroundColor: cores.secundaria },
+  segmentoTexto: { fontSize: 16, fontWeight: '600', color: cores.texto },
+  segmentoTextoAtivo: { color: '#FFFFFF' },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56 },
+  linhaTitulo: { fontSize: 17, fontWeight: 'bold', color: cores.texto },
+  linhaDescricao: { fontSize: 14, color: cores.textoSecundario },
 });

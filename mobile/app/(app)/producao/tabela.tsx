@@ -1,199 +1,53 @@
-import React, { useState, useCallback } from 'react';
-import { exportarCsv } from '@/utils/csv';
-import BotaoExportarPdf from '@/components/botaoExportarPdf';
-import { opcoesDeAno } from '@/components/graficos';
-import { formatarKgL, paraKg } from '@/utils/mel';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import Selector from '@/components/formulario/selector';
-import Botao from '@/components/formulario/botao';
-import Tabela, { TabelaColuna } from '@/components/tabela';
-import Subtexto from '@/components/subTexto';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { Stack, useFocusEffect } from 'expo-router';
+import TelaRelatorio from '@/components/telaRelatorio';
+import { opcoesDeAno, rotuloEnum } from '@/components/graficos';
+import type { TabelaColuna } from '@/components/tabela';
+import { useDadosApi } from '@/hooks/useDadosApi';
 import { getProducoes } from '@/services/producaoService';
-import { useAuth } from '@/hooks/useAuth';
 import type { ProducaoRetornoDTO } from '@/types/producao';
-import { alerta } from '@/utils/alerta';
+import { formatarKgL, paraKg } from '@/utils/mel';
 
-// --- Interfaces ---
-interface DadosProducao {
-    id: string;
-    loteId: string;
-    dataExtracao: string;
-    tipo: string;
-    pesoLitro: string;
-    qualidade: string;
-    status: string;
-}
+const buscar = (id: number) => getProducoes(id);
 
-const colunasDoRelatorio: TabelaColuna<DadosProducao>[] = [
-    { label: 'Lote', dataKey: 'loteId', sortable: true, flex: 2 },
-    { label: 'Data', dataKey: 'dataExtracao', sortable: true, flex: 3 },
-    { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
-    { label: 'Quantidade', dataKey: 'pesoLitro', sortable: true, flex: 3 },
-    { label: 'Qualidade', dataKey: 'qualidade', sortable: true, flex: 2 },
-    { label: 'Status', dataKey: 'status', sortable: true, flex: 2 },
+const colunas: TabelaColuna<ProducaoRetornoDTO>[] = [
+  { label: 'Coleta', dataKey: 'dataColeta', sortable: true, tipo: 'data' },
+  { label: 'Tipo de mel', dataKey: 'tipoProducao', sortable: true, flex: 1.6 },
+  { label: 'Quantidade', dataKey: 'quantidade', sortable: true, flex: 1.8, render: (p) => formatarKgL(paraKg(p.quantidade, p.unidadeMedida)) },
+  { label: 'Apiário', dataKey: 'nomeApiario', sortable: true, flex: 1.6 },
+  { label: 'Colmeia', dataKey: 'nomeColmeia', sortable: true },
+  { label: 'Situação', dataKey: 'statusProduto', render: (p) => ((p as any).pendente ? 'Pendente de envio' : rotuloEnum(p.statusProduto)) },
+  { label: 'Qualidade', dataKey: 'statusQualidade', render: (p) => rotuloEnum(p.statusQualidade) },
 ];
 
-/**
- * Formata data de forma robusta, suportando YYYY-MM-DD e DD/MM/YYYY
- */
-const formatDate = (dateStr: string) => {
-    if (!dateStr) return '—';
-    if (dateStr.includes('/')) return dateStr;
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-        const [ano, mes, dia] = parts;
-        return `${dia}/${mes}/${ano}`;
-    }
-    return dateStr;
-};
+export default function RelatorioProducao() {
+  const router = useRouter();
+  const { dados, carregando, erro, recarregar } = useDadosApi<ProducaoRetornoDTO[]>(buscar, []);
+  const [ano, setAno] = useState('');
+  const [apiario, setApiario] = useState('');
+  const apiarios = useMemo(() => [{ label: 'Todos os apiários', value: '' }, ...[...new Set(dados.map((p) => p.nomeApiario).filter(Boolean))].sort().map((n) => ({ label: n, value: n }))], [dados]);
+  const filtrados = dados.filter((p) => (!ano || String(p.dataColeta).startsWith(ano)) && (!apiario || p.nomeApiario === apiario));
+  const total = filtrados.reduce((s, p) => s + paraKg(p.quantidade, p.unidadeMedida), 0);
 
-const formatStatus = (status: string) => {
-    return status === 'EM_ESTOQUE' ? 'Em Estoque' : 'Vendido';
-};
-
-const formatQualidade = (qualidade: string) => {
-    return qualidade === 'APROVADO' ? 'Aprovado' : 'Não Avaliado';
-};
-
-export default function RelatorioProducaoTabela() {
-    const { user } = useAuth();
-    const userId = user?.id;
-    const [ano, setAno] = useState('');
-    const [anoOptions, setAnoOptions] = useState([{ label: 'Todos os anos', value: '' }]);
-    const [producoes, setProducoes] = useState<DadosProducao[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const carregarDados = useCallback(async () => {
-        if (!userId) return;
-        setIsLoading(true);
-        try {
-            const data = await getProducoes(userId);
-            setAnoOptions(opcoesDeAno(data, (p) => p.dataColeta));
-
-            // Filtragem por ano (se selecionado)
-            const filtrados = ano 
-                ? data.filter(p => p.dataColeta && p.dataColeta.includes(ano))
-                : data;
-
-            const formatados: DadosProducao[] = filtrados.map(p => ({
-                id: String(p.id),
-                loteId: `#${p.id}`,
-                dataExtracao: formatDate(p.dataColeta),
-                tipo: p.tipoProducao || 'Mel',
-                pesoLitro: formatarKgL(paraKg(p.quantidade, p.unidadeMedida)),
-                qualidade: formatQualidade(p.statusQualidade),
-                status: formatStatus(p.statusProduto)
-            }));
-
-            setProducoes(formatados);
-        } catch (error) {
-            console.error('Erro ao carregar dados da tabela:', error);
-            alerta('Erro', 'Não foi possível carregar os dados de produção.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [userId, ano]);
-
-    useFocusEffect(
-        useCallback(() => {
-            carregarDados();
-        }, [carregarDados])
-    );
-
-    const handleExportar = async () => {
-        if (!producoes?.length) {
-            alerta('Aviso', 'Não há dados para exportar.');
-            return;
-        }
-        try {
-            await exportarCsv('relatorio-producao.csv', colunasDoRelatorio as any, producoes);
-        } catch {
-            alerta('Erro', 'Não foi possível exportar a planilha.');
-        }
-    };
-
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Relatório de Produção' }} />
-            <BotaoExportarPdf tipo="producao" filtro={{ ano: ano ? Number(ano) : null }} />
-
-            <Subtexto style={styles.subtexto}>Relatório Detalhado</Subtexto>
-
-            {/* Filtros */}
-            <View style={styles.filtroContainer}>
-                <Selector
-                    label="Filtrar por Ano"
-                    options={anoOptions}
-                    onSelect={setAno}
-                    placeholder="Todos os Anos"
-                />
-            </View>
-
-            {isLoading ? (
-                <ActivityIndicator size="large" color={cores.primaria} />
-            ) : (
-                <>
-                    <Text style={{ textAlign: 'center', fontSize: 12, color: '#888', marginBottom: 5 }}>
-                        {producoes.length} registros encontrados
-                    </Text>
-
-                    <View style={styles.tabelaContainer}>
-                        <ScrollView
-                            horizontal={true}
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.scrollContentTabela}
-                        >
-                            <View style={{ minWidth: 900 }}>
-                                <Tabela
-                                    colunas={colunasDoRelatorio}
-                                    data={producoes}
-                                />
-                            </View>
-                        </ScrollView>
-                    </View>
-                    <Text style={styles.dicaScroll}>Deslize para o lado para ver mais detalhes</Text>
-                </>
-            )}
-
-            <Botao
-                title="Exportar planilha (CSV)"
-                cor="primaria"
-                onPress={handleExportar}
-                style={styles.botaoExportar}
-            />
-        </ScrollView>
-    );
+  return (
+    <TelaRelatorio
+      titulo="Relatório de Produção"
+      descricao={filtrados.length ? `Total no período: ${formatarKgL(total)}` : undefined}
+      carregando={carregando}
+      erro={erro}
+      onTentarNovamente={recarregar}
+      filtros={[
+        <Selector key="ano" label="Ano" options={opcoesDeAno(dados, (p) => p.dataColeta)} onSelect={setAno} value={ano} />,
+        <Selector key="ap" label="Apiário" options={apiarios} onSelect={setApiario} value={apiario} />,
+      ]}
+      colunas={colunas}
+      dados={filtrados}
+      vazio={dados.length ? 'Nenhuma produção para estes filtros.' : 'Nenhuma produção cadastrada ainda.'}
+      acaoVazio={dados.length ? undefined : { titulo: 'Cadastrar primeira produção', onPress: () => router.push('/producao/cadastrar') }}
+      onPressLinha={(p) => !(p as any).pendente && router.push(`/producao/editar?id=${p.id}` as any)}
+      arquivoCsv="relatorio-producao.csv"
+      pdf={{ tipo: 'producao', filtro: { ano: ano ? Number(ano) : null } }}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega, overflow: 'visible' },
-    subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto, marginBottom: layout.espacamento.texto },
-
-    filtroContainer: { zIndex: 10, marginBottom: layout.espacamento.texto },
-
-    tabelaContainer: {
-        marginTop: layout.espacamento.texto,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        overflow: 'hidden'
-    },
-
-    scrollContentTabela: {
-        paddingRight: 20
-    },
-
-    dicaScroll: {
-        textAlign: 'center',
-        fontSize: 10,
-        color: '#999',
-        fontStyle: 'italic',
-        marginTop: 4
-    },
-
-    botaoExportar: { marginTop: layout.espacamento.amigavel },
-});

@@ -4,19 +4,11 @@
   "installCommand": "npm ci",
   "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
-  "cleanUrls": true,
+  "cleanUrls": false,
   "rewrites": [
     {
-      "source": "/insumos/:id",
-      "destination": "/insumos/[id]"
-    },
-    {
-      "source": "/vistorias/:id",
-      "destination": "/vistorias/[id]"
-    },
-    {
       "source": "/((?!_expo/|assets/|favicon).*)",
-      "destination": "/"
+      "destination": "/index.html"
     }
   ],
   "headers": [

@@ -1,157 +1,61 @@
-import React, { useState, useCallback } from 'react';
-import { exportarCsv } from '@/utils/csv';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import Selector from '@/components/formulario/selector';
-import Botao from '@/components/formulario/botao';
-import Tabela, { TabelaColuna } from '@/components/tabela';
-import Subtexto from '@/components/subTexto';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { useFocusEffect, Stack } from 'expo-router';
-import { getInsumos } from '@/services/insumoService';
-import { useAuth } from '@/hooks/useAuth';
-import { InsumoRetornoDTO } from '@/types/insumos';
-import { alerta } from '@/utils/alerta';
+import TelaRelatorio from '@/components/telaRelatorio';
+import { rotuloEnum } from '@/components/graficos';
+import type { TabelaColuna } from '@/components/tabela';
+import { useDadosApi } from '@/hooks/useDadosApi';
+import { listarInsumos, Insumo } from '@/services/insumoService';
+import { situacaoValidade } from '@/utils/insumos';
+import { formatarNumero } from '@/utils/mel';
+import { isoParaBr } from '@/utils/datas';
 
-export default function RelatorioInsumosTabela() {
-    const { user } = useAuth();
-    const [isLoading, setIsLoading] = useState(true);
-    const [insumos, setInsumos] = useState<any[]>([]);
-    const [statusFiltro, setStatusFiltro] = useState('');
+const buscar = (id: number) => listarInsumos(id);
 
-    /**
-     * Carregamento dinâmico via useFocusEffect (Sem Mocks)
-     */
-    const carregarDados = useCallback(async () => {
-        if (!user?.id) return;
-        try {
-            setIsLoading(true);
-            const data = await getInsumos(user.id);
+const colunas: TabelaColuna<Insumo>[] = [
+  { label: 'Insumo', dataKey: 'nome', sortable: true, flex: 2 },
+  { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 1.4 },
+  { label: 'Quantidade', dataKey: 'quantidade', sortable: true, render: (i) => `${formatarNumero(Number(i.quantidade))} ${rotuloEnum(i.unidadeMedida)}` },
+  { label: 'Situação', dataKey: 'statusInsumo', sortable: true, render: (i) => ((i as any).pendente ? 'Pendente de envio' : rotuloEnum(i.statusInsumo)) },
+  { label: 'Entrada', dataKey: 'dataEntrada', sortable: true, tipo: 'data' },
+  { label: 'Validade', dataKey: 'dataValidade', sortable: true, flex: 1.6, render: (i) => (i.dataValidade ? `${isoParaBr(i.dataValidade)} · ${situacaoValidade(i)}` : 'Sem validade') },
+];
 
-            // Processamento para padronização de exibição (Concatenar Quantidade + Unidade)
-            const dadosFormatados = data.map(item => ({
-                ...item,
-                volumeFormatado: `${item.quantidade} ${item.unidadeMedida || ''}`.trim(),
-                statusFormatado: (item.statusInsumo || 'DISPONIVEL').replace('_', ' ')
-            }));
+export default function RelatorioInsumos() {
+  const router = useRouter();
+  const { dados, carregando, erro, recarregar } = useDadosApi<Insumo[]>(buscar, []);
+  const [situacao, setSituacao] = useState('');
+  const [tipo, setTipo] = useState('');
+  const tipos = useMemo(() => [{ label: 'Todos os tipos', value: '' }, ...[...new Set(dados.map((i) => i.tipo).filter(Boolean))].sort().map((t) => ({ label: t, value: t }))], [dados]);
+  const filtrados = dados.filter((i) => (!situacao || i.statusInsumo === situacao) && (!tipo || i.tipo === tipo));
 
-            setInsumos(dadosFormatados);
-        } catch (error) {
-            console.error('❌ [RELATORIO INSUMOS] Erro:', error);
-            alerta('Erro', 'Não foi possível carregar os dados do relatório.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [user?.id, statusFiltro]);
-
-    useFocusEffect(
-        useCallback(() => {
-            carregarDados();
-        }, [carregarDados])
-    );
-
-    const handleExportar = async () => {
-        if (!insumos?.length) {
-            alerta('Aviso', 'Não há dados para exportar.');
-            return;
-        }
-        try {
-            await exportarCsv('relatorio-insumos.csv', colunasDoRelatorio as any, insumos);
-        } catch {
-            alerta('Erro', 'Não foi possível exportar a planilha.');
-        }
-    };
-
-    // Colunas mapeadas com as chaves reais e formatadas
-    const colunasDoRelatorio: TabelaColuna<any>[] = [
-        { label: 'Data', dataKey: 'dataEntrada', sortable: true, flex: 2 },
-        { label: 'Insumo', dataKey: 'nome', sortable: true, flex: 3 },
-        { label: 'Tipo', dataKey: 'tipo', sortable: true, flex: 2 },
-        { label: 'Volume', dataKey: 'volumeFormatado', sortable: true, flex: 2 },
-        { label: 'Status', dataKey: 'statusFormatado', sortable: true, flex: 2 },
-    ];
-
-    const statusOptions = [
-        { label: 'Todos os Tipos', value: '' },
-        { label: 'Alimentação', value: 'Alimentação' },
-        { label: 'Medicamento', value: 'Medicamento' },
-        { label: 'Equipamento', value: 'Equipamento' },
-    ];
-
-    return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <Stack.Screen options={{ title: 'Relatório de Insumos' }} />
-            <Subtexto style={styles.subtexto}>Inventário Detalhado</Subtexto>
-
-            {/* Filtros */}
-            <View style={styles.filtroContainer}>
-                <View style={styles.linhaFiltro}>
-                    <Selector
-                        label="Filtrar por Categoria"
-                        options={statusOptions}
-                        onSelect={setStatusFiltro}
-                        placeholder="Todas"
-                        style={{ flex: 1 }}
-                        value={statusFiltro}
-                    />
-                </View>
-            </View>
-
-            {isLoading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={cores.primaria[100]} />
-                </View>
-            ) : (
-                <>
-                    <Text style={styles.itensEncontrados}>
-                        {insumos.length} registros encontrados no banco 8081
-                    </Text>
-
-                    <View style={styles.tabelaContainer}>
-                        <ScrollView
-                            horizontal={true}
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.scrollContentTabela}
-                        >
-                            <View style={{ minWidth: 800 }}>
-                                <Tabela
-                                    colunas={colunasDoRelatorio}
-                                    data={insumos}
-                                />
-                            </View>
-                        </ScrollView>
-                    </View>
-                    <Text style={styles.dicaScroll}>Deslize lateralmente para ver todas as colunas</Text>
-
-                    <Botao
-                        title="Exportar Inventário"
-                        cor="primaria"
-                        onPress={handleExportar}
-                        style={styles.botaoExportar}
-                    />
-                </>
-            )}
-        </ScrollView>
-    );
+  return (
+    <TelaRelatorio
+      titulo="Relatório de Insumos"
+      carregando={carregando}
+      erro={erro}
+      onTentarNovamente={recarregar}
+      filtros={[
+        <Selector
+          key="sit"
+          label="Situação"
+          options={[
+            { label: 'Todas as situações', value: '' },
+            { label: 'Disponível', value: 'DISPONIVEL' },
+            { label: 'Em uso', value: 'EM_USO' },
+            { label: 'Estoque baixo', value: 'ESTOQUE_BAIXO' },
+          ]}
+          onSelect={setSituacao}
+          value={situacao}
+        />,
+        <Selector key="tipo" label="Tipo" options={tipos} onSelect={setTipo} value={tipo} />,
+      ]}
+      colunas={colunas}
+      dados={filtrados}
+      vazio={dados.length ? 'Nenhum insumo para estes filtros.' : 'Nenhum insumo cadastrado ainda.'}
+      acaoVazio={dados.length ? undefined : { titulo: 'Cadastrar primeiro insumo', onPress: () => router.push('/insumos/cadastrar') }}
+      onPressLinha={(i) => !(i as any).pendente && router.push(`/insumos/${i.id}` as any)}
+      arquivoCsv="relatorio-insumos.csv"
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.fundo },
-    contentContainer: { padding: layout.espacamento.amigavel, gap: layout.espacamento.colega },
-    subtexto: { width: '100%', textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: cores.texto, marginBottom: layout.espacamento.texto },
-    filtroContainer: { zIndex: 10, marginBottom: layout.espacamento.texto },
-    linhaFiltro: { flexDirection: 'row', gap: layout.espacamento.texto },
-    itensEncontrados: { textAlign: 'center', fontSize: 12, color: '#888', marginBottom: 5 },
-    tabelaContainer: {
-        marginTop: layout.espacamento.texto,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        overflow: 'hidden',
-        backgroundColor: '#fff'
-    },
-    scrollContentTabela: { paddingRight: 20 },
-    dicaScroll: { textAlign: 'center', fontSize: 10, color: '#999', marginTop: 4 },
-    botaoExportar: { marginTop: layout.espacamento.amigavel },
-    loadingContainer: { marginTop: 50 }
-});

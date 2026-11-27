@@ -3,19 +3,9 @@ import PainelDashboard from '@/components/painelDashboard';
 import { GraficoBarras, agrupar, rotuloEnum } from '@/components/graficos';
 import { useDadosApi } from '@/hooks/useDadosApi';
 import { listarInsumos, Insumo } from '@/services/insumoService';
+import { situacaoValidade } from '@/utils/insumos';
 
 const buscar = (id: number) => listarInsumos(id);
-const DIA = 24 * 60 * 60 * 1000;
-
-/** Situação de validade: vencido, vence em até 30 dias, ok ou sem validade. */
-export const situacaoValidade = (i: Insumo, hoje = new Date()) => {
-  if (!i.dataValidade) return 'Sem validade';
-  const dias = (new Date(`${i.dataValidade}T00:00:00`).getTime() - hoje.getTime()) / DIA;
-  if (dias < 0) return 'Vencido';
-  if (dias <= 30) return 'Vence em até 30 dias';
-  return 'Dentro da validade';
-};
-
 const CORES_STATUS: Record<string, string> = { DISPONIVEL: '#2E7D32', EM_USO: '#1565C0', ESTOQUE_BAIXO: '#C62828' };
 const CORES_VALIDADE: Record<string, string> = {
   Vencido: '#C62828',

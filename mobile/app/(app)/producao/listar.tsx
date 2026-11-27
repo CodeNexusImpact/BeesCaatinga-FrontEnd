@@ -1,191 +1,45 @@
-import React, { useState, useCallback } from 'react';
-import { EstadoVazio } from '@/components/graficos';
-import { formatarKgL, paraKg } from '@/utils/mel';
-import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import GenericCard, { CardField } from '@/components/genericCard';
-import ModalConfirmacao from '@/components/notificacao/modalConfirmacao';
-import ModalSucesso from '@/components/notificacao/modalSucesso';
-import Subtexto from '@/components/subTexto';
-import cores from '@/constants/cores';
-import layout from '@/constants/layout';
-import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { getProducoes, deletarProducao } from '@/services/producaoService';
-import { useAuth } from '@/hooks/useAuth';
+import React, { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
+import Selector from '@/components/formulario/selector';
+import TelaLista from '@/components/telaLista';
+import { opcoesDeAno, rotuloEnum } from '@/components/graficos';
+import type { TabelaColuna } from '@/components/tabela';
+import { useDadosApi } from '@/hooks/useDadosApi';
+import { getProducoes } from '@/services/producaoService';
 import type { ProducaoRetornoDTO } from '@/types/producao';
-import { alerta } from '@/utils/alerta';
+import { formatarKgL, paraKg } from '@/utils/mel';
 
-const getStatusColor = (status: string) => {
-  if (status === 'EM_ESTOQUE') return cores.sucesso;
-  if (status === 'VENDIDO') return cores.alerta;
-  return cores.texto;
-};
+const buscar = (id: number) => getProducoes(id);
 
-const formatStatus = (status: string) => {
-  return status === 'EM_ESTOQUE' ? 'Em Estoque' : 'Vendido';
-};
+const colunas: TabelaColuna<ProducaoRetornoDTO>[] = [
+  { label: 'Coleta', dataKey: 'dataColeta', sortable: true, tipo: 'data' },
+  { label: 'Tipo de mel', dataKey: 'tipoProducao', sortable: true, flex: 1.6 },
+  { label: 'Quantidade', dataKey: 'quantidade', sortable: true, flex: 1.8, render: (p) => formatarKgL(paraKg(p.quantidade, p.unidadeMedida)) },
+  { label: 'Apiário', dataKey: 'nomeApiario', sortable: true, flex: 1.6 },
+  { label: 'Colmeia', dataKey: 'nomeColmeia', sortable: true },
+  { label: 'Situação', dataKey: 'statusProduto', render: (p) => ((p as any).pendente ? 'Pendente de envio' : rotuloEnum(p.statusProduto)) },
+];
 
-const formatQualidade = (qualidade: string) => {
-  return qualidade === 'APROVADO' ? 'Aprovado' : 'Não Avaliado';
-};
-
-const formatDate = (dateStr: string) => {
-  if (!dateStr || dateStr.includes('x')) return '—';
-  const [ano, mes, dia] = dateStr.split('-');
-  return `${dia}/${mes}/${ano}`;
-};
-
-export default function Visualizar() {
+export default function ListarProducoes() {
   const router = useRouter();
-  const { user } = useAuth();
-  const userId = user?.id;
-
-  const [producoes, setProducoes] = useState<ProducaoRetornoDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [modalConfirmacaoVisivel, setModalConfirmacaoVisivel] = useState(false);
-  const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
-  const [idParaExcluir, setIdParaExcluir] = useState<number | null>(null);
-
-  const carregarProducoes = useCallback(async () => {
-    if (!userId) return;
-
-    setIsLoading(true);
-    try {
-      const data = await getProducoes(userId);
-      setProducoes(data);
-    } catch (error) {
-      console.error('Erro ao carregar produções:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      carregarProducoes();
-    }, [carregarProducoes])
-  );
-
-  const handleEdit = (id: number) => {
-    router.push(`/producao/editar?id=${id}`);
-  }
-
-  const handleDelete = (id: number) => {
-    setIdParaExcluir(id);
-    setModalConfirmacaoVisivel(true);
-  };
-
-  const confirmarExclusao = async () => {
-    if (idParaExcluir !== null && userId) {
-      try {
-        await deletarProducao(idParaExcluir, userId);
-        setProducoes(prev => prev.filter(p => p.id !== idParaExcluir));
-        setModalConfirmacaoVisivel(false);
-
-        setTimeout(() => {
-          setModalSucessoVisivel(true);
-        }, 350);
-      } catch (error) {
-        alerta('Erro', 'Não foi possível excluir a produção.');
-        console.error(error);
-        setModalConfirmacaoVisivel(false);
-      }
-    }
-  };
-
-  const cancelarExclusao = () => {
-    setModalConfirmacaoVisivel(false);
-    setIdParaExcluir(null);
-  };
+  const { dados, carregando, erro, recarregar } = useDadosApi<ProducaoRetornoDTO[]>(buscar, []);
+  const [ano, setAno] = useState('');
+  const ordenadas = useMemo(() => [...dados].sort((a, b) => String(b.dataColeta).localeCompare(String(a.dataColeta))), [dados]);
+  const filtradas = ordenadas.filter((p) => !ano || String(p.dataColeta).startsWith(ano));
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Minhas Produções' }} />
-      <View style={styles.container}>
-        <Subtexto style={styles.subtexto}>Minhas Produções</Subtexto>
-
-        {isLoading ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={cores.primaria} />
-          </View>
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {producoes.length === 0 ? (
-              <EstadoVazio mensagem="Nenhuma produção cadastrada ainda." icone="honeycomb" acao={{ titulo: 'Cadastrar primeira produção', onPress: () => router.push('/producao/cadastrar') }} />
-            ) : (
-              producoes.map((p) => {
-                const fields: CardField[] = [
-                  { label: 'Tipo', value: p.tipoProducao },
-                  { label: 'Quantidade', value: formatarKgL(paraKg(p.quantidade, p.unidadeMedida)) },
-                  {
-                    label: 'Status',
-                    value: (p as any).pendente ? 'Pendente de envio' : formatStatus(p.statusProduto),
-                    valueStyle: { color: getStatusColor(p.statusProduto) },
-                  },
-                  { label: 'Extração', value: formatDate(p.dataColeta) },
-                  { label: 'Venda', value: formatDate(p.dataVenda || '') },
-                  { label: 'Apiário', value: p.nomeApiario },
-                  { label: 'Colmeia', value: p.nomeColmeia },
-                  { label: 'Qualidade', value: formatQualidade(p.statusQualidade) },
-                ];
-
-                return (
-                  <GenericCard
-                    key={p.id}
-                    id={p.id}
-                    fields={fields}
-                    actions={[
-                      { iconName: 'delete', onPress: () => handleDelete(p.id) },
-                      { iconName: 'edit', onPress: () => handleEdit(p.id) },
-                    ]}
-                  />
-                );
-              })
-            )}
-          </ScrollView>
-        )}
-
-        <ModalSucesso
-          visivel={modalSucessoVisivel}
-          mensagem="Produção excluída com sucesso!"
-          aoFechar={() => setModalSucessoVisivel(false)}
-        />
-      </View>
-
-      <ModalConfirmacao
-        visivel={modalConfirmacaoVisivel}
-        titulo="Deseja mesmo apagar esta produção?"
-        mensagem="Entenda que esta ação não poderá ser desfeita."
-        aoConfirmar={confirmarExclusao}
-        aoCancelar={cancelarExclusao}
-        aoFechar={cancelarExclusao}
-      />
-    </>
+    <TelaLista
+      titulo="Minhas Produções"
+      cadastrar={{ titulo: 'Cadastrar produção', rota: '/producao/cadastrar' }}
+      carregando={carregando}
+      erro={erro}
+      onTentarNovamente={recarregar}
+      filtros={[<Selector key="ano" label="Ano" options={opcoesDeAno(dados, (p) => p.dataColeta)} onSelect={setAno} value={ano} />]}
+      colunas={colunas}
+      dados={filtradas}
+      total={dados.length}
+      vazio="Nenhuma produção cadastrada ainda."
+      onPressLinha={(p) => !(p as any).pendente && router.push(`/producao/editar?id=${p.id}` as any)}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: cores.fundo,
-    padding: layout.espacamento.amigavel,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  subtexto: {
-    width: '100%',
-    paddingTop: layout.espacamento.amigavel,
-    marginBottom: layout.espacamento.amigavel,
-    alignItems: 'center',
-  },
-  scrollContent: {
-    paddingBottom: layout.espacamento.social,
-  },
-  semDados: {
-    textAlign: 'center',
-    marginTop: 20,
-    opacity: 0.6,
-  },
-});

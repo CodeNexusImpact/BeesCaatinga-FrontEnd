@@ -57,7 +57,7 @@ export default function MapaWeb({
         instancia = L.map(containerRef.current, { center: [r.latitude, r.longitude], zoom: 12, zoomControl: true });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '© OpenStreetMap contributors',
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
         }).addTo(instancia);
         instancia.on('click', (e: Leaflet.LeafletMouseEvent) => {
           const cb = callbacks.current;
