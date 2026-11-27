@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
             )}
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', flexDirection: 'row', gap: 10 }}>
                 <Image source={require('@/assets/images/abelha-bees-caatinga.png')} style={{ height: 40, width: 30 }} />
-                <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">{title}</Text>
+                <Text style={styles.headerTitle} numberOfLines={2} accessibilityRole="header">{title}</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/notificacao')} style={styles.botaoIcone} accessibilityRole="button" accessibilityLabel="Avisos">
                 <Icon name="sino" size={26} color={temaCores.textoSobrePrimaria} />

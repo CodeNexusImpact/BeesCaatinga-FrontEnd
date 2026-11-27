@@ -116,7 +116,7 @@ const ImagemPicker: React.FC<ImagemPickerProps> = ({
 
   return (
     <>
-      <TouchableOpacity onPress={selectImage} style={[containerStyle, style]} disabled={loading}>
+      <TouchableOpacity onPress={selectImage} style={[containerStyle, style]} disabled={loading} accessibilityRole="button" accessibilityLabel="Escolher foto">
         {loading ? (
           <ActivityIndicator size="large" color={temaCores.primaria[100]} />
         ) : imageUri ? (

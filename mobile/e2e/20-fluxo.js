@@ -55,6 +55,28 @@ secao('lote', async (page, h, ctx) => {
   registrar('lote', 'detalhe mostra data, quantidade e apiário', valores.includes('25/11/2026') && valores.includes('40,50 kg (28,52 L)') && valores.includes(D.apiario), JSON.stringify(valores));
   registrar('lote', 'detalhe mostra a cadeia de origem (colmeia, produção, vistoria)', t3.includes(`Colmeia ${D.colmeia}`) && /Produções \(\d+\)/.test(t3) && /Vistorias \([1-9]/.test(t3));
   await h.foto('13b-lote-detalhes');
+  registrar('lote', 'resposta traz colmeias[] do lote', Array.isArray(l.colmeias) && l.colmeias.some((c) => c.id === D.colmeiaId), JSON.stringify(l.colmeias));
+
+  // Editar lote (PUT /lotes/{p}/{id}): quantidade e vendido
+  await h.ir(`/rastreabilidade/cadastrar?id=${l.id}`);
+  await page.waitForTimeout(3000);
+  registrar('lote', 'edição carrega a quantidade e a colmeia marcada', (await page.getByTestId('campo-kg').inputValue()) === '40,50' && (await page.getByTestId(`colmeia-${D.colmeiaId}`).getAttribute('aria-checked')) === 'true');
+  await page.getByTestId('campo-kg').fill('50');
+  await page.getByLabel('Lote vendido').click();
+  await h.clicar('Salvar alterações');
+  await page.waitForTimeout(2500);
+  const l2 = (await api('GET', `/lotes/${ctx.id}/${l.id}`, ctx.token)).dados;
+  conferir('lote-editar', l2, { quantidadeProduzida: 50, vendido: true, apiarioId: D.apiarioId, tipoFlorada: 'MARMELEIRO' });
+  registrar('lote-editar', 'colmeias preservadas na edição', Array.isArray(l2?.colmeias) && l2.colmeias.some((c) => c.id === D.colmeiaId));
+
+  // Excluir lote pela tela de detalhes (DELETE, com confirmação)
+  const extra = (await api('POST', `/lotes/${ctx.id}`, ctx.token, { dataProducao: '20/11/2026', quantidadeProduzida: 3, apiarioId: D.apiarioId, colmeiaIds: [D.colmeiaId], tipoAbelha: 'JANDAIRA' })).dados;
+  await h.ir(`/rastreabilidade/editar?id=${extra.id}`);
+  await page.waitForTimeout(2500);
+  await h.clicar('Excluir lote');
+  await page.waitForTimeout(2500);
+  const r = await api('GET', `/lotes/${ctx.id}/${extra.id}`, ctx.token);
+  registrar('lote', 'lote excluído pela tela (404)', r.status === 404, String(r.status));
 });
 
 secao('dashboards', async (page, h, ctx) => {
@@ -106,7 +128,7 @@ secao('mapa', async (page, h, ctx) => {
 secao('relatorios', async (page, h, ctx) => {
   const telas = {
     '/apiario/tabelaApiario': D.apiario, '/apiario/tabelaColmeia': D.colmeia, '/producao/tabela': 'Mel de Marmeleiro',
-    '/vistorias/tabela': 'Vistoria editada QA', '/rastreabilidade/tabela': '40,50 kg',
+    '/vistorias/tabela': 'Vistoria editada QA', '/rastreabilidade/tabela': '50,00 kg',
   };
   for (const [rota, esperado] of Object.entries(telas)) {
     await h.ir(rota);

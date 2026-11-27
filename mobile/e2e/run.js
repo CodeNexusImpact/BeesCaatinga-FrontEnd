@@ -65,6 +65,16 @@ secao('perfil', async (page, h) => {
   await h.preencher('(Opcional)', 'Mel do Sertão LTDA');
   await h.preencher('(00) 0 0000-0000', '83912345678');
   await h.preencher('Rua, número, bairro, cidade', 'Rua das Flores, 10, Centro, Patos-PB');
+  // Foto do perfil: POST /upload (multipart "file") → caminhoDaFoto = /arquivos/{id}
+  const [seletor] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 15000 }),
+    (async () => { await page.getByLabel('Escolher foto').first().click(); await page.getByText('Escolher da Galeria', { exact: true }).click(); })(),
+  ]);
+  const upload = page.waitForResponse((r) => /\/upload$/.test(r.url()) && r.request().method() === 'POST', { timeout: 60000 });
+  await seletor.setFiles(`${__dirname}/screenshots/antes-depois/antes-01-login.png`);
+  const respUpload = await upload.catch(() => null);
+  registrar('perfil', 'POST /upload = 201', respUpload?.status() === 201, String(respUpload?.status()));
+  await page.waitForTimeout(1000);
   await h.foto('04-perfil');
   await h.clicar('Salvar Alterações');
   await page.waitForTimeout(1500);
@@ -73,6 +83,12 @@ secao('perfil', async (page, h) => {
     nomeCompleto: 'Maria QA Editada', genero: 'OUTRO', nomeDaEmpresa: 'Mel do Sertão LTDA',
     telefone: '83912345678', endereco: 'Rua das Flores, 10, Centro, Patos-PB', email: ctx.email,
   });
+  const foto = p.dados.caminhoDaFoto || '';
+  registrar('perfil', 'foto enviada (caminhoDaFoto = /arquivos/{id})', /^\/arquivos\//.test(foto), foto);
+  if (foto) {
+    const img = await fetch(require('./lib').API + foto);
+    registrar('perfil', 'GET /arquivos/{id} público devolve a imagem', img.ok && /^image\//.test(img.headers.get('content-type') || ''), `${img.status} ${img.headers.get('content-type')}`);
+  }
   await h.ir('/');
   registrar('perfil', 'home reflete nome editado', (await h.texto()).includes('Olá, Maria QA Editada'));
 });

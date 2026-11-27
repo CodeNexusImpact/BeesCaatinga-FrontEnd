@@ -129,6 +129,8 @@ secao('vistoria', async (page, h, ctx) => {
   // 0-4: pragas (Varroa, Formiga, Traça, Lagartixa, Outro) · 5-8: perdas (Alimentação, Veneno, Clima, Outro)
   for (let i = 0; i < 9; i++) await page.locator('input[type="checkbox"]').nth(i).click({ force: true });
   await h.preencher('Observações (opcional):', 'Vistoria completa QA');
+  await h.clicar('Usar minha localização atual');
+  await page.waitForTimeout(1200);
   const marcados = await page.locator('input[type="checkbox"]:checked').count();
   registrar('vistoria', 'todos os 9 checkboxes marcados', marcados === 9, String(marcados));
   await h.foto('09-vistoria-cadastro');
@@ -144,6 +146,7 @@ secao('vistoria', async (page, h, ctx) => {
     pragasIdentificadas: ['VARROA', 'FORMIGA', 'TRACA', 'LAGARTIXA', 'OUTRO'],
     perdasIdentificadas: ['ALIMENTACAO', 'VENENO', 'CLIMA', 'OUTRO'],
   });
+  registrar('vistoria', 'latitude/longitude da vistoria (GPS)', perto(v.latitude, -7.0247) && perto(v.longitude, -37.2806), `${v.latitude}, ${v.longitude}`);
   const col = proximo((await api('GET', `/colmeias/produtor/${ctx.id}`, ctx.token)).dados, (x) => x.id === D.colmeiaId);
   registrar('vistoria', 'situação da colmeia atualizada pela vistoria', col?.statusColmeia === 'TRATAMENTO_NECESSARIO', col?.statusColmeia);
 

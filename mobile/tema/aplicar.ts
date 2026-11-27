@@ -15,7 +15,7 @@ const FUNDOS: Record<string, string> = {
 };
 const TEXTOS: Record<string, string> = {
   '#000': '#F3EEE8', '#000000': '#F3EEE8', black: '#F3EEE8', '#1f1a17': '#F3EEE8', '#333': '#E8E1D9', '#333333': '#E8E1D9',
-  '#3e2723': '#F3EEE8', '#4a4a4a': '#CFC6BC', '#555': '#CFC6BC', '#555555': '#CFC6BC', '#666': '#C2B9AF', '#666666': '#C2B9AF',
+  '#4a4a4a': '#CFC6BC', '#555': '#CFC6BC', '#555555': '#CFC6BC', '#666': '#C2B9AF', '#666666': '#C2B9AF',
   '#6b6b6b': '#B5ACA2', '#767676': '#B5ACA2', '#777': '#B5ACA2', '#7f7f7f': '#B5ACA2', '#888': '#ADA49A', '#999': '#A39A90',
 };
 const BORDAS: Record<string, string> = {
