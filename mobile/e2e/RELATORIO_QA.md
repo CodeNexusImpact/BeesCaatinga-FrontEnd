@@ -1,5 +1,93 @@
 # Relatório de QA — Homologação BeesCaatinga
 
+## Rodada 3 (27/11/2026) — revisão visual e novos contratos
+**Link público:** https://beescaatinga-hml.vercel.app · **API:** https://beescaatinga-api-hml.onrender.com
+**E2E funcional:** ✅ 195/195 verificações (conta nova, link público; único erro de console: o 401 esperado da senha errada) · **Matriz visual:** ✅ 192/192 (48 rotas × 4 tamanhos)
+
+### Problemas relatados pelo usuário e correção
+| # | Problema | Correção |
+|---|---|---|
+| A | Login: faixa amarela com o logo cobria o 1º campo; cartão mal montado | `TelaAuth` única para login, cadastro e recuperar senha: logo em faixa no celular e em coluna no tablet/computador, sem margem negativa nem altura fixa; rótulos acima dos campos, dicas e erros junto ao campo. A tela "Recuperar senha" dizia "senha redefinida" sem chamar a API — agora explica que a recuperação ainda não existe (pendência de backend). |
+| B | Vistorias: filtros Mês/Ano estouravam a largura (Ano cortado) — e não filtravam nada | `Filtros` compartilhado (quebra de linha automática, 1 coluna no celular); filtros de mês/ano passaram a filtrar de verdade. |
+| C | Tabelas sem padrão | `Tabela` única (cabeçalho mel, linhas zebradas, ordenação, datas dd/mm/aaaa, números com vírgula, "kg (L)", estado vazio com botão, rolagem lateral só dentro do contêiner, **cartões no celular**, "Mostrar mais" a cada 25 linhas) usada em todos os relatórios (`TelaRelatorio`) e listagens (`TelaLista`): apiários, colmeias, vistorias, insumos, produção e lotes. CSV exporta com a mesma formatação. |
+| D | Qualidade visual desigual | Mesma moldura em todas as telas (cabeçalho com Voltar, cartões brancos com borda suave, espaçamento 16, campos de 48 px); matriz visual automática (abaixo). |
+| E | Tema escuro e tamanho do texto não faziam nada; tiles do mapa | Preferências lidas na inicialização (`index.js` → `tema/aplicar.ts`): tokens de cor e tamanhos de fonte valem para o app inteiro (web aplica na hora; celular ao reabrir). Web passou a SPA (`output: single`) para não haver conflito de hidratação. CSP com `https://tile.openstreetmap.org` e `https://*.tile.openstreetmap.org`; atribuição "© OpenStreetMap" com link. |
+| F | Contrato novo do backend | Fotos via `POST /upload` (campo `file`) em perfil, apiário, colmeia e vistoria, exibidas por `GET /arquivos/{id}`; lote com **várias colmeias** (`colmeiaIds`), **editar** (`PUT /lotes/{p}/{id}`) e **excluir** (`DELETE`, com confirmação); vistoria com latitude/longitude (GPS/mapa) e foto. |
+
+### Matriz visual (tema claro)
+Script `npm run e2e:visual` (`e2e/matriz-visual.js`): conta nova com dados semeados pela API, **todas as 48 rotas** × 360×740, 390×844, 768×1024 e 1366×768. Em cada combinação verifica: rolagem horizontal da página (`scrollWidth > innerWidth`), botões/campos cortados fora da tela (fora de contêineres com rolagem própria), campos sobrepostos e campo coberto por outro elemento (`elementFromPoint`). Capturas em `e2e/screenshots/matriz/<tamanho>/`.
+
+**Resultado: 192 de 192 combinações sem problemas** no link público (após as correções A–D; na 1ª rodada local o detector só acusou falsos positivos do menu fixo, depois tratados).
+
+<details><summary>Matriz completa</summary>
+
+| Rota | 360x740 | 390x844 | 768x1024 | 1366x768 |
+|---|---|---|---|---|
+| `/login` | ✅ | ✅ | ✅ | ✅ |
+| `/cadastro` | ✅ | ✅ | ✅ | ✅ |
+| `/redefinirSenha` | ✅ | ✅ | ✅ | ✅ |
+| `/` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/listar` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/cadastrar` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/editar` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/colmeia/cadastrar` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/colmeia/editar` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/dashboardApiario` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/dashboardColmeia` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/tabelaApiario` | ✅ | ✅ | ✅ | ✅ |
+| `/apiario/tabelaColmeia` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias/cadastrar` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias/listar` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias/58` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias/editar` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias/dashboard` | ✅ | ✅ | ✅ | ✅ |
+| `/vistorias/tabela` | ✅ | ✅ | ✅ | ✅ |
+| `/producao` | ✅ | ✅ | ✅ | ✅ |
+| `/producao/cadastrar` | ✅ | ✅ | ✅ | ✅ |
+| `/producao/listar` | ✅ | ✅ | ✅ | ✅ |
+| `/producao/editar` | ✅ | ✅ | ✅ | ✅ |
+| `/producao/dashboard` | ✅ | ✅ | ✅ | ✅ |
+| `/producao/tabela` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos/cadastrar` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos/listar` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos/63` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos/editar` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos/dashboard` | ✅ | ✅ | ✅ | ✅ |
+| `/insumos/tabela` | ✅ | ✅ | ✅ | ✅ |
+| `/rastreabilidade` | ✅ | ✅ | ✅ | ✅ |
+| `/rastreabilidade/cadastrar` | ✅ | ✅ | ✅ | ✅ |
+| `/rastreabilidade/listar` | ✅ | ✅ | ✅ | ✅ |
+| `/rastreabilidade/editar` | ✅ | ✅ | ✅ | ✅ |
+| `/rastreabilidade/dashboard` | ✅ | ✅ | ✅ | ✅ |
+| `/rastreabilidade/tabela` | ✅ | ✅ | ✅ | ✅ |
+| `/relatorio` | ✅ | ✅ | ✅ | ✅ |
+| `/mapa` | ✅ | ✅ | ✅ | ✅ |
+| `/notificacao` | ✅ | ✅ | ✅ | ✅ |
+| `/perfil` | ✅ | ✅ | ✅ | ✅ |
+| `/configuracao` | ✅ | ✅ | ✅ | ✅ |
+| `/configuracao/webhooks` | ✅ | ✅ | ✅ | ✅ |
+| `/sincronizacao` | ✅ | ✅ | ✅ | ✅ |
+| `/tutorial` | ✅ | ✅ | ✅ | ✅ |
+
+</details>
+
+### Bug encontrado só no link público e corrigido
+- **Envio de foto bloqueado pela CSP** da Vercel: o app lê a imagem escolhida (`blob:`) com `fetch` antes do `POST /upload` e a política `connect-src` não permitia `blob:` ("Refused to connect to blob:…"). Corrigido em `vercel.json`; e2e público passou a 195/195.
+
+### Pendências
+- **Recuperação de senha**: não há endpoint no backend (a tela agora informa isso em vez de simular sucesso).
+- **Tema/tamanho do texto no celular** valem ao reabrir o app (na web, na hora). Cores fixas escritas direto em alguns estilos inline antigos podem não seguir o tema escuro.
+- **Tiles do OSM** não carregam no ambiente de teste (proxy de saída); CSP e atribuição conferidas.
+
+### Novas verificações no e2e
+- Perfil: foto enviada pela tela (`POST /upload` = 201), `caminhoDaFoto = /arquivos/{id}` e `GET /arquivos/{id}` público devolve `image/jpeg`.
+- Vistoria: latitude/longitude gravadas pelo botão "Usar minha localização atual".
+- Lote: `colmeias[]` na resposta; edição carrega quantidade e colmeias; `PUT` altera quantidade e "vendido" mantendo as colmeias; exclusão pela tela → `GET` 404.
+
+
 ## Rodada 2 (27/11/2026) — link público
 **Web:** https://beescaatinga-hml.vercel.app (Vercel, build da branch `claude/homologacao-producao`) · **API:** https://beescaatinga-api-hml.onrender.com (Render, plano gratuito)
 **Resultado final:** ✅ **183 de 183 verificações aprovadas** no link público, conta nova, sem erros de console nem requisições com falha além do 401 esperado no teste de senha errada.

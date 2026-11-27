@@ -5,6 +5,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Unreleased]
 ### Added
+- Componentes compartilhados `Tabela` (cartões no celular, zebra, ordenação, paginação, formatação pt-BR, kg+L), `Filtros`, `TelaRelatorio`, `TelaLista` e `TelaAuth`; matriz visual automática (`npm run e2e:visual`, 48 rotas × 4 tamanhos).
+- Tema escuro e tamanho do texto aplicados no app inteiro; fotos (`POST /upload`) em perfil, apiário, colmeia e vistoria; lote com várias colmeias, edição e exclusão; vistoria com localização.
 - **Exportar PDF** dos relatórios de produção, vistorias e rastreabilidade (`POST /relatorios/{tipo}/pdf`): download por link na web e compartilhamento (expo-file-system + expo-sharing) no celular.
 - **Integrações / Webhooks** em Configurações: listar, criar (URL + eventos, segredo exibido uma única vez com botão copiar), ativar/desativar, testar, excluir e ver as últimas entregas.
 - **Mapa** (`/mapa`): camadas de apiários, vistorias e propriedades (`/…/localizacoes/{produtorId}`), definição da localização do apiário por toque/clique no mapa, GPS ou digitação, com validação de faixa (latitude −90..90, longitude −180..180) e `PUT /apiarios/{id}/localizacao`.
@@ -28,6 +30,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Dados fictícios: dashboard de rastreabilidade (`MASTER_DATA`), tabela de colmeias mock, notificações fixas, anos/meses fixos nos filtros, KPI de "conformidade" aleatório.
 
 ### Fixed
+- Login/cadastro: faixa do logo cobria o primeiro campo; filtros de vistorias estouravam a largura e não filtravam; "Recuperar senha" simulava sucesso sem API.
+- Vercel: 404 em rotas sem arquivo (SPA) e CSP bloqueando `blob:` no envio de fotos.
 - Relatório de colmeias usava campos inexistentes (`apiarioNome`, `tipoColmeia`, `dataCriacao`).
 - Seletor exibia "Selecione uma opção" para a opção "Todos" e as setas não apareciam (ícones `setaBaixo`/`setaCima` ausentes).
 - Listagens de produção/vistorias/insumos escondiam erros de rede (retornavam lista vazia).
