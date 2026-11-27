@@ -5,6 +5,36 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Unreleased]
 ### Added
+- **Exportar PDF** dos relatórios de produção, vistorias e rastreabilidade (`POST /relatorios/{tipo}/pdf`): download por link na web e compartilhamento (expo-file-system + expo-sharing) no celular.
+- **Integrações / Webhooks** em Configurações: listar, criar (URL + eventos, segredo exibido uma única vez com botão copiar), ativar/desativar, testar, excluir e ver as últimas entregas.
+- **Mapa** (`/mapa`): camadas de apiários, vistorias e propriedades (`/…/localizacoes/{produtorId}`), definição da localização do apiário por toque/clique no mapa, GPS ou digitação, com validação de faixa (latitude −90..90, longitude −180..180) e `PUT /apiarios/{id}/localizacao`.
+- Seletor de localização reutilizável (mapa + GPS + campos) no cadastro/edição de apiário e no lote.
+- **Lote vinculado** ao apiário (`apiarioId`) e à colmeia de origem (`colmeiaId`) escolhidos entre os dados reais; detalhe do lote mostra a cadeia apiário → colmeia → vistorias → produções.
+- **Conversão kg ↔ litros** do mel (`utils/mel.ts`, densidade padrão 1,42 kg/L configurável em Configurações e sincronizada com `densidadeMel` do produtor); campos de quantidade aceitam kg OU litros e exibem "12,50 kg (8,80 L)" em listas, relatórios e gráficos.
+- **Sugestões inteligentes** enquanto digita (`GET /sugestoes` + histórico local) em cidade, bairro, estado, propriedade, tipo de mel, nome e observações de insumo; seletores lembram a última escolha.
+- **Modo offline**: cadastros/edições sem internet vão para uma fila local com UUID, aparecem como "pendente de envio" e são sincronizados em ordem de dependência (apiário → colmeia → vistoria/produção → lote) com `Idempotency-Key`; faixa "Sincronizar (N pendentes)", tela "Envios Pendentes" com erro por item; listas em cache para leitura offline.
+- Tela **Avisos** calculada a partir dos dados reais (insumos vencidos/vencendo, estoque baixo, colmeias que precisam de atenção ou sem vistoria).
+- Guia **Como Usar** em passos; tela inicial com cartões numerados na ordem do trabalho no campo.
+- Exportação de planilhas CSV reais (antes apenas `console.log`/alerta).
+- E2E contra o link público (padrão `BASE_URL=https://beescaatinga-hml.vercel.app`): lote vinculado, dashboards, mapa, PDF (%PDF), webhooks, sessão, offline/sincronização e idempotência; capturas antes/depois.
+
+### Changed
+- Dashboards de apiários, colmeias, produção, vistorias, insumos e lotes reescritos: indicadores e gráficos calculados dos dados reais, gráficos em View (sem SVG; sem erros no navegador), estados de carregamento/erro/vazio com botão "Cadastrar primeiro…".
+- Identidade visual com contraste AA (texto marrom sobre amarelo-mel, branco sobre marrom), fonte base 17, áreas de toque ≥ 48 px, rótulos acima dos campos, dicas e erros junto ao campo, botões e campos com `accessibilityLabel`/`role`, cabeçalho com "Voltar" e título em todas as telas, menu inferior Início/Apiários/Mapa/Relatórios/Sair.
+- Telas de módulo com uma ação principal e demais opções em linhas grandes com ícone + texto; termos padronizados ("Resumo" em vez de "Dashboard", títulos em Title Case).
+- Leaflet reescrito: o mapa é criado uma vez e os marcadores atualizados sem perder o zoom; tiles em `tile.openstreetmap.org`.
+
+### Removed
+- Dados fictícios: dashboard de rastreabilidade (`MASTER_DATA`), tabela de colmeias mock, notificações fixas, anos/meses fixos nos filtros, KPI de "conformidade" aleatório.
+
+### Fixed
+- Relatório de colmeias usava campos inexistentes (`apiarioNome`, `tipoColmeia`, `dataCriacao`).
+- Seletor exibia "Selecione uma opção" para a opção "Todos" e as setas não apareciam (ícones `setaBaixo`/`setaCima` ausentes).
+- Listagens de produção/vistorias/insumos escondiam erros de rede (retornavam lista vazia).
+- Tabela de rastreabilidade mostrava quantidade 0 e status errado (assinatura de `render`).
+
+## [Anterior]
+### Added
 - Testes E2E com Playwright (`npm run e2e`, `mobile/e2e/`): 128 verificações pela UI com conferência campo a campo na API; relatório `mobile/e2e/RELATORIO_QA.md` e capturas de tela.
 - Edição de perfil e de apiário funcionais; geolocalização real em apiário, colmeia e lote; marcadores de apiários no mapa.
 - Polyfill de `Alert.alert` para a web (alertas e confirmações antes ignorados no navegador).

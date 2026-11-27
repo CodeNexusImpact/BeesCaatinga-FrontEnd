@@ -1,5 +1,73 @@
 # Relatório de QA — Homologação BeesCaatinga
 
+## Rodada 2 (27/11/2026) — link público
+**Web:** https://beescaatinga-hml.vercel.app (Vercel, build da branch `claude/homologacao-producao`) · **API:** https://beescaatinga-api-hml.onrender.com (Render, plano gratuito)
+**Resultado final:** ✅ **183 de 183 verificações aprovadas** no link público, conta nova, sem erros de console nem requisições com falha além do 401 esperado no teste de senha errada.
+
+### Como foi testado
+- `npm run e2e` (Playwright/Chromium, 390×844, escala 2, geolocalização simulada em Patos-PB) contra o **link público**, criando uma **conta nova** a cada execução — sem dados simulados.
+- Após cada gravação pela interface, o teste consulta a API com o JWT e compara **campo a campo** o valor persistido.
+- Registra erros de console, requisições com falha e respostas HTTP ≥ 400 da API.
+- A API é "acordada" antes do teste (`/actuator/health`; o Render gratuito hiberna e leva ~1 min).
+
+### Resultado por cenário (link público)
+| Cenário | O que foi verificado | Resultado |
+|---|---|---|
+| Cadastro / login | todos os campos do cadastro (nome, telefone só dígitos, e-mail, nascimento, gênero, senha); 401 com mensagem; JWT salvo | ✅ |
+| Perfil | nome, gênero, empresa, telefone, endereço; e-mail inalterado; Início atualizado | ✅ |
+| Apiário (cadastro + edição) | 11 campos de endereço/dados; GPS; latitude 95 rejeitada na tela; **ponto escolhido com clique no mapa** = latitude/longitude persistidas; edição preserva campos | ✅ |
+| Colmeia | criar, editar, inativar (INATIVO) e reativar (SAUDAVEL); coordenadas | ✅ |
+| Vistoria | 9 checkboxes, condição, data; situação da colmeia atualizada; edição | ✅ |
+| Insumo | criar, editar, excluir (404 após exclusão) | ✅ |
+| Produção | **kg ↔ L automático** (25,5 kg = 17,96 L; 30 L = 42,60 kg com densidade 1,42); listagem "25,50 kg (17,96 L)"; edição | ✅ |
+| Lote | apiário e **colmeia de origem reais** (apiarioId, colmeiaId, identificadorColmeia); localização herdada do apiário; listagem e detalhe com a cadeia apiário → colmeia → produções → vistorias | ✅ |
+| Dashboards (6) | indicadores e gráficos com os dados criados no teste, sem erros no navegador | ✅ |
+| Mapa | camadas Apiários/Vistorias/Propriedades com contagem; marcadores; `PUT /apiarios/{id}/localizacao` pela tela; API rejeita latitude 95 (400) | ✅ |
+| Relatórios | 5 tabelas com dados; `POST /relatorios/*` = 200; **PDF baixado pela interface** dos 3 relatórios (arquivo começa com `%PDF`) | ✅ |
+| Webhooks | estado vazio; criar (URL + 2 eventos); segredo exibido uma vez e ausente na listagem; desativar/ativar; testar → entrega registrada; últimas entregas na tela; excluir | ✅ |
+| Sessão | sair, token removido, rota protegida bloqueada, novo login, sessão mantida ao recarregar, dados presentes | ✅ |
+| Offline | aviso "Sem internet"; apiário e colmeia (dependente do apiário local) salvos na fila com UUID; ao voltar a conexão a fila é enviada em ordem, ids locais trocados pelos do servidor, sem duplicar; insumo offline; `Idempotency-Key` repetida devolve o mesmo registro (`Idempotency-Replayed: true`) | ✅ |
+
+Capturas: [`screenshots/`](screenshots/) (01–28) e PDFs baixados (`relatorio-*.pdf`).
+
+### Bugs encontrados e corrigidos nesta rodada (frontend)
+1. **Vercel devolvia 404** em rotas dinâmicas e em qualquer rota sem arquivo ao abrir por link/recarregar (`/insumos/31`, `/vistorias/12`): a reescrita para `/index.html` não funcionava com `cleanUrls`. Corrigido em `vercel.json` (reescrita para `[id]` e para `/`). Encontrado **somente no link público**.
+2. Dados fictícios removidos: dashboard de rastreabilidade (`MASTER_DATA`), tabela de colmeias mock, avisos fixos, KPI de "conformidade" aleatório, anos/meses fixos em filtros (o de rastreabilidade só tinha jan/fev/mai).
+3. Relatório de colmeias lia campos inexistentes (`apiarioNome`, `tipoColmeia`, `dataCriacao`) → "N/A" em tudo.
+4. Tabela de rastreabilidade mostrava quantidade 0 e "Vendido" para lotes em estoque (assinatura errada de `render`).
+5. "Exportar relatório" só escrevia no `console.log` → CSV real (download/compartilhar).
+6. Listagens de produção, vistorias e insumos escondiam erros (devolviam lista vazia).
+7. Seletor: opção "Todos" aparecia como "Selecione uma opção"; setas do seletor não apareciam (ícones inexistentes); rótulos em fonte serifada na web (`System-Bold` inexistente).
+8. Conversão kg→L fixa em 1,4 e diferente entre telas → `utils/mel.ts` (1,42, configurável, igual ao backend).
+9. Lote só por nome do apiário e sem colmeia → `apiarioId`/`colmeiaId` reais.
+10. Rótulo "N Registro" (abreviação) → "Número de registro (SISBI ou SIF)".
+11. Produção/vistorias com contraste insuficiente (texto branco sobre amarelo) → pares de cor AA.
+
+### Bugs/observações de backend
+Nenhum defeito de backend encontrado nesta rodada. Os contratos novos (PDF, webhooks, localizações, lote com colmeia, densidadeMel, sugestões, Idempotency-Key) responderam conforme o combinado.
+
+### Melhorias de UX (fase 2)
+Capturas lado a lado em [`screenshots/antes-depois/`](screenshots/antes-depois/) (`antes-*` = versão publicada antes desta rodada; `depois-*` = atual), mesmas telas e dados semeados pela API.
+- **Identidade**: amarelo-mel `#F0B21A` + marrom `#3E2723/#5D4037`, fundo creme; texto marrom sobre amarelo e branco sobre marrom (contraste AA); tokens centralizados em `constants/cores.ts`, `fonts.ts` (base 17) e `layout.ts` (`toqueMinimo` 48).
+- **Início** com cartões grandes e numerados na ordem do trabalho: 1 Apiários e Colmeias · 2 Vistorias · 3 Produção de Mel · 4 Lotes · 5 Insumos · 6 Relatórios · 7 Mapa; "Mais opções": Como usar, Meu Perfil, Avisos, Configurações.
+- **Como Usar**: guia em 7 passos curtos, incluindo o uso sem internet.
+- **Telas de módulo** com **uma ação principal** (ex.: "Cadastrar apiário") e as demais em linhas grandes com ícone + texto + descrição.
+- **Formulários**: rótulo acima do campo, dica abaixo, erro junto ao campo (borda vermelha), máscaras de data/telefone, campos de ≥ 48 px, fonte 17; quantidade de mel em kg **ou** litros; sugestões enquanto digita; última escolha lembrada.
+- **Estados vazios** com ícone e botão "Cadastrar primeiro …"; "Dashboard" → "Resumo"; títulos em Title Case e botões em caixa de frase; termos unificados (Apiário, Colmeia, Vistoria, Produção, Lote, Insumo, Relatório).
+- **Navegação**: cabeçalho com "Voltar" (seguro sem histórico) e título em todas as telas; menu inferior Início/Apiários/Mapa/Relatórios/Sair com ícone + texto.
+- **Acessibilidade**: `accessibilityRole`/`accessibilityLabel` em botões, campos, seletores, menu e cartões; navegação por teclado na web.
+- **Avisos** calculados dos dados reais (insumo vencido/vencendo, estoque baixo, colmeia que precisa de atenção, vistoria atrasada).
+
+### Pendências
+- **Tiles do mapa** não carregam no ambiente de teste (o proxy de saída bloqueia `tile.openstreetmap.org`); no navegador do usuário carregam normalmente (CSP liberada). Mapa, cliques e marcadores funcionam.
+- **Vistoria não tem latitude/longitude no backend**: o ponto da vistoria no mapa é o da colmeia/apiário.
+- **Fotos** de apiário/colmeia: não há endpoint genérico de upload no backend.
+- **Tema escuro e tamanho da fonte** em Configurações ainda são só preferências locais (sem efeito visual).
+- Offline no celular usa erro de rede para detectar falta de conexão (sem `NetInfo`); na web usa `navigator.onLine`.
+- Lote vincula **uma** colmeia (limite do contrato atual); lotes não têm edição/exclusão por rastreabilidade.
+
+## Rodada 1 (26/11/2026) — ambiente local
+
 **Data:** 26/11/2026 · **Branch:** `claude/homologacao-producao` (frontend e backend)
 **Resultado final:** ✅ **128 de 128 verificações aprovadas** no build de produção (`expo export`), sem erros de console nem requisições com falha além do 401 esperado no teste de senha errada.
 
