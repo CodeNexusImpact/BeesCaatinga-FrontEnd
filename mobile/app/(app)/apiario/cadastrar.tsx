@@ -180,7 +180,7 @@ const CadastrarApiario = () => {
                         onChangeText={setNome}
                     />
                     <Input
-                        label='N Registro'
+                        label='Número de registro (SISBI ou SIF)'
                         placeholder="SISBI 1234/2025"
                         value={registro}
                         onChangeText={setRegistro}

@@ -38,6 +38,19 @@ async function api(metodo, caminho, token, corpo) {
   return { status: r.status, dados };
 }
 
+/** Aguarda o backend do Render "acordar" (plano gratuito hiberna; ~1 min). */
+async function aquecerApi(limiteMs = 240000) {
+  const inicio = Date.now();
+  while (Date.now() - inicio < limiteMs) {
+    try {
+      const r = await fetch(`${API}/actuator/health`, { signal: AbortSignal.timeout(70000) });
+      if (r.ok) return true;
+    } catch { /* ainda iniciando */ }
+    await new Promise((ok) => setTimeout(ok, 5000));
+  }
+  return false;
+}
+
 async function abrirNavegador() {
   const browser = await chromium.launch(PROXY ? { proxy: { server: PROXY, bypass: 'localhost,127.0.0.1' } } : {});
   const context = await browser.newContext({
@@ -97,7 +110,11 @@ async function abrirNavegador() {
 /** Helpers de interação com componentes React Native Web. */
 function ui(page) {
   const h = {
-    ir: async (rota) => { await page.goto(WEB + rota, { waitUntil: 'networkidle' }); await page.waitForTimeout(600); },
+    ir: async (rota) => {
+      await page.goto(WEB + rota, { waitUntil: 'load', timeout: 90000 });
+      await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+      await page.waitForTimeout(600);
+    },
     preencher: async (placeholder, valor, nth = 0) => {
       const el = page.getByPlaceholder(placeholder, { exact: true }).nth(nth);
       await el.click(); await el.fill(''); await el.pressSequentially(String(valor), { delay: 5 });
@@ -126,4 +143,4 @@ function ui(page) {
   return h;
 }
 
-module.exports = { WEB, API, api, abrirNavegador, ui, registrar, conferir, resultados, problemas };
+module.exports = { WEB, API, api, aquecerApi, abrirNavegador, ui, registrar, conferir, resultados, problemas };

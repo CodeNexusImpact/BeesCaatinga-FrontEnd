@@ -2,7 +2,7 @@
  * Uso: E2E_WEB_URL=... E2E_API_URL=... node e2e/capturas.js antes|depois
  */
 const fs = require('fs');
-const { WEB, api, abrirNavegador } = require('./lib');
+const { WEB, api, aquecerApi, abrirNavegador } = require('./lib');
 const { semear } = require('./semear');
 
 const TELAS = [
@@ -16,10 +16,11 @@ const TELAS = [
   const pasta = `${__dirname}/screenshots/antes-depois`;
   fs.mkdirSync(pasta, { recursive: true });
   const prefixo = process.argv[2] || 'depois';
+  await aquecerApi();
   const conta = await semear();
   conta.produtor = (await api('GET', `/produtores/${conta.id}`, conta.token)).dados;
   const { browser, page } = await abrirNavegador();
-  await page.goto(WEB + '/login', { waitUntil: 'networkidle' });
+  await page.goto(WEB + '/login', { waitUntil: 'load', timeout: 90000 });
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `${pasta}/${prefixo}-01-login.png` });
   await page.evaluate(({ token, produtor }) => {
@@ -28,7 +29,8 @@ const TELAS = [
   }, conta);
   for (const [nome, rota, logado = true] of TELAS) {
     if (!logado) continue;
-    await page.goto(WEB + rota, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(WEB + rota, { waitUntil: 'load', timeout: 90000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
     await page.waitForTimeout(2500);
     await page.screenshot({ path: `${pasta}/${prefixo}-${nome}.png` });
     console.log('captura', prefixo, nome);

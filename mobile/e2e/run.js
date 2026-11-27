@@ -3,7 +3,7 @@
  * Seções específicas: E2E_SECOES=cadastro,apiario npm run e2e
  */
 const fs = require('fs');
-const { api, abrirNavegador, ui, registrar, conferir, resultados, problemas } = require('./lib');
+const { api, aquecerApi, abrirNavegador, ui, registrar, conferir, resultados, problemas } = require('./lib');
 
 const RUN = Date.now().toString().slice(-6);
 const ctx = {
@@ -84,6 +84,7 @@ for (const f of fs.readdirSync(__dirname).filter((n) => /^\d\d-.*\.js$/.test(n))
 
 (async () => {
   const filtro = process.env.E2E_SECOES ? process.env.E2E_SECOES.split(',') : null;
+  console.log(`Aquecendo a API (${require('./lib').API})...`, (await aquecerApi()) ? 'ok' : 'sem resposta');
   const { browser, page } = await abrirNavegador();
   const h = ui(page);
   for (const s of secoes) {
