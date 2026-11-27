@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { padding: layout.espacamento.colega, gap: 12, paddingBottom: 40, maxWidth: 720, width: '100%', alignSelf: 'center' },
   secao: { fontSize: 18, fontWeight: 'bold', color: cores.texto, marginTop: 8 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, gap: 12, borderWidth: 1, borderColor: '#E1E3E6' },
+  card: { backgroundColor: cores.superficie, borderRadius: 16, padding: 14, gap: 12, borderWidth: 1, borderColor: cores.bordaSuave },
   grupo: { gap: 6 },
   rotulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
   segmentos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

@@ -1,3 +1,4 @@
+import cores from '@/constants/cores';
 import React, { useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -49,7 +50,7 @@ export default function BannerSincronizacao() {
 }
 
 const styles = StyleSheet.create({
-  faixa: { backgroundColor: '#FFF3CD', borderBottomWidth: 1, borderColor: '#E0A100', padding: 10, gap: 8 },
+  faixa: { backgroundColor: cores.destaque, borderBottomWidth: 1, borderColor: '#E0A100', padding: 10, gap: 8 },
   offline: { backgroundColor: '#FDECEA', borderColor: '#C62828' },
   texto: { fontSize: 15, color: '#3E2723', fontWeight: '600' },
   acoes: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end' },

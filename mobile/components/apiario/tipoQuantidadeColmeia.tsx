@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
         backgroundColor: temaCores.branco,
         gap: 8,
         padding: 8,
-        borderColor: '#ccc',
+        borderColor: temaCores.bordaSuave,
         borderWidth: 1,
         borderRadius: 999,
         width: '100%',
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     },
     numberInput: {
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: temaCores.bordaSuave,
         borderRadius: 999,
         paddingHorizontal: 8,
         alignContent: 'center',
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 16,
-        color: '#333',
+        color: temaCores.texto,
     },
 });
 

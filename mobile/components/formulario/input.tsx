@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 'auto',
-        borderColor: '#ccc',
+        borderColor: cores.bordaSuave,
         flexShrink: 1,
         flexGrow: 1,
         paddingHorizontal: 10,

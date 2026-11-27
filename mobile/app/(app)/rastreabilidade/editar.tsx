@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: cores.branco, borderRadius: 16, padding: 14, gap: 6, elevation: 2, boxShadow: '0px 2px 4px rgba(0,0,0,0.12)' },
   titulo: { fontSize: 17, fontWeight: 'bold', color: cores.texto },
   subtitulo: { fontSize: 15, fontWeight: 'bold', color: cores.texto, marginTop: 8 },
-  dica: { fontSize: 14, color: '#555' },
+  dica: { fontSize: 14, color: cores.textoSecundario },
   item: { fontSize: 15, color: cores.texto },
   acoes: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   acao: { flexGrow: 1, flexBasis: 220 },

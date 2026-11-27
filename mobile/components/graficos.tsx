@@ -98,7 +98,7 @@ export function EstadoCarregando({ texto = 'Carregando...' }: { texto?: string }
 export function EstadoErro({ mensagem, onTentarNovamente }: { mensagem: string; onTentarNovamente?: () => void }) {
   return (
     <View style={styles.estado}>
-      <Text style={[styles.estadoTexto, { color: '#C62828' }]}>{mensagem}</Text>
+      <Text style={[styles.estadoTexto, { color: cores.perigo }]}>{mensagem}</Text>
       {onTentarNovamente && <Botao title="Tentar novamente" onPress={onTentarNovamente} cor="secundaria" tamanho="pequeno" />}
     </View>
   );
@@ -174,10 +174,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   titulo: { fontSize: 15, fontWeight: 'bold', color: cores.texto, marginBottom: 4 },
-  vazio: { color: '#888', textAlign: 'center', paddingVertical: 16 },
+  vazio: { color: cores.textoSecundario, textAlign: 'center', paddingVertical: 16 },
   linha: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rotulo: { width: 100, fontSize: 12, color: cores.texto },
-  trilha: { flex: 1, height: 14, backgroundColor: '#f0f0f0', borderRadius: 7, overflow: 'hidden' },
+  trilha: { flex: 1, height: 14, backgroundColor: cores.superficieAlternativa, borderRadius: 7, overflow: 'hidden' },
   barra: { height: '100%', borderRadius: 7 },
   valorLongo: { minWidth: 120, fontSize: 11 },
   valor: { minWidth: 56, fontSize: 12, fontWeight: '600', color: cores.texto, textAlign: 'right' },
@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
   valorColuna: { fontSize: 9, color: cores.texto, height: 14 },
   trilhaColuna: { flex: 1, width: '70%', justifyContent: 'flex-end' },
   barraColuna: { width: '100%', borderTopLeftRadius: 4, borderTopRightRadius: 4, minHeight: 0 },
-  rotuloColuna: { fontSize: 9, color: '#666', marginTop: 4 },
+  rotuloColuna: { fontSize: 9, color: cores.textoSecundario, marginTop: 4 },
   estado: { alignItems: 'center', justifyContent: 'center', padding: 24, gap: 14 },
   estadoIcone: { width: 84, height: 84, borderRadius: 42, backgroundColor: cores.cores.primaria[10], alignItems: 'center', justifyContent: 'center' },
-  estadoTexto: { color: '#666', textAlign: 'center', fontSize: 14 },
+  estadoTexto: { color: cores.textoSecundario, textAlign: 'center', fontSize: 14 },
 });

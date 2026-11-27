@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: cores.bordaSuave,
     },
     optionText: {
         fontSize: 17,

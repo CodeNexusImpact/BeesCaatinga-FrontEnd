@@ -42,11 +42,11 @@ const styles = StyleSheet.create({
   cartao: {
     width: '100%',
     maxWidth: 480,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: cores.superficie,
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E1E3E6',
+    borderColor: cores.bordaSuave,
     boxShadow: '0px 8px 24px rgba(62, 39, 35, 0.12)',
     elevation: 4,
   },

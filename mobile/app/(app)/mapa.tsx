@@ -159,5 +159,5 @@ const styles = StyleSheet.create({
   mapa: { minHeight: 320 },
   card: { backgroundColor: cores.branco, borderRadius: 16, padding: 16, gap: 12, elevation: 2, boxShadow: '0px 2px 4px rgba(0,0,0,0.12)' },
   titulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
-  vazio: { color: '#666', textAlign: 'center' },
+  vazio: { color: cores.textoSecundario, textAlign: 'center' },
 });

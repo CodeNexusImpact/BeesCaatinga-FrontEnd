@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     container: {
         marginVertical: 10,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: temaCores.bordaSuave,
         borderRadius: 8,
         overflow: 'hidden',
     },
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: cores.base[10],
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: temaCores.bordaSuave,
         justifyContent: 'space-between',
     },
     circle: {
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     },
     subItemDescription: {
         fontSize: 12,
-        color: '#666',
+        color: temaCores.textoSecundario,
     },
 });
 

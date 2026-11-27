@@ -1,3 +1,4 @@
+import cores from '@/constants/cores';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
@@ -7,7 +8,7 @@ const DivisionLine = () => {
 
 const styles = StyleSheet.create({
   line: {
-    borderBottomColor: '#ccc', // Color of the line
+    borderBottomColor: cores.bordaSuave, // Color of the line
     borderBottomWidth: 1,      // Thickness of the line
     width: '100%', 
   },

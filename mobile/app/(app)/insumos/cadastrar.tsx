@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   inputDisabled: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: cores.superficieAlternativa,
   },
   checkboxContainer: {
     flexDirection: 'row',

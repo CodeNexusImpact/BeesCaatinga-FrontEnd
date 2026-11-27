@@ -12,6 +12,9 @@ const TAMANHOS = [
   { nome: '390x844', width: 390, height: 844, mobile: true },
   { nome: '768x1024', width: 768, height: 1024, mobile: true },
   { nome: '1366x768', width: 1366, height: 768, mobile: false },
+  // Tema escuro e texto muito grande (preferências do app gravadas no localStorage antes de abrir).
+  { nome: '390x844-escuro', width: 390, height: 844, mobile: true, prefs: { bees_tema: 'escuro' } },
+  { nome: '390x844-texto-grande', width: 390, height: 844, mobile: true, prefs: { bees_tamanho_texto: 'muito-grande' } },
 ];
 const PASTA = `${__dirname}/screenshots/matriz`;
 const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy;
@@ -66,6 +69,36 @@ function inspecionar() {
       problemas.push(`campo coberto: "${el.placeholder || el.getAttribute('aria-label')}" por <${topo.tagName.toLowerCase()}> "${(topo.innerText || '').trim().slice(0, 30)}"`);
     }
   }
+  // Contraste de texto (mínimo 3:1, texto grande AA) contra o fundo efetivo.
+  const rgb = (c) => (c.match(/[\d.]+/g) || []).map(Number);
+  const lum = ([r, g, b]) => {
+    const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  };
+  const fundo = (el) => {
+    for (let p = el; p; p = p.parentElement) {
+      const c = rgb(getComputedStyle(p).backgroundColor);
+      if (c.length >= 3 && (c.length < 4 || c[3] > 0.5)) return c;
+    }
+    return [255, 255, 255];
+  };
+  const textos = [...document.querySelectorAll('div[dir], span, a')].filter(
+    (el) => visivel(el) && !el.closest('.leaflet-container') && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 1),
+  );
+  let baixos = 0;
+  const exemplos = [];
+  for (const el of textos.slice(0, 400)) {
+    const cor = rgb(getComputedStyle(el).color);
+    if (cor.length >= 4 && cor[3] < 0.5) continue;
+    const a = lum(cor);
+    const b = lum(fundo(el));
+    const razao = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    if (razao < 3) {
+      baixos++;
+      if (exemplos.length < 3) exemplos.push(`"${el.innerText.trim().slice(0, 25)}" ${razao.toFixed(1)}:1`);
+    }
+  }
+  if (baixos) problemas.push(`contraste baixo em ${baixos} texto(s): ${exemplos.join(', ')}`);
   return [...new Set(problemas)];
 }
 
@@ -97,7 +130,7 @@ function inspecionar() {
 
   const browser = await chromium.launch(PROXY ? { proxy: { server: PROXY, bypass: 'localhost,127.0.0.1' } } : {});
   const matriz = {};
-  for (const t of TAMANHOS) {
+  for (const t of TAMANHOS.filter((x) => !process.env.MATRIZ || process.env.MATRIZ.split(',').includes(x.nome))) {
     const context = await browser.newContext({
       viewport: { width: t.width, height: t.height }, isMobile: t.mobile, hasTouch: t.mobile, deviceScaleFactor: 1,
       permissions: ['geolocation'], geolocation: { latitude: -7.0247, longitude: -37.2806 }, locale: 'pt-BR',
@@ -111,6 +144,7 @@ function inspecionar() {
         return route.fulfill({ response: resp, headers: { ...resp.headers(), ...cors } });
       });
     }
+    if (t.prefs) await context.addInitScript((p) => Object.entries(p).forEach(([k, v]) => localStorage.setItem(k, v)), t.prefs);
     const page = await context.newPage();
     page.on('dialog', (d) => d.accept());
     fs.mkdirSync(`${PASTA}/${t.nome}`, { recursive: true });

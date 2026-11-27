@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     data: {
         fontSize: 12,
         fontWeight: '300',
-        color: '#666',
+        color: cores.textoSecundario,
         textAlign: 'left',
         marginTop: 4,
     },

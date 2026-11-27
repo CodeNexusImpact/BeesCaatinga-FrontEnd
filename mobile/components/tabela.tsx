@@ -178,18 +178,18 @@ export default function Tabela<T extends object>({ colunas, data, vazio = 'Nenhu
 }
 
 const styles = StyleSheet.create({
-  moldura: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E1E3E6', overflow: 'hidden' },
+  moldura: { width: '100%', backgroundColor: cores.superficie, borderRadius: 12, borderWidth: 1, borderColor: cores.bordaSuave, overflow: 'hidden' },
   linha: { flexDirection: 'row', minHeight: 48, alignItems: 'stretch' },
   cabecalho: { backgroundColor: cores.primaria },
-  zebra: { backgroundColor: '#FDF7E9' },
+  zebra: { backgroundColor: cores.destaque },
   celula: { paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
   celulaNumero: { justifyContent: 'flex-end' },
   textoCabecalho: { fontWeight: 'bold', fontSize: 15, color: cores.textoSobrePrimaria, flexShrink: 1 },
   textoCelula: { fontSize: 15, color: cores.texto, flexShrink: 1 },
   cartoes: { gap: 10, width: '100%' },
-  mais: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 1, borderTopColor: '#E1E3E6' },
+  mais: { minHeight: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 1, borderTopColor: cores.bordaSuave },
   maisTexto: { fontSize: 16, fontWeight: 'bold', color: cores.secundaria },
-  cartao: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E1E3E6', borderLeftWidth: 5, borderLeftColor: cores.primaria, padding: 12, gap: 6 },
+  cartao: { backgroundColor: cores.superficie, borderRadius: 12, borderWidth: 1, borderColor: cores.bordaSuave, borderLeftWidth: 5, borderLeftColor: cores.primaria, padding: 12, gap: 6 },
   cartaoTitulo: { fontSize: 17, fontWeight: 'bold', color: cores.texto },
   cartaoLinha: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   cartaoRotulo: { fontSize: 14, color: cores.textoSecundario, flexShrink: 0 },

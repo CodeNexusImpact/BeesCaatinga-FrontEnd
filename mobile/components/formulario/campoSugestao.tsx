@@ -80,10 +80,10 @@ export default function CampoSugestao({ rotulo, valor, onChange, placeholder, di
 const styles = StyleSheet.create({
   container: { gap: 4, width: '100%', position: 'relative' },
   rotulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
-  input: { borderWidth: 1, borderColor: '#8a8a8a', borderRadius: 8, paddingHorizontal: 12, minHeight: 48, fontSize: 17, backgroundColor: '#fff' },
+  input: { borderWidth: 1, borderColor: cores.borda, borderRadius: 8, paddingHorizontal: 12, minHeight: 48, fontSize: 17, backgroundColor: cores.superficie },
   multi: { minHeight: 90, paddingTop: 10, textAlignVertical: 'top' },
-  lista: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, overflow: 'hidden', elevation: 4, boxShadow: '0px 2px 6px rgba(0,0,0,0.15)' },
-  item: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  lista: { backgroundColor: cores.superficie, borderWidth: 1, borderColor: cores.bordaSuave, borderRadius: 8, overflow: 'hidden', elevation: 4, boxShadow: '0px 2px 6px rgba(0,0,0,0.15)' },
+  item: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: cores.bordaSuave },
   itemTexto: { fontSize: 16, color: cores.texto },
-  dica: { fontSize: 14, color: '#555' },
+  dica: { fontSize: 14, color: cores.textoSecundario },
 });

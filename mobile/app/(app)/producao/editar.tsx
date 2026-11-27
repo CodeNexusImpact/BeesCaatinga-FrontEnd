@@ -267,8 +267,8 @@ const styles = StyleSheet.create({
         marginTop: layout.espacamento.social,
     },
     idInput: {
-        backgroundColor: '#EEEEEE',
-        borderColor: '#DDDDDD',
+        backgroundColor: cores.superficieAlternativa,
+        borderColor: cores.bordaSuave,
     },
     conversaoInput: {
         backgroundColor: cores.cores.primaria[10],

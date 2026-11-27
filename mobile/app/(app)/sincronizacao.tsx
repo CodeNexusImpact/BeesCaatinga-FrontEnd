@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: cores.branco, borderRadius: 12, padding: 14, gap: 4, elevation: 2, boxShadow: '0px 2px 4px rgba(0,0,0,0.12)' },
   titulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
   texto: { fontSize: 15, color: cores.texto },
-  data: { fontSize: 13, color: '#555' },
-  erro: { fontSize: 14, color: '#C62828', fontWeight: '600' },
+  data: { fontSize: 13, color: cores.textoSecundario },
+  erro: { fontSize: 14, color: cores.perigo, fontWeight: '600' },
 });

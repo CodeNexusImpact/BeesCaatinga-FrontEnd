@@ -91,6 +91,6 @@ const styles = StyleSheet.create({
   linha: { flexDirection: 'row', gap: 10 },
   campo: { flex: 1, gap: 4 },
   sub: { fontSize: 14, color: cores.texto },
-  input: { borderWidth: 1, borderColor: '#8a8a8a', borderRadius: 8, paddingHorizontal: 12, minHeight: 48, fontSize: 17, backgroundColor: '#fff' },
-  dica: { fontSize: 13, color: '#555' },
+  input: { borderWidth: 1, borderColor: cores.borda, borderRadius: 8, paddingHorizontal: 12, minHeight: 48, fontSize: 17, backgroundColor: cores.superficie },
+  dica: { fontSize: 13, color: cores.textoSecundario },
 });

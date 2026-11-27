@@ -32,7 +32,7 @@ export default function Filtros({ children, titulo = 'Filtros', resumo }: Props)
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E1E3E6', padding: 14, gap: 10, zIndex: 50, width: '100%' },
+  card: { backgroundColor: cores.superficie, borderRadius: 16, borderWidth: 1, borderColor: cores.bordaSuave, padding: 14, gap: 10, zIndex: 50, width: '100%' },
   titulo: { fontSize: 17, fontWeight: 'bold', color: cores.texto },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   item: { flexGrow: 1, flexBasis: 220, minWidth: 0, maxWidth: '100%' },

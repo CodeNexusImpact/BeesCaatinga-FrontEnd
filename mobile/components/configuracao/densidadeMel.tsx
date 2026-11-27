@@ -76,7 +76,7 @@ export default function DensidadeMel() {
 const styles = StyleSheet.create({
   card: { backgroundColor: cores.branco, borderRadius: 12, padding: 14, gap: 8, marginVertical: 8 },
   rotulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
-  input: { borderWidth: 1, borderColor: '#8a8a8a', borderRadius: 8, paddingHorizontal: 12, minHeight: 48, fontSize: 17, backgroundColor: '#fff' },
-  dica: { fontSize: 14, color: '#555' },
-  erro: { fontSize: 14, color: '#C62828', fontWeight: '600' },
+  input: { borderWidth: 1, borderColor: cores.borda, borderRadius: 8, paddingHorizontal: 12, minHeight: 48, fontSize: 17, backgroundColor: cores.superficie },
+  dica: { fontSize: 14, color: cores.textoSecundario },
+  erro: { fontSize: 14, color: cores.perigo, fontWeight: '600' },
 });

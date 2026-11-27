@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     row: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: layout.espacamento.amigavel },
     inputMetade: { flexGrow: 1, flexBasis: 240 },
     textArea: { minHeight: 100, textAlignVertical: 'top' },
-    inputDisabled: { backgroundColor: '#f0f0f0' },
+    inputDisabled: { backgroundColor: cores.superficieAlternativa },
     checkboxContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -8 },
     checkboxLabel: { fontSize: 14, color: cores.texto },
     button: { marginTop: layout.espacamento.social },

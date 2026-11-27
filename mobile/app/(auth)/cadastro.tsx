@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   textoTitulo: {
-    color: '#000',
+    color: cores.texto,
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 30,

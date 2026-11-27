@@ -28,7 +28,7 @@ export default function RedefinirSenha() {
 }
 
 const styles = StyleSheet.create({
-  aviso: { flexDirection: 'row', gap: 12, backgroundColor: '#FFF4D6', borderRadius: 12, padding: 14, alignItems: 'flex-start' },
+  aviso: { flexDirection: 'row', gap: 12, backgroundColor: cores.destaque, borderRadius: 12, padding: 14, alignItems: 'flex-start' },
   texto: { flex: 1, fontSize: 16, color: cores.texto, lineHeight: 23 },
   dica: { fontSize: 15, color: cores.textoSecundario, textAlign: 'center' },
 });

@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#e5e3df',
+    backgroundColor: cores.superficieAlternativa,
   },
   loadingContainer: {
     position: 'absolute',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: cores.superficieAlternativa,
   },
 });
 

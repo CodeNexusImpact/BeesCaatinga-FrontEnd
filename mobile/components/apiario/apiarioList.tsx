@@ -29,13 +29,13 @@ const ApiarioList: React.FC<{ apiario: ApiarioRetornoDTO }> = ({ apiario }) => {
                     <Text style={styles.number}>{id}</Text>
                     <Text style={styles.text}>{nome}</Text>
                 </TouchableOpacity>
-                {/* <Icon name={icon} size={24} color="black" /> */}
+                {/* <Icon name={icon} size={24} color={cores.texto} /> */}
                 <TouchableOpacity style={styles.header} onPress={() => setIsExpanded(!isExpanded)}>
                     <View style={styles.numberContainer} >
                         <Text style={styles.values}>{colmeiasAtivas}/{colmeiasTotal}</Text>
                     </View>
 
-                    <Icon name={isExpanded ? 'chevronUp' : 'chevronDown'} size={24} color="black" />
+                    <Icon name={isExpanded ? 'chevronUp' : 'chevronDown'} size={24} color={cores.texto} />
                 </TouchableOpacity>
             </View>
             {isExpanded && (
@@ -59,10 +59,10 @@ const styles = StyleSheet.create({
     container: {
         marginVertical: 10,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: cores.bordaSuave,
         borderRadius: 8,
         overflow: 'hidden',
-        color: '#888',
+        color: cores.textoSecundario,
     },
     header: {
         flexDirection: 'row',

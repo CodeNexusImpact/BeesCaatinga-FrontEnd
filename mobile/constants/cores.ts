@@ -99,9 +99,13 @@ export const identidade = {
     texto: escuro ? '#F3EEE8' : '#1F1A17',
     textoSecundario: escuro ? '#CFC6BC' : '#4A4A4A',
     borda: escuro ? '#6A6056' : '#8A7F72',
-    perigo: '#B71C1C',
-    sucesso: '#2E7D32',
-    aviso: '#8D5B00',
+    perigo: escuro ? '#EF9A9A' : '#B71C1C',
+    sucesso: escuro ? '#81C784' : '#2E7D32',
+    aviso: escuro ? '#FFCC80' : '#8D5B00',
+    info: escuro ? '#90CAF9' : '#1565C0',
+    superficieAlternativa: escuro ? '#2A2521' : '#F5F3EF',
+    destaque: escuro ? '#3A2F1A' : '#FFF4D6',
+    bordaSuave: escuro ? '#3A332D' : '#E1E3E6',
 };
 
 export const temaCores = {
@@ -115,6 +119,12 @@ export const temaCores = {
     secundariaActive: cores.secundaria[80],
     secundaria: escuro ? '#8D6E63' : identidade.marrom,
     superficie: identidade.superficie,
+    superficieAlternativa: identidade.superficieAlternativa,
+    destaque: identidade.destaque,
+    bordaSuave: identidade.bordaSuave,
+    info: identidade.info,
+    aviso: identidade.aviso,
+    textoSobreEscuro: '#FFFFFF',
     escuro,
     terciaria: cores.terciaria[100],
 

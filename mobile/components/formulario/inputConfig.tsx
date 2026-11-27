@@ -71,7 +71,7 @@ export default function InputConfig({
         return (
             <View style={styles.valueContainer}>
                 {iconName && (
-                    <Icon name={iconName} size={20} color="#8E8E93"/>
+                    <Icon name={iconName} size={20} color={cores.textoSecundario}/>
                 )}
                 {typeof value === 'string' && <Text style={styles.valueText}>{value}</Text>}
                 {showArrow && <Icon name="chevronRight" size={20} color="#C7C7CC" />}
@@ -104,14 +104,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: '#ffffff',
+        backgroundColor: cores.superficie,
         borderBottomWidth: 1,
         borderBottomColor: '#F2F2F7',
     },
     label: {
         fontSize: 17,
         fontWeight: '400',
-        color: '#000000',
+        color: cores.texto,
         flex: 1,
     },
     rightContent: {
@@ -127,12 +127,12 @@ const styles = StyleSheet.create({
     },
     valueText: {
         fontSize: 17,
-        color: '#8E8E93',
+        color: cores.textoSecundario,
         fontWeight: '400',
     },
     statusText: {
         fontSize: 17,
-        color: '#8E8E93',
+        color: cores.textoSecundario,
         fontWeight: '400',
         marginLeft: 8,
     },
@@ -152,14 +152,14 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     switchOff: {
-        backgroundColor: '#E9E9EA',
+        backgroundColor: cores.superficieAlternativa,
         alignItems: 'flex-start',
     },
     switchCircle: {
         width: 27,
         height: 27,
         borderRadius: 13.5,
-        backgroundColor: '#ffffff',
+        backgroundColor: cores.superficie,
         boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
         elevation: 1,
     },

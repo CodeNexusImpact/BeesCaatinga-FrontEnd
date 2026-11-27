@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     marginTop: 30,
-    color: '#666'
+    color: cores.textoSecundario
   },
   subtexto: {
     fontSize: 16,

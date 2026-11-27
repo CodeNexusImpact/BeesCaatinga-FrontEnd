@@ -282,5 +282,5 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 16, fontWeight: 'bold', color: cores.texto },
   linhaColmeia: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 },
   nomeColmeia: { fontSize: 16, color: cores.texto, flex: 1 },
-  dica: { fontSize: 14, color: '#555' },
+  dica: { fontSize: 14, color: cores.textoSecundario },
 });

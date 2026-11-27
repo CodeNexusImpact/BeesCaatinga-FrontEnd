@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   mapaPlaceholder: {
     height: 220,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: cores.bordaSuave,
     borderRadius: layout.borderRadius.r25,
     justifyContent: 'center',
     alignItems: 'center',

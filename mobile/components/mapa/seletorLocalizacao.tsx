@@ -129,8 +129,8 @@ const styles = StyleSheet.create({
   linha: { flexDirection: 'row', gap: 8 },
   campo: { flex: 1, gap: 4 },
   rotulo: { fontWeight: '600', color: cores.texto },
-  input: { borderWidth: 1, borderColor: '#999', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10, fontSize: 16, backgroundColor: '#fff' },
-  dica: { color: '#555', fontSize: 14 },
-  erro: { color: '#C62828', fontSize: 14, fontWeight: '600' },
-  ok: { color: '#2E7D32', fontSize: 14, fontWeight: '600' },
+  input: { borderWidth: 1, borderColor: cores.borda, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10, fontSize: 16, backgroundColor: cores.superficie },
+  dica: { color: cores.textoSecundario, fontSize: 14 },
+  erro: { color: cores.perigo, fontSize: 14, fontWeight: '600' },
+  ok: { color: cores.sucesso, fontSize: 14, fontWeight: '600' },
 });
