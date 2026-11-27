@@ -1,7 +1,7 @@
 import Botao from "@/components/formulario/botao";
 import Input from "@/components/formulario/input";
 import TelaAuth from "@/components/auth/telaAuth";
-import { useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { Text, View, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
 import cores from "@/constants/cores";
@@ -11,7 +11,9 @@ import { alerta } from '@/utils/alerta';
 
 
 function Login() {
-  const [email, setEmail] = useState(__DEV__ ? 'dev@produtor.com' : '');
+  // E-mail pré-preenchido ao voltar da recuperação de senha (/login?email=...).
+  const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
+  const [email, setEmail] = useState(emailParam || (__DEV__ ? 'dev@produtor.com' : ''));
   const [senha, setSenha] = useState(__DEV__ ? 'dev123' : '');
   const [loading, setLoading] = useState(false);
 
